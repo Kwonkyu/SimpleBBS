@@ -2,8 +2,15 @@ package com.haruhiism.bbs.service;
 
 import com.haruhiism.bbs.domain.BoardArticle;
 import com.haruhiism.bbs.repository.BoardRepository;
+import javafx.scene.control.Pagination;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BoardService {
@@ -15,15 +22,36 @@ public class BoardService {
         boardRepository.save(article);
     }
 
-    public void read(BoardArticle article){
+    public BoardArticle read(BoardArticle article){
+        Optional<BoardArticle> readArticle = boardRepository.findById(article.getBid());
+        if(readArticle.isEmpty()){
+            // TODO: throw exception?
+            return new BoardArticle();
+        } else {
+            return readArticle.get();
+        }
+    }
 
+    public BoardArticle read(Long bid){
+        Optional<BoardArticle> readArticle = boardRepository.findById(bid);
+        if(readArticle.isEmpty()){
+            // TODO: throw exception?
+            return new BoardArticle();
+        } else {
+            return readArticle.get();
+        }
+
+    }
+
+    public Page<BoardArticle> readAll(int pageNum, int pageSize){
+        return boardRepository.findAllByOrderByBidAsc(PageRequest.of(pageNum, pageSize));
     }
 
     public void update(BoardArticle article){
-
+        boardRepository.save(article);
     }
 
     public void delete(BoardArticle article){
-
+        boardRepository.delete(article);
     }
 }
