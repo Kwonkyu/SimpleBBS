@@ -12,13 +12,19 @@ import javax.persistence.Id;
 @ToString
 @EqualsAndHashCode(of = "bid")
 @Entity
+@RequiredArgsConstructor
 public class BoardArticle {
     // TODO: apply validation
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bid;
 
+    @NonNull
     private String writer;
+    @NonNull
     private String title;
+    @NonNull
     private String content;
+
+    public BoardArticle(){}
 }

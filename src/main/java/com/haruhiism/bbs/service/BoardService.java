@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.service;
 
 import com.haruhiism.bbs.domain.BoardArticle;
+import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.repository.BoardRepository;
 import javafx.scene.control.Pagination;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,20 +24,13 @@ public class BoardService {
     }
 
     public BoardArticle read(BoardArticle article){
-        Optional<BoardArticle> readArticle = boardRepository.findById(article.getBid());
-        if(readArticle.isEmpty()){
-            // TODO: throw exception?
-            return new BoardArticle();
-        } else {
-            return readArticle.get();
-        }
+        return read(article.getBid());
     }
 
     public BoardArticle read(Long bid){
         Optional<BoardArticle> readArticle = boardRepository.findById(bid);
         if(readArticle.isEmpty()){
-            // TODO: throw exception?
-            return new BoardArticle();
+            throw new NoArticleFoundException();
         } else {
             return readArticle.get();
         }
