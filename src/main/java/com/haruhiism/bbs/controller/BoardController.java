@@ -3,19 +3,15 @@ package com.haruhiism.bbs.controller;
 import com.haruhiism.bbs.domain.BoardArticle;
 import com.haruhiism.bbs.domain.BoardListCommand;
 import com.haruhiism.bbs.domain.BoardSubmitCommand;
-import com.haruhiism.bbs.exception.NoArticleFoundException;
-import com.haruhiism.bbs.repository.BoardRepository;
 import com.haruhiism.bbs.service.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @Controller
 @RequestMapping("/board")
@@ -23,6 +19,11 @@ public class BoardController {
 
     @Autowired
     private BoardService boardService;
+
+    @GetMapping("/")
+    public String redirectToList(){
+        return "redirect:/board/list";
+    }
 
     @GetMapping("/list")
     public String listBoardArticles(Model model,
