@@ -15,6 +15,9 @@ public class BoardSubmitCommand {
     @Length(max = 64)
     private String writer;
     @NotBlank
+    @Length(min = 4)
+    private String password;
+    @NotBlank
     @Length(max=256)
     private String title;
     @NotBlank
