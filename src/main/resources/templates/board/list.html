@@ -1,0 +1,51 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <title>SimpleBBS - articles</title>
+    <style>
+        .row {
+            border:1px solid black;
+        }
+
+        .row .odd {
+            background-color:gray;
+        }
+
+        .row .even {
+            background-color:white;
+        }
+
+        a .current {
+            font-weight:800;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to SimpleBBS</h1>
+
+    <table>
+        <tr class="row">
+            <th>NO</th><th>TITLE</th><th>WRITER</th>
+        </tr>
+        <tr class="row" th:each="article, state: ${articles}" th:classappend="${state.odd} == true ? odd : even">
+        	<td th:text="${article.bid}">-</td>
+            <!-- https://www.thymeleaf.org/doc/articles/standardurlsyntax.html -->
+            <td><a th:text="${article.title}" th:href="@{/board/read(bid=${article.bid})}">TITLE HERE</a></td>
+            <td th:text="${article.writer}">WRITER HERE</td>
+        </tr>
+    </table>
+
+    <div>
+        <a href="/board/write">WRITE</a>
+    </div>
+
+    <div>
+        <span th:each="i: ${#numbers.sequence(1, pages)}" th:classappend="${i-1 == currentPage} == true ? current : ''">
+            <a th:href="@{'/board/list?pageNum='+${i-1}}" th:text="${i}">-</a>
+        </span>
+    </div>
+</body>
+</html>

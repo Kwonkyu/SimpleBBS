@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${article.title}">Title - SimpleBBS</title>
+</head>
+<body>
+
+<div>
+    <div>
+        <h1 th:text="${article.title}">Title</h1>
+    </div>
+    <div>
+        <h3 th:text="${'-' + article.writer}">Writer</h3>
+    </div>
+
+    <div>
+        <p th:text="${article.content}">Content</p>
+    </div>
+
+    <div>
+        <a href="/board/list">List</a>
+        <a href="/board/list">Edit</a>
+        <a href="/board/list">Delete</a>
+    </div>
+</div>
+
+</body>
+</html>
