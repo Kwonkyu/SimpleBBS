@@ -1,10 +1,12 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.*;
-import com.haruhiism.bbs.service.BoardService;
+import com.haruhiism.bbs.exception.ArticleEditAuthFailedException;
+import com.haruhiism.bbs.exception.NoArticleFoundException;
+import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
+import com.haruhiism.bbs.service.BoardService.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,8 +17,6 @@ import javax.validation.Valid;
 @Controller
 @RequestMapping("/board")
 public class BoardController {
-
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     private BoardService boardService;
@@ -33,19 +33,21 @@ public class BoardController {
         if(bindingResult.hasErrors()){
             return "redirect:/board/list";
         }
-        Page<BoardArticle> articles = boardService.readAll(command.getPageNum(), command.getPageSize());
+        Page<BoardArticle> articles = boardService.readAllByPages(command.getPageNum(), command.getPageSize());
         model.addAttribute("articles", articles);
         model.addAttribute("currentPage", articles.getNumber());
         model.addAttribute("pages", articles.getTotalPages());
         return "board/list";
     }
 
+
     @GetMapping("/read")
     public String readBoardArticle(Model model, @RequestParam long bid) {
-        BoardArticle article = boardService.read(bid);
+        BoardArticle article = boardService.readArticle(bid);
         model.addAttribute("article", article);
         return "board/read";
     }
+
 
     @GetMapping("/write")
     public String writeBoardArticle(@ModelAttribute("command") BoardSubmitCommand command){
@@ -60,10 +62,15 @@ public class BoardController {
             // now write.html takes error object as model.
             return "board/write";
         }
-        BoardArticle boardArticle = new BoardArticle(command.getWriter(), passwordEncoder.encode(command.getPassword()), command.getTitle(), command.getContent());
-        boardService.create(boardArticle);
+        boardService.createArticle(new BoardArticle(
+                command.getWriter(),
+                command.getPassword(),
+                command.getTitle(),
+                command.getContent())
+        );
         return "redirect:/board/list";
     }
+
 
     @GetMapping("/edit")
     public String requestEditArticle(@ModelAttribute("command") BoardEditRequestCommand command){
@@ -72,24 +79,31 @@ public class BoardController {
 
     @PostMapping("/edit")
     public String authEditArticle(Model model, @ModelAttribute("command") BoardEditAuthCommand command){
-        BoardArticle readArticle = boardService.read(command.getBid());
-        if(passwordEncoder.matches(command.getPassword(), readArticle.getPassword())){
+        if(boardService.authEntityAccess(command.getBid(), command.getPassword())){
+            BoardArticle readArticle = boardService.readArticle(command.getBid());
             command.setWriter(readArticle.getWriter());
             command.setTitle(readArticle.getTitle());
             command.setContent(readArticle.getContent());
             return "board/edit";
         } else {
-            return "redirect:/board/list";
+            throw new ArticleEditAuthFailedException();
         }
     }
 
+
     @PostMapping("/edit/submit")
     public String submitEditArticle(BoardEditAuthCommand command){
-        BoardArticle editArticle = boardService.read(command.getBid());
-        if(passwordEncoder.matches(command.getPassword(), editArticle.getPassword())){
-            editArticle.setTitle(command.getTitle());
-            editArticle.setContent(command.getContent());
-            boardService.update(editArticle);
+        if(boardService.authEntityAccess(command.getBid(), command.getPassword())) {
+            try {
+                BoardArticle editArticle = boardService.readArticle(command.getBid());
+                editArticle.setTitle(command.getTitle());
+                editArticle.setContent(command.getContent());
+                boardService.updateArticle(editArticle);
+            } catch (NoArticleFoundException e){
+                throw new UpdateDeletedArticleException();
+            }
+        } else {
+            throw new ArticleEditAuthFailedException();
         }
 
         return "redirect:/board/list";

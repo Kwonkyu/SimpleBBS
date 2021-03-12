@@ -4,6 +4,11 @@
 </head>
 <body>
 <h1>Sorry! Requested service is not available.</h1>
-<p>Please check your request.</p>
+<p>Please check your request. You'll be automatically redirected to board list.</p>
 </body>
+<script>
+    setInterval(() => {
+        document.location="/board/list";
+    }, 3000);
+</script>
 </html>

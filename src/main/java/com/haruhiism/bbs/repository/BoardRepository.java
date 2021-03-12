@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface BoardRepository extends CrudRepository<BoardArticle, Long> {
 
     public Page<BoardArticle> findAllByOrderByBidAsc(Pageable pageable);
+
+    public void deleteByBid(Long bid);
 }
