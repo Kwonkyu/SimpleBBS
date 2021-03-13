@@ -18,7 +18,7 @@
             background-color:white;
         }
 
-        a .current {
+        span.current {
             font-weight:800;
         }
     </style>
@@ -43,8 +43,8 @@
     </div>
 
     <div>
-        <span th:each="i: ${#numbers.sequence(1, pages)}" th:classappend="${i-1 == currentPage} == true ? current : ''">
-            <a th:href="@{'/board/list?pageNum='+${i-1}}" th:text="${i}">-</a>
+        <span th:each="i: ${#numbers.sequence(0, pages)}" th:classappend="${i == currentPage} == true ? current : ''">
+            <a th:href="@{'/board/list?pageNum='+${i}}" th:text="${i+1}">-</a>
         </span>
     </div>
 </body>

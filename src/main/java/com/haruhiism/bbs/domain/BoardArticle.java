@@ -22,6 +22,8 @@ public class BoardArticle {
     @NonNull
     private String writer;
     @NonNull
+    private String password;
+    @NonNull
     private String title;
     @NonNull
     private String content;
