@@ -7,11 +7,13 @@ import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
 import com.haruhiism.bbs.service.BoardService.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Controller
@@ -57,11 +59,13 @@ public class BoardController {
     @PostMapping("/write")
     // @ModelAttribute automatically add annotated object to model. https://developer-joe.tistory.com/197
     public String submitBoardArticle(@ModelAttribute("command") @Valid BoardSubmitCommand command,
-                                     BindingResult bindingResult){
+                                     BindingResult bindingResult, HttpServletResponse response){
         if(bindingResult.hasErrors()){
             // now write.html takes error object as model.
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "board/write";
         }
+
         boardService.createArticle(new BoardArticle(
                 command.getWriter(),
                 command.getPassword(),

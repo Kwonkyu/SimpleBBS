@@ -5,9 +5,9 @@ Spring Boot Framework 및 Spring MVC에 익숙해지고 기본적인 웹 애플�
 Features 탭에 나열된 순서대로 개발할 예정입니다.
 ## Features
 ### Basic CRUD
-- [ ] 게시판 글 작성
-- [ ] 게시판 글 조회
-- [ ] 게시판 글 수정
+- [X] 게시판 글 작성
+- [X] 게시판 글 조회
+- [X] 게시판 글 수정
 - [ ] 게시판 글 삭제
 ### Board
 - [X] 게시판 글 페이징
