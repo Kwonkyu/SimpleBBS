@@ -132,4 +132,32 @@ public class BoardMvcTest {
 //        assertEquals(readArticle.getTitle(), originalTitle);
 //        assertEquals(readArticle.getContent(), originalContent);
     }
+
+    @Test
+    void deleteInvalidArticleTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
+        boardService.createArticle(boardArticle);
+
+        // when
+        mockMvc.perform(post("/board/remove")
+                .param("bid", "-1")
+                .param("password", "password"))
+                // then
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void requestInvalidDeleteArticleTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
+        boardService.createArticle(boardArticle);
+
+        // when
+        mockMvc.perform(post("/board/remove")
+                .param("bid", String.valueOf(boardArticle.getBid()))
+                .param("password", "THIS_IS_NOT_YOUR_PASSWORD"))
+                // then
+                .andExpect(status().isUnauthorized());
+    }
 }

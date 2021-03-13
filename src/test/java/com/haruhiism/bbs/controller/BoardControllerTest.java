@@ -70,4 +70,16 @@ class BoardControllerTest {
         assertThrows(UpdateDeletedArticleException.class, () -> boardService.updateArticle(boardArticle));
     }
 
+    @Test
+    void createAndDeleteArticleTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
+        boardService.createArticle(boardArticle);
+
+        // when
+        boardService.deleteArticle(boardArticle);
+
+        // then
+        assertThrows(NoArticleFoundException.class, () -> boardService.readArticle(boardArticle.getBid()));
+    }
 }
