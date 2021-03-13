@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public class BasicBoardService implements BoardService {
 
 
     @Override
+    @Transactional
     public void createArticle(BoardArticle article) {
         article.setPassword(dataEncoder.encode(article.getPassword()));
         boardRepository.save(article);
@@ -55,6 +57,7 @@ public class BasicBoardService implements BoardService {
 
 
     @Override
+    @Transactional
     public void updateArticle(BoardArticle boardArticle) {
         if(boardRepository.findById(boardArticle.getBid()).isEmpty()){
             throw new UpdateDeletedArticleException();
@@ -65,11 +68,13 @@ public class BasicBoardService implements BoardService {
 
 
     @Override
+    @Transactional
     public void deleteArticle(Long bid){
         boardRepository.deleteByBid(bid);
     }
 
     @Override
+    @Transactional
     public void deleteArticle(BoardArticle boardArticle) {
         boardRepository.delete(boardArticle);
     }

@@ -1,22 +1,15 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.BoardArticle;
-import com.haruhiism.bbs.exception.ArticleEditAuthFailedException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
 import com.haruhiism.bbs.service.BoardService.BoardService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
