@@ -28,8 +28,13 @@ public class BoardExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public String methodArgumentTypeMismatch(){
-        return "redirect:/not-available.html";
+    public String methodArgumentTypeMismatch(Model model, HttpServletResponse response){
+        // https://www.quora.com/Which-HTTP-code-is-best-suited-for-validation-errors-400-or-422
+        response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        model.addAttribute("errorTitle", "Invalid Parameter Type");
+        model.addAttribute("errorDescription", "Given parameter has un-processable entity. Check your request.");
+        return "board/error/request-failed";
+        // return "redirect:/not-available.html";
     }
 
     @ExceptionHandler(UpdateDeletedArticleException.class)
