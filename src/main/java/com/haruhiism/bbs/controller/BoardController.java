@@ -1,7 +1,7 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.*;
-import com.haruhiism.bbs.exception.ArticleEditAuthFailedException;
+import com.haruhiism.bbs.exception.ArticleAuthFailedException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
 import com.haruhiism.bbs.service.BoardService.BoardService;
@@ -90,7 +90,7 @@ public class BoardController {
             command.setContent(readArticle.getContent());
             return "board/edit";
         } else {
-            throw new ArticleEditAuthFailedException();
+            throw new ArticleAuthFailedException();
         }
     }
 
@@ -107,9 +107,25 @@ public class BoardController {
                 throw new UpdateDeletedArticleException();
             }
         } else {
-            throw new ArticleEditAuthFailedException();
+            throw new ArticleAuthFailedException();
         }
 
         return "redirect:/board/list";
+    }
+
+
+    @GetMapping("/remove")
+    public String requestRemoveArticle(@ModelAttribute("command") BoardRemoveRequestCommand command){
+        return "board/removeRequest";
+    }
+
+    @PostMapping("/remove")
+    public String authRemoveArticle(BoardRemoveRequestCommand command){
+        if(boardService.authEntityAccess(command.getBid(), command.getPassword())){
+            boardService.deleteArticle(command.getBid());
+            return "redirect:/board/list";
+        } else {
+            throw new ArticleAuthFailedException();
+        }
     }
 }

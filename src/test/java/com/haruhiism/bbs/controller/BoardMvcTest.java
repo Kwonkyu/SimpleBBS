@@ -1,8 +1,6 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.BoardArticle;
-import com.haruhiism.bbs.exception.ArticleEditAuthFailedException;
-import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.service.BoardService.BoardService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 
@@ -134,5 +131,33 @@ public class BoardMvcTest {
 //        readArticle = boardService.readArticle(boardArticle.getBid());
 //        assertEquals(readArticle.getTitle(), originalTitle);
 //        assertEquals(readArticle.getContent(), originalContent);
+    }
+
+    @Test
+    void deleteInvalidArticleTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
+        boardService.createArticle(boardArticle);
+
+        // when
+        mockMvc.perform(post("/board/remove")
+                .param("bid", "-1")
+                .param("password", "password"))
+                // then
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void requestInvalidDeleteArticleTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
+        boardService.createArticle(boardArticle);
+
+        // when
+        mockMvc.perform(post("/board/remove")
+                .param("bid", String.valueOf(boardArticle.getBid()))
+                .param("password", "THIS_IS_NOT_YOUR_PASSWORD"))
+                // then
+                .andExpect(status().isUnauthorized());
     }
 }

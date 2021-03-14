@@ -19,7 +19,7 @@ public class BoardExceptionHandler {
         return "board/error/request-failed";
     }
 
-    @ExceptionHandler(ArticleEditAuthFailedException.class)
+    @ExceptionHandler(ArticleAuthFailedException.class)
     public String articleEditAuthFailed(Model model, HttpServletResponse response) {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         model.addAttribute("errorTitle", "Requested Operation Not Permitted.");
