@@ -1,7 +1,7 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.domain.BoardArticle;
-import com.haruhiism.bbs.service.BoardService.BoardService;
+import com.haruhiism.bbs.domain.entity.BoardArticle;
+import com.haruhiism.bbs.service.article.ArticleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BoardMvcTest {
 
     @Autowired
-    BoardService boardService;
+    ArticleService articleService;
 
     @Autowired
     MockMvc mockMvc;
@@ -85,11 +85,11 @@ public class BoardMvcTest {
     void requestInvalidEditArticleTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
-        boardService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle);
 
         // when
         mockMvc.perform(post("/board/edit")
-                .param("bid", String.valueOf(boardArticle.getBid()))
+                .param("bid", String.valueOf(boardArticle.getArticleID()))
                 .param("password", "THIS_IS_NOT_YOUR_PASSWORD"))
                 // then
                 .andExpect(status().isUnauthorized());
@@ -101,7 +101,7 @@ public class BoardMvcTest {
         String originalTitle = "don't_edit_me_title";
         String originalContent = "don't_edit_me_content";
         BoardArticle boardArticle = new BoardArticle("writer", "password", originalTitle, originalContent);
-        boardService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle);
 
         // when
         mockMvc.perform(post("/board/edit/submit")
@@ -113,7 +113,7 @@ public class BoardMvcTest {
                 // then
                 .andExpect(status().isNotFound());
         // then
-        BoardArticle readArticle = boardService.readArticle(boardArticle.getBid());
+        BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
         assertEquals(readArticle.getTitle(), originalTitle);
         assertEquals(readArticle.getContent(), originalContent);
 
@@ -137,7 +137,7 @@ public class BoardMvcTest {
     void deleteInvalidArticleTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
-        boardService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle);
 
         // when
         mockMvc.perform(post("/board/remove")
@@ -151,11 +151,11 @@ public class BoardMvcTest {
     void requestInvalidDeleteArticleTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
-        boardService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle);
 
         // when
         mockMvc.perform(post("/board/remove")
-                .param("bid", String.valueOf(boardArticle.getBid()))
+                .param("bid", String.valueOf(boardArticle.getArticleID()))
                 .param("password", "THIS_IS_NOT_YOUR_PASSWORD"))
                 // then
                 .andExpect(status().isUnauthorized());

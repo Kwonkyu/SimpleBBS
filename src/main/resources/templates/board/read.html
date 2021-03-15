@@ -2,27 +2,58 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${article.title}">Title - SimpleBBS</title>
+    <title th:text="${articleAndComments.article.title}">Title - SimpleBBS</title>
 </head>
 <body>
 
 <div>
     <div>
-        <h1 th:text="${article.title}">Title</h1>
+        <h1 th:text="${articleAndComments.article.title}">Title</h1>
     </div>
     <div>
-        <h3 th:text="${'-' + article.writer}">Writer</h3>
+        <h3 th:text="${'-' + articleAndComments.article.writer}">Writer</h3>
     </div>
 
     <div>
-        <p th:text="${article.content}">Content</p>
+        <p th:text="${articleAndComments.article.content}">Content</p>
     </div>
 
     <div>
         <a href="/board/list">List</a>
-        <a th:href="@{/board/edit(bid=${article.bid})}">Edit</a>
-        <a th:href="@{/board/remove(bid=${article.bid})}">Delete</a>
+        <a th:href="@{/board/edit(id=${articleAndComments.article.articleID})}">Edit</a>
+        <a th:href="@{/board/remove(id=${articleAndComments.article.articleID})}">Delete</a>
     </div>
+
+    <form action="/comment/create" method="post">
+        <input type="hidden" th:value="${articleAndComments.article.articleID}" name="articleID">
+        <table>
+            <caption>WRITE YOUR COMMENT...</caption>
+            <th>WRITER</th><th>PASSWORD</th><th>CONTENT</th>
+            <tr>
+                <td><input type="text" name="writer" required></td>
+                <td><input type="password" name="password" required></td>
+                <td><input type="text" name="content" required></td>
+            </tr>
+            <tr><td colspan="3"><input type="submit" value="Submit"></td></tr>
+        </table>
+    </form>
+
+    <table>
+        <caption>COMMENTS</caption>
+        <tr><th>NO</th><th>WRITER</th><th>COMMENT</th></tr>
+        <tr th:each="comment: ${articleAndComments.comments}">
+            <td th:text="${comment.commentID}">-</td>
+            <td th:text="${comment.writer}">WRITER HERE</td>
+            <td th:text="${comment.content}">COMMENT HERE</td>
+            <td>
+                <form action="/comment/remove" method="post">
+                    <input type="hidden" name="commentID" th:value="${comment.commentID}">
+                    <input type="submit" value="DELETE">
+                </form>
+            </td>
+        </tr>
+    </table>
+
 </div>
 
 </body>

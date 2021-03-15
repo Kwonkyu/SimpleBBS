@@ -28,13 +28,14 @@
 
     <table>
         <tr class="row">
-            <th>NO</th><th>TITLE</th><th>WRITER</th>
+            <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th>
         </tr>
-        <tr class="row" th:each="article, state: ${articles}" th:classappend="${state.odd} == true ? odd : even">
-        	<td th:text="${article.bid}">-</td>
+        <tr class="row" th:each="articleAndComment, state: ${articleAndComments}" th:classappend="${state.odd} == true ? odd : even">
+        	<td th:text="${articleAndComment.article.articleID}">-</td>
             <!-- https://www.thymeleaf.org/doc/articles/standardurlsyntax.html -->
-            <td><a th:text="${article.title}" th:href="@{/board/read(bid=${article.bid})}">TITLE HERE</a></td>
-            <td th:text="${article.writer}">WRITER HERE</td>
+            <td><a th:text="${articleAndComment.article.title}" th:href="@{/board/read(id=${articleAndComment.article.articleID})}">TITLE HERE</a></td>
+            <td th:text="${articleAndComment.article.writer}">WRITER HERE</td>
+            <td th:text="${articleAndComment.commentSize}">COMMENT SIZE HERE</td>
         </tr>
     </table>
 
@@ -42,9 +43,9 @@
         <a href="/board/write">WRITE</a>
     </div>
 
-    <div>
-        <span th:each="i: ${#numbers.sequence(0, pages)}" th:classappend="${i == currentPage} == true ? current : ''">
-            <a th:href="@{'/board/list?pageNum='+${i}}" th:text="${i+1}">-</a>
+    <div th:if="${pages > 0}">
+        <span th:each="i: ${#numbers.sequence(1, pages)}" th:classappend="${i == currentPage} == true ? current : ''">
+            <a th:href="@{'/board/list?pageNum='+${i-1}}" th:text="${i}">-</a>
         </span>
     </div>
 </body>

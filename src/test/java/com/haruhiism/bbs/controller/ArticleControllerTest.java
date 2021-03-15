@@ -1,9 +1,9 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.domain.BoardArticle;
+import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
-import com.haruhiism.bbs.service.BoardService.BoardService;
+import com.haruhiism.bbs.service.article.ArticleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,10 +13,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class BoardControllerTest {
+class ArticleControllerTest {
 
     @Autowired
-    BoardService boardService;
+    ArticleService articleService;
 
 
     @Test
@@ -26,8 +26,8 @@ class BoardControllerTest {
         BoardArticle boardArticle = new BoardArticle("writer01", "p@ssw0rd01", "title01", content);
 
         // when
-        boardService.createArticle(boardArticle);
-        BoardArticle readArticle = boardService.readArticle(boardArticle.getBid());
+        articleService.createArticle(boardArticle);
+        BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
 
         // then
         assertEquals(boardArticle, readArticle);
@@ -36,11 +36,11 @@ class BoardControllerTest {
     @Test
     void readInvalidArticleTest() throws Exception {
         assertThrows(NoArticleFoundException.class, () -> {
-            boardService.readArticle(-1L);
+            articleService.readArticle(-1L);
         });
 
         assertThrows(NoArticleFoundException.class, () -> {
-            boardService.readArticle(0L);
+            articleService.readArticle(0L);
         });
     }
 
@@ -48,14 +48,14 @@ class BoardControllerTest {
     void createAndEditArticleTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
-        boardService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle);
 
         boardArticle.setTitle("edited_title");
         boardArticle.setContent("edited_content");
-        boardService.updateArticle(boardArticle);
+        articleService.updateArticle(boardArticle);
 
         // when
-        BoardArticle readArticle = boardService.readArticle(boardArticle.getBid());
+        BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
 
         // then
         assertEquals("edited_title", readArticle.getTitle());
@@ -64,22 +64,22 @@ class BoardControllerTest {
         // when
         boardArticle.setTitle("delete_title");
         boardArticle.setContent("delete_content");
-        boardService.deleteArticle(boardArticle);
+        articleService.deleteArticle(boardArticle);
 
         // then
-        assertThrows(UpdateDeletedArticleException.class, () -> boardService.updateArticle(boardArticle));
+        assertThrows(UpdateDeletedArticleException.class, () -> articleService.updateArticle(boardArticle));
     }
 
     @Test
     void createAndDeleteArticleTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
-        boardService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle);
 
         // when
-        boardService.deleteArticle(boardArticle);
+        articleService.deleteArticle(boardArticle);
 
         // then
-        assertThrows(NoArticleFoundException.class, () -> boardService.readArticle(boardArticle.getBid()));
+        assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle.getArticleID()));
     }
 }

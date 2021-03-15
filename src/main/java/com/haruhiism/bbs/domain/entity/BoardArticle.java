@@ -1,23 +1,21 @@
-package com.haruhiism.bbs.domain;
+package com.haruhiism.bbs.domain.entity;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(of = "bid")
+@EqualsAndHashCode(of = "articleID")
 @Entity
 @RequiredArgsConstructor
 public class BoardArticle {
-    // TODO: apply validation
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long bid;
+    private Long articleID;
 
     @NonNull
     private String writer;
@@ -27,6 +25,10 @@ public class BoardArticle {
     private String title;
     @NonNull
     private String content;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "articleid")
+    private List<BoardComment> comments;
 
     public BoardArticle(){}
 }
