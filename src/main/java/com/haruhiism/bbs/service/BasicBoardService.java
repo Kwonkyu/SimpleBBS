@@ -25,7 +25,6 @@ public class BasicBoardService implements ArticleService, CommentService {
     private ArticleRepository articleRepository;
     @Autowired
     private CommentRepository commentRepository;
-    // TODO: detach comment logics from board service?
 
     @Autowired
     private DataEncoder dataEncoder;
@@ -90,13 +89,20 @@ public class BasicBoardService implements ArticleService, CommentService {
     @Override
     @Transactional
     public void createComment(BoardComment comment) {
+//        Optional<BoardArticle> commentedArticle = articleRepository.findById(comment.getArticleID());
+//        if(commentedArticle.isEmpty()){
+//            throw new NoArticleFoundException();
+//        } else {
+//            BoardArticle article = commentedArticle.get();
+//            article.getComments().add(comment);
+//            articleRepository.save(article);
+//        }
         Optional<BoardArticle> commentedArticle = articleRepository.findById(comment.getArticleID());
         if(commentedArticle.isEmpty()){
             throw new NoArticleFoundException();
         } else {
-            BoardArticle article = commentedArticle.get();
-            article.getComments().add(comment);
-            articleRepository.save(article);
+            comment.setPassword(dataEncoder.encode(comment.getPassword()));
+            commentRepository.save(comment);
         }
     }
 

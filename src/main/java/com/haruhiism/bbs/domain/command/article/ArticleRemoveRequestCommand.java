@@ -8,14 +8,14 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Positive;
 
 @Getter
 @Setter
 public class ArticleRemoveRequestCommand {
 
     @NotNull
-    @PositiveOrZero
+    @Positive
     private Long articleID;
     @NotBlank
     private String password;

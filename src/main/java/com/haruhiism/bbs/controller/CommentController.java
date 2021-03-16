@@ -25,10 +25,14 @@ public class CommentController {
 
 
     @PostMapping("/create")
-    public String createComment(@Valid CommentSubmitCommand command, HttpServletResponse response, BindingResult bindingResult) {
+    // order of parameter matters!!
+    public String createComment(@Valid CommentSubmitCommand command, BindingResult bindingResult, HttpServletResponse response) {
         if(bindingResult.hasErrors()){
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
-            return String.format("redirect:/board/read?id=%d", command.getArticleID());
+            if(command.getArticleID() == null){
+                return "redirect:/board/list";
+            } else {
+                return String.format("redirect:/board/read?id=%d", command.getArticleID());
+            }
         }
 
         commentService.createComment(new BoardComment(
