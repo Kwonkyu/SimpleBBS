@@ -76,7 +76,7 @@ public class BoardMvcTest {
     void readInvalidArticleTest() throws Exception {
         mockMvc.perform(get("/board/read")
                 .param("id", "-1"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnprocessableEntity());
 
         mockMvc.perform(get("/board/read")
                 .param("id", "abcd"))
@@ -114,7 +114,7 @@ public class BoardMvcTest {
                 .param("title", "edited_title")
                 .param("content", "edited_content"))
                 // then
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnprocessableEntity());
         // then
         BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
         assertEquals(readArticle.getTitle(), originalTitle);
@@ -154,7 +154,7 @@ public class BoardMvcTest {
                 .param("articleID", "-1")
                 .param("password", "password"))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -186,7 +186,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
 
 
         // given
@@ -196,7 +196,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
 
 
         // given
@@ -206,7 +206,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
 
         // given
         params.set("password", "comment-password");
@@ -215,7 +215,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -255,7 +255,7 @@ public class BoardMvcTest {
         mockMvc.perform(post("/comment/remove")
                 .params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
         assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
 
 
@@ -266,7 +266,7 @@ public class BoardMvcTest {
         mockMvc.perform(post("/comment/remove")
                 .params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
         assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
 
 
@@ -277,7 +277,7 @@ public class BoardMvcTest {
         mockMvc.perform(post("/comment/remove")
                 .params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
         assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
     }
 }

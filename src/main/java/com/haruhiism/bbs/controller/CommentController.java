@@ -26,15 +26,7 @@ public class CommentController {
 
     @PostMapping("/create")
     // order of parameter matters!!
-    public String createComment(@Valid CommentSubmitCommand command, BindingResult bindingResult, HttpServletResponse response) {
-        if(bindingResult.hasErrors()){
-            if(command.getArticleID() == null){
-                return "redirect:/board/list";
-            } else {
-                return String.format("redirect:/board/read?id=%d", command.getArticleID());
-            }
-        }
-
+    public String createComment(@Valid CommentSubmitCommand command) {
         commentService.createComment(new BoardComment(
                 command.getWriter(),
                 command.getPassword(),
@@ -50,11 +42,7 @@ public class CommentController {
     }
 
     @PostMapping("/remove")
-    public String submitRemoveComment(@Valid CommentRemoveRequestCommand command, BindingResult bindingResult) {
-        if(bindingResult.hasErrors()) {
-            return "redirect:board/list";
-        }
-
+    public String submitRemoveComment(@Valid CommentRemoveRequestCommand command) {
         if(commentService.authCommentAccess(command.getCommentID(), command.getPassword())) {
             Long commentedArticleID = commentService.readComment(command.getCommentID()).getArticleID();
             commentService.deleteComment(command.getCommentID());

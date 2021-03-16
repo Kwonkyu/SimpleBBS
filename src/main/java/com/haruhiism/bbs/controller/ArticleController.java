@@ -10,13 +10,11 @@ import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,13 +35,7 @@ public class ArticleController {
     }
 
     @GetMapping("/list")
-    public String listBoardArticles(Model model,
-                                    @Valid ArticleListCommand command,
-                                    BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            return "redirect:/board/list";
-        }
-
+    public String listBoardArticles(Model model, @Valid ArticleListCommand command){
         Page<BoardArticle> articles = articleService.readAllByPages(command.getPageNum(), command.getPageSize());
         // int[] articleCommentSizes = articles.get().mapToInt(boardArticle -> commentService.readAll(boardArticle.getArticleID()).size()).toArray();
 
@@ -58,27 +50,27 @@ public class ArticleController {
 
 
     @GetMapping("/read")
-    public String readBoardArticle(Model model, @RequestParam long id) {
+    public String readBoardArticle(Model model, @Valid ArticleReadCommand command) {
         // TODO: comment paging.
-        BoardArticle article = articleService.readArticle(id);
-        ArticleAndComments articleAndComments = new ArticleAndComments(article, commentService.readCommentsOfArticle(id));
+        BoardArticle article = articleService.readArticle(command.getId());
+        ArticleAndComments articleAndComments = new ArticleAndComments(article, commentService.readCommentsOfArticle(command.getId()));
         model.addAttribute("articleAndComments", articleAndComments);
         return "board/read";
     }
 
 
     @GetMapping("/write")
+    // no validation here because it's writing a new article.
     public String writeBoardArticle(@ModelAttribute("command") ArticleSubmitCommand command){
         return "board/write";
     }
 
     @PostMapping("/write")
     // @ModelAttribute automatically add annotated object to model. https://developer-joe.tistory.com/197
-    public String submitBoardArticle(@ModelAttribute("command") @Valid ArticleSubmitCommand command,
-                                     BindingResult bindingResult, HttpServletResponse response){
+    public String submitBoardArticle(@ModelAttribute("command") @Valid ArticleSubmitCommand command, BindingResult bindingResult){
         if(bindingResult.hasErrors()){
-            // now write.html takes error object as model.
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            // It has more priority than controller advice's exception handler.
+            // Validation should not be handled by exception handlers because of user feedback.
             return "board/write";
         }
 
@@ -93,18 +85,22 @@ public class ArticleController {
 
 
     @GetMapping("/edit")
-    public String requestEditArticle(Model model, @RequestParam("id") Long articleID){
-        model.addAttribute("articleID", articleID);
+    public String requestEditArticle(Model model, @Valid ArticleEditRequestCommand command){
+        model.addAttribute("articleID", command.getId());
         return "board/editRequest";
     }
 
     @PostMapping("/edit")
-    public String authEditArticle(Model model, @ModelAttribute("command") ArticleEditAuthCommand command){
+    public String authEditArticle(Model model, @ModelAttribute("command") @Valid ArticleEditAuthCommand command){
         if(articleService.authArticleAccess(command.getArticleID(), command.getPassword())){
             BoardArticle readArticle = articleService.readArticle(command.getArticleID());
-            command.setWriter(readArticle.getWriter());
-            command.setTitle(readArticle.getTitle());
-            command.setContent(readArticle.getContent());
+            BoardArticle editArticle = new BoardArticle(
+                    readArticle.getWriter(),
+                    command.getPassword(),
+                    readArticle.getTitle(),
+                    readArticle.getContent());
+            editArticle.setArticleID(command.getArticleID());
+            model.addAttribute("article", editArticle);
             return "board/edit";
         } else {
             throw new ArticleAuthFailedException();
@@ -113,7 +109,7 @@ public class ArticleController {
 
 
     @PostMapping("/edit/submit")
-    public String submitEditArticle(ArticleEditAuthCommand command){
+    public String submitEditArticle(@Valid ArticleEditSubmitCommand command){
         if(articleService.authArticleAccess(command.getArticleID(), command.getPassword())) {
             try {
                 BoardArticle editArticle = articleService.readArticle(command.getArticleID());
@@ -132,17 +128,13 @@ public class ArticleController {
 
 
     @GetMapping("/remove")
-    public String requestRemoveArticle(Model model, @RequestParam("id") Long articleID){
-        model.addAttribute("articleID", articleID);
+    public String requestRemoveArticle(Model model, @Valid ArticleRemoveRequestCommand command){
+        model.addAttribute("articleID", command.getId());
         return "board/removeRequest";
     }
 
     @PostMapping("/remove")
-    public String authRemoveArticle(@Valid ArticleRemoveRequestCommand command, BindingResult bindingResult){
-        if(bindingResult.hasErrors()) {
-            return "redirect:/board/list";
-        }
-
+    public String authRemoveArticle(@Valid ArticleRemoveAuthCommand command){
         if(articleService.authArticleAccess(command.getArticleID(), command.getPassword())){
             articleService.deleteArticle(command.getArticleID());
             return "redirect:/board/list";
