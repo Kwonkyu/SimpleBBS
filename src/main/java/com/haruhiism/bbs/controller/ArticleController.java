@@ -100,7 +100,7 @@ public class ArticleController {
 
     @PostMapping("/edit")
     public String authEditArticle(Model model, @ModelAttribute("command") ArticleEditAuthCommand command){
-        if(articleService.authEntityAccess(command.getArticleID(), command.getPassword())){
+        if(articleService.authArticleAccess(command.getArticleID(), command.getPassword())){
             BoardArticle readArticle = articleService.readArticle(command.getArticleID());
             command.setWriter(readArticle.getWriter());
             command.setTitle(readArticle.getTitle());
@@ -114,7 +114,7 @@ public class ArticleController {
 
     @PostMapping("/edit/submit")
     public String submitEditArticle(ArticleEditAuthCommand command){
-        if(articleService.authEntityAccess(command.getArticleID(), command.getPassword())) {
+        if(articleService.authArticleAccess(command.getArticleID(), command.getPassword())) {
             try {
                 BoardArticle editArticle = articleService.readArticle(command.getArticleID());
                 editArticle.setTitle(command.getTitle());
@@ -138,8 +138,12 @@ public class ArticleController {
     }
 
     @PostMapping("/remove")
-    public String authRemoveArticle(ArticleRemoveRequestCommand command){
-        if(articleService.authEntityAccess(command.getArticleID(), command.getPassword())){
+    public String authRemoveArticle(@Valid ArticleRemoveRequestCommand command, BindingResult bindingResult){
+        if(bindingResult.hasErrors()) {
+            return "redirect:/board/list";
+        }
+
+        if(articleService.authArticleAccess(command.getArticleID(), command.getPassword())){
             articleService.deleteArticle(command.getArticleID());
             return "redirect:/board/list";
         } else {

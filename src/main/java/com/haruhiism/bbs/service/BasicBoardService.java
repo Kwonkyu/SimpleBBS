@@ -3,6 +3,7 @@ package com.haruhiism.bbs.service;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
+import com.haruhiism.bbs.exception.NoCommentFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
@@ -58,10 +59,10 @@ public class BasicBoardService implements ArticleService, CommentService {
     @Override
     @Transactional
     public void updateArticle(BoardArticle boardArticle) {
-        if(articleRepository.findById(boardArticle.getArticleID()).isEmpty()){
-            throw new UpdateDeletedArticleException();
-        } else {
+        if(articleRepository.existsById(boardArticle.getArticleID())){
             articleRepository.save(boardArticle);
+        } else {
+            throw new UpdateDeletedArticleException();
         }
     }
 
@@ -69,7 +70,11 @@ public class BasicBoardService implements ArticleService, CommentService {
     @Override
     @Transactional
     public void deleteArticle(Long articleID){
-        articleRepository.deleteByArticleID(articleID);
+        if(articleRepository.existsById(articleID)) {
+            articleRepository.deleteByArticleID(articleID);
+        } else {
+            throw new NoArticleFoundException();
+        }
     }
 
     @Override
@@ -78,31 +83,41 @@ public class BasicBoardService implements ArticleService, CommentService {
         articleRepository.delete(boardArticle);
     }
 
-
     @Override
-    public boolean authEntityAccess(Long articleID, String rawPassword){
-        BoardArticle readArticle = readArticle(articleID);
-        return dataEncoder.compare(rawPassword, readArticle.getPassword());
+    public boolean authArticleAccess(Long articleID, String rawPassword) {
+        if(articleRepository.existsById(articleID)) {
+            BoardArticle readArticle = readArticle(articleID);
+            return dataEncoder.compare(rawPassword, readArticle.getPassword());
+        } else {
+            throw new NoArticleFoundException();
+        }
     }
+
 
 
     @Override
     @Transactional
     public void createComment(BoardComment comment) {
-//        Optional<BoardArticle> commentedArticle = articleRepository.findById(comment.getArticleID());
-//        if(commentedArticle.isEmpty()){
-//            throw new NoArticleFoundException();
 //        } else {
 //            BoardArticle article = commentedArticle.get();
 //            article.getComments().add(comment);
 //            articleRepository.save(article);
 //        }
-        Optional<BoardArticle> commentedArticle = articleRepository.findById(comment.getArticleID());
-        if(commentedArticle.isEmpty()){
-            throw new NoArticleFoundException();
-        } else {
+        if(articleRepository.existsById(comment.getArticleID())){
             comment.setPassword(dataEncoder.encode(comment.getPassword()));
             commentRepository.save(comment);
+        } else {
+            throw new NoArticleFoundException();
+        }
+    }
+
+    @Override
+    public BoardComment readComment(Long commentID) {
+        Optional<BoardComment> comment = commentRepository.findById(commentID);
+        if(comment.isEmpty()){
+            throw new NoCommentFoundException();
+        } else {
+            return comment.get();
         }
     }
 
@@ -124,19 +139,27 @@ public class BasicBoardService implements ArticleService, CommentService {
 
     @Override
     @Transactional
-    public void deleteAllCommentsOfArticle(Long articleID) {
-
-    }
-
-    @Override
-    @Transactional
     public void deleteComment(Long commentID) {
-
+        if(commentRepository.existsById(commentID)) {
+            commentRepository.deleteById(commentID);
+        } else {
+            throw new NoCommentFoundException();
+        }
     }
 
     @Override
     @Transactional
     public void deleteComment(BoardComment comment) {
+        commentRepository.delete(comment);
+    }
 
+    @Override
+    public boolean authCommentAccess(Long commentID, String rawPassword){
+        if(commentRepository.existsById(commentID)) {
+            BoardComment comment = readComment(commentID);
+            return dataEncoder.compare(rawPassword, comment.getPassword());
+        } else {
+            throw new NoCommentFoundException();
+        }
     }
 }

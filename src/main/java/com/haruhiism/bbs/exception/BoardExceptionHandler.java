@@ -44,4 +44,20 @@ public class BoardExceptionHandler {
         model.addAttribute("errordescription", "Article to update is not found. Maybe article is already deleted.");
         return "board/error/request-failed";
     }
+
+    @ExceptionHandler(NoCommentFoundException.class)
+    public String noCommentFound(Model model, HttpServletResponse response) {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
+        model.addAttribute("errorTitle", "Request Comment Not Found.");
+        model.addAttribute("errordescription", "Comment to remove is not found. Maybe comment is already deleted.");
+        return "board/error/request-failed";
+    }
+
+    @ExceptionHandler(CommentAuthFailedException.class)
+    public String commentAuthFailed(Model model, HttpServletResponse response) {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        model.addAttribute("errorTitle", "Requested Operation Not Permitted.");
+        model.addAttribute("errordescription", "You don't have privilege to edit this comment.");
+        return "board/error/request-failed";
+    }
 }
