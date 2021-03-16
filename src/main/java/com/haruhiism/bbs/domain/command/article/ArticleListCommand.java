@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.domain;
+package com.haruhiism.bbs.domain.command.article;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +9,7 @@ import javax.validation.constraints.PositiveOrZero;
 
 @Getter
 @Setter
-public class BoardListCommand {
+public class ArticleListCommand {
 
     @NotNull
     @PositiveOrZero

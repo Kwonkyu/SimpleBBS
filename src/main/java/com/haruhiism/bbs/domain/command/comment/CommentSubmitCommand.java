@@ -1,16 +1,20 @@
-package com.haruhiism.bbs.domain;
-
+package com.haruhiism.bbs.domain.command.comment;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
-@Getter
 @Setter
-public class BoardSubmitCommand {
+@Getter
+public class CommentSubmitCommand {
 
+    @NotNull
+    @Positive
+    private Long articleID;
     @NotBlank
     @Length(max = 64)
     private String writer;
@@ -18,10 +22,8 @@ public class BoardSubmitCommand {
     @Length(min = 4)
     private String password;
     @NotBlank
-    @Length(max=256)
-    private String title;
-    @NotBlank
-    @Length(max=65535)
+    @Length(max = 255)
     private String content;
+
 
 }

@@ -1,17 +1,13 @@
-package com.haruhiism.bbs.service.BoardService;
+package com.haruhiism.bbs.service.article;
 
-import com.haruhiism.bbs.domain.BoardArticle;
+import com.haruhiism.bbs.domain.entity.BoardArticle;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
-
-public interface BoardService {
+public interface ArticleService {
 
     public void createArticle(BoardArticle article);
 
     public BoardArticle readArticle(Long articleID);
-
-    public List<BoardArticle> readAll();
 
     public Page<BoardArticle> readAllByPages(int pageNum, int pageSize);
 
@@ -22,10 +18,10 @@ public interface BoardService {
     public void deleteArticle(BoardArticle boardArticle);
 
     /**
-     * Get entity by PK bid, compare password with V rawPassword.
-     * @param bid Primary Key to get entity from DB.
+     * Get entity by PK articleID, compare password with V rawPassword.
+     * @param articleID Primary Key to get entity from DB.
      * @param rawPassword Password to compare with entity's password.
      * @return Returns true if given raw password matches entity's decoded password else false.
      */
-    public boolean authEntityAccess(Long bid, String rawPassword);
+    public boolean authEntityAccess(Long articleID, String rawPassword);
 }
