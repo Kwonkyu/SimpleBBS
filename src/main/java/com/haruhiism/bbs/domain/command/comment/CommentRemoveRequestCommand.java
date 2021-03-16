@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.domain.command.article;
+package com.haruhiism.bbs.domain.command.comment;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,13 +7,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-@Setter
 @Getter
-public class ArticleEditAuthCommand {
+@Setter
+public class CommentRemoveRequestCommand {
 
     @NotNull
     @Positive
-    private Long articleID;
+    private Long commentID;
     @NotBlank
     private String password;
 }

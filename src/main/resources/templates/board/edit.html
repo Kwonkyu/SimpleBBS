@@ -6,15 +6,15 @@
 </head>
 <body>
 <div>
-    <form method="post" action="/board/edit/submit" th:object="${command}">
-        <input type="hidden" name="articleID" th:value="${command.articleID}">
+    <form method="post" action="/board/edit/submit" th:object="${article}">
+        <input type="hidden" name="articleID" th:value="${article.articleID}">
         <table>
             <tr>
                 <td>
                     <label for="form-writer">WRITER</label>
                 </td>
                 <td>
-                    <input id="form-writer" name="writer" type="text" th:value="${command.writer}" readonly>
+                    <input id="form-writer" name="writer" type="text" th:value="${article.writer}" readonly>
                 </td>
             </tr>
             <tr>
@@ -22,7 +22,7 @@
                     <label for="form-password">PASSWORD</label>
                 </td>
                 <td>
-                    <input id="form-password" name="password" type="password" th:value="${command.password}" readonly>
+                    <input id="form-password" name="password" type="password" th:value="${article.password}" readonly>
                 </td>
             </tr>
             <tr>
@@ -30,7 +30,7 @@
                     <label for="form-title">TITLE</label>
                 </td>
                 <td>
-                    <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? command.title : ''}" required>
+                    <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? article.title : ''}" required>
                 </td>
                 <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title is not valid.</td>
             </tr>
@@ -40,7 +40,7 @@
                     <label for="form-content">CONTENT</label>
                 </td>
                 <td>
-                    <textarea id="form-content" name="content" type="text" th:text="${#fields.hasErrors('content') == false ? command.content : ''}" required></textarea>
+                    <textarea id="form-content" name="content" type="text" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" required></textarea>
                 </td>
                 <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content is not valid.</td>
             </tr>

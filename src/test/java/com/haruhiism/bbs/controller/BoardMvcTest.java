@@ -13,8 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,7 +76,7 @@ public class BoardMvcTest {
     void readInvalidArticleTest() throws Exception {
         mockMvc.perform(get("/board/read")
                 .param("id", "-1"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnprocessableEntity());
 
         mockMvc.perform(get("/board/read")
                 .param("id", "abcd"))
@@ -115,7 +114,7 @@ public class BoardMvcTest {
                 .param("title", "edited_title")
                 .param("content", "edited_content"))
                 // then
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnprocessableEntity());
         // then
         BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
         assertEquals(readArticle.getTitle(), originalTitle);
@@ -145,10 +144,17 @@ public class BoardMvcTest {
 
         // when
         mockMvc.perform(post("/board/remove")
-                .param("articleID", "-1")
+                .param("articleID", String.valueOf(boardArticle.getArticleID()+1))
                 .param("password", "password"))
                 // then
                 .andExpect(status().isNotFound());
+
+        // when
+        mockMvc.perform(post("/board/remove")
+                .param("articleID", "-1")
+                .param("password", "password"))
+                // then
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -180,7 +186,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
 
 
         // given
@@ -190,7 +196,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
 
 
         // given
@@ -200,7 +206,7 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
 
         // given
         params.set("password", "comment-password");
@@ -209,6 +215,69 @@ public class BoardMvcTest {
         // when
         mockMvc.perform(post("/comment/create").params(params))
                 // then
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void requestInvalidDeleteCommentTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
+        articleService.createArticle(boardArticle);
+        BoardComment boardComment = new BoardComment("commenter", "password", "comment", boardArticle.getArticleID());
+        commentService.createComment(boardComment);
+
+        MultiValueMap<String, String> params = new HttpHeaders();
+        params.set("commentID", String.valueOf(boardComment.getCommentID()));
+        params.set("password", "THIS_IS_NOT_YOUR_PASSWORD");
+
+        // when
+        mockMvc.perform(post("/comment/remove")
+                .params(params))
+                // then
+                .andExpect(status().isUnauthorized());
+        assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
+    }
+
+
+    @Test
+    void deleteInvalidCommentTest() throws Exception {
+        // given
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
+        articleService.createArticle(boardArticle);
+        BoardComment boardComment = new BoardComment("commenter", "password", "comment", boardArticle.getArticleID());
+        commentService.createComment(boardComment);
+
+        MultiValueMap<String, String> params = new HttpHeaders();
+        params.set("commentID", "");
+        params.set("password", "password");
+
+        // when
+        mockMvc.perform(post("/comment/remove")
+                .params(params))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+        assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
+
+
+        params.set("commentID", "0");
+        params.set("password", "password");
+
+        // when
+        mockMvc.perform(post("/comment/remove")
+                .params(params))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+        assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
+
+
+        params.set("commentID", "-1");
+        params.set("password", "password");
+
+        // when
+        mockMvc.perform(post("/comment/remove")
+                .params(params))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+        assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
     }
 }

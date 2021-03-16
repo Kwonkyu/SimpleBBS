@@ -23,5 +23,5 @@ public interface ArticleService {
      * @param rawPassword Password to compare with entity's password.
      * @return Returns true if given raw password matches entity's decoded password else false.
      */
-    public boolean authEntityAccess(Long articleID, String rawPassword);
+    public boolean authArticleAccess(Long articleID, String rawPassword);
 }

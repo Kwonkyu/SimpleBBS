@@ -1,17 +1,17 @@
 package com.haruhiism.bbs.controller;
 
+import com.haruhiism.bbs.domain.command.comment.CommentRemoveRequestCommand;
 import com.haruhiism.bbs.domain.command.comment.CommentSubmitCommand;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
+import com.haruhiism.bbs.exception.CommentAuthFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -26,15 +26,7 @@ public class CommentController {
 
     @PostMapping("/create")
     // order of parameter matters!!
-    public String createComment(@Valid CommentSubmitCommand command, BindingResult bindingResult, HttpServletResponse response) {
-        if(bindingResult.hasErrors()){
-            if(command.getArticleID() == null){
-                return "redirect:/board/list";
-            } else {
-                return String.format("redirect:/board/read?id=%d", command.getArticleID());
-            }
-        }
-
+    public String createComment(@Valid CommentSubmitCommand command) {
         commentService.createComment(new BoardComment(
                 command.getWriter(),
                 command.getPassword(),
@@ -43,4 +35,20 @@ public class CommentController {
         return String.format("redirect:/board/read?id=%d", command.getArticleID());
     }
 
+    @GetMapping("/remove")
+    public String requestRemoveComment(Model model, @RequestParam("id") Long commentID){
+        model.addAttribute("commentID", commentID);
+        return "comment/removeRequest";
+    }
+
+    @PostMapping("/remove")
+    public String submitRemoveComment(@Valid CommentRemoveRequestCommand command) {
+        if(commentService.authCommentAccess(command.getCommentID(), command.getPassword())) {
+            Long commentedArticleID = commentService.readComment(command.getCommentID()).getArticleID();
+            commentService.deleteComment(command.getCommentID());
+            return String.format("redirect:/board/read?id=%d", commentedArticleID);
+        } else {
+            throw new CommentAuthFailedException();
+        }
+    }
 }

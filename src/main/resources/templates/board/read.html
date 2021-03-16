@@ -46,8 +46,8 @@
             <td th:text="${comment.writer}">WRITER HERE</td>
             <td th:text="${comment.content}">COMMENT HERE</td>
             <td>
-                <form action="/comment/remove" method="post">
-                    <input type="hidden" name="commentID" th:value="${comment.commentID}">
+                <form action="/comment/remove" method="get">
+                    <input type="hidden" name="id" th:value="${comment.commentID}">
                     <input type="submit" value="DELETE">
                 </form>
             </td>
