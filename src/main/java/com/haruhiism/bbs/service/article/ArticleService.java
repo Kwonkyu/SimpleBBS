@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 
 public interface ArticleService {
 
-    public void createArticle(BoardArticle article);
+    public void createArticle(BoardArticle ...articles);
 
     public BoardArticle readArticle(Long articleID);
 

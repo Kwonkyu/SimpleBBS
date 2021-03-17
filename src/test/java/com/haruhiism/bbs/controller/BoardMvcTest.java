@@ -31,6 +31,22 @@ public class BoardMvcTest {
     @Autowired
     MockMvc mockMvc;
 
+    // TODO: test codes for not only invalid but valid requests.
+    @Test
+    void createBoardArticleTest() throws Exception {
+        // given
+        HttpHeaders params = new HttpHeaders();
+
+        // when
+        params.set("writer", "writer");
+        params.set("password", "password");
+        params.set("title", "title");
+        params.set("content", "content");
+        mockMvc.perform(post("/board/write")
+                .params(params))
+                // then
+                .andExpect(status().is3xxRedirection());
+    }
 
     @Test
     void createInvalidBoardArticleTest() throws Exception {
@@ -279,5 +295,84 @@ public class BoardMvcTest {
                 // then
                 .andExpect(status().isUnprocessableEntity());
         assertDoesNotThrow(() -> commentService.readComment(boardComment.getCommentID()));
+    }
+
+    @Test
+    void requestSearchTest() throws Exception {
+        // given
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("mode", "WRITER");
+        headers.set("keyword", "normal_keyword");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+
+
+        // given
+        headers.set("mode", "TITLE");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+
+
+        // given
+        headers.set("mode", "CONTENT");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+
+
+        // given
+        headers.set("mode", "TITLE_CONTENT");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void requestInvalidSearchTest() throws Exception {
+        // given
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("mode", "UNAVAILABLE_MODE");
+        headers.set("keyword", "normal_keyword");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+
+
+        // given
+        headers.set("mode", "");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+
+
+        // given
+        headers.set("mode", "CONTENT");
+        headers.set("keyword", "");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isUnprocessableEntity());
     }
 }

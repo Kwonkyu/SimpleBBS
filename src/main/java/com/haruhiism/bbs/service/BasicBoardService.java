@@ -33,9 +33,11 @@ public class BasicBoardService implements ArticleService, CommentService {
 
     @Override
     @Transactional
-    public void createArticle(BoardArticle article) {
-        article.setPassword(dataEncoder.encode(article.getPassword()));
-        articleRepository.save(article);
+    public void createArticle(BoardArticle ...articles) {
+        for(BoardArticle article: articles){
+            article.setPassword(dataEncoder.encode(article.getPassword()));
+            articleRepository.save(article);
+        }
     }
 
 

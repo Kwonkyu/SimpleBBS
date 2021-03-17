@@ -10,6 +10,7 @@ import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +33,7 @@ public class ArticleController {
     @Autowired
     private CommentService commentService;
 
-
+    // TODO: pageSize option.
     @GetMapping("/list")
     public String listBoardArticles(Model model, @ModelAttribute("command") @Valid ArticleListCommand command){
         Page<BoardArticle> articles = articleService.readAllByPages(command.getPageNum(), command.getPageSize());
@@ -107,10 +109,11 @@ public class ArticleController {
 
     @PostMapping("/write")
     // @ModelAttribute automatically add annotated object to model. https://developer-joe.tistory.com/197
-    public String submitBoardArticle(@ModelAttribute("command") @Valid ArticleSubmitCommand command, BindingResult bindingResult){
+    public String submitBoardArticle(@ModelAttribute("command") @Valid ArticleSubmitCommand command, BindingResult bindingResult, HttpServletResponse response){
         if(bindingResult.hasErrors()){
             // It has more priority than controller advice's exception handler.
             // Validation should not be handled by exception handlers because of user feedback.
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "board/write";
         }
 
