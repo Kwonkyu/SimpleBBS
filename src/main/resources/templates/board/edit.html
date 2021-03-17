@@ -30,7 +30,7 @@
                     <label for="form-title">TITLE</label>
                 </td>
                 <td>
-                    <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? article.title : ''}" required>
+                    <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? article.title : ''}" maxlength="255" required>
                 </td>
                 <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title is not valid.</td>
             </tr>
@@ -40,7 +40,7 @@
                     <label for="form-content">CONTENT</label>
                 </td>
                 <td>
-                    <textarea id="form-content" name="content" type="text" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" required></textarea>
+                    <textarea id="form-content" name="content" type="text" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
                 </td>
                 <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content is not valid.</td>
             </tr>

@@ -30,9 +30,9 @@
             <caption>WRITE YOUR COMMENT...</caption>
             <th>WRITER</th><th>PASSWORD</th><th>CONTENT</th>
             <tr>
-                <td><input type="text" name="writer" required></td>
-                <td><input type="password" name="password" required></td>
-                <td><input type="text" name="content" required></td>
+                <td><input type="text" name="writer" maxlength="64" required></td>
+                <td><input type="password" name="password" minlength="4" required></td>
+                <td><input type="text" name="content" maxlength="255" required></td>
             </tr>
             <tr><td colspan="3"><input type="submit" value="Submit"></td></tr>
         </table>
