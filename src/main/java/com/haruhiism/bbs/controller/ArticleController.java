@@ -10,11 +10,16 @@ import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,24 +33,61 @@ public class ArticleController {
     @Autowired
     private CommentService commentService;
 
-
-    @GetMapping("/")
-    public String redirectToList(){
-        return "redirect:/board/list";
-    }
-
+    // TODO: pageSize option.
     @GetMapping("/list")
-    public String listBoardArticles(Model model, @Valid ArticleListCommand command){
+    public String listBoardArticles(Model model, @ModelAttribute("command") @Valid ArticleListCommand command){
         Page<BoardArticle> articles = articleService.readAllByPages(command.getPageNum(), command.getPageSize());
-        // int[] articleCommentSizes = articles.get().mapToInt(boardArticle -> commentService.readAll(boardArticle.getArticleID()).size()).toArray();
-
         List<ArticleAndComments> articleAndComments = new LinkedList<>();
-        articles.get().forEachOrdered(boardArticle -> articleAndComments.add(new ArticleAndComments(boardArticle, commentService.readCommentsOfArticle(boardArticle.getArticleID()).size())));
+        articles.get().forEachOrdered(boardArticle ->
+                articleAndComments.add(
+                        new ArticleAndComments(
+                                boardArticle,
+                                commentService.readCommentsOfArticle(boardArticle.getArticleID()).size()
+                        )
+                )
+        );
 
         model.addAttribute("articleAndComments", articleAndComments);
         model.addAttribute("currentPage", articles.getNumber());
         model.addAttribute("pages", articles.getTotalPages());
         return "board/list";
+    }
+
+
+    @GetMapping("/search")
+    public String searchArticles(Model model, @ModelAttribute("command") @Valid ArticleSearchCommand command) {
+        Page<BoardArticle> articles = null;
+        switch(command.getMode()) {
+            case WRITER:
+                articles = articleService.readAllByWriterByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+
+            case TITLE:
+                articles = articleService.readAllByTitleByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+
+            case CONTENT:
+                articles = articleService.readAllByContentByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+
+            case TITLE_CONTENT:
+                articles = articleService.readAllByTitleOrContentByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+        }
+        List<ArticleAndComments> articleAndComments = new LinkedList<>();
+        articles.get().forEachOrdered(boardArticle ->
+                articleAndComments.add(
+                        new ArticleAndComments(
+                                boardArticle,
+                                commentService.readCommentsOfArticle(boardArticle.getArticleID()).size()
+                        )
+                )
+        );
+
+        model.addAttribute("articleAndComments", articleAndComments);
+        model.addAttribute("currentPage", articles.getNumber());
+        model.addAttribute("pages", articles.getTotalPages());
+        return "board/search";
     }
 
 
@@ -67,10 +109,11 @@ public class ArticleController {
 
     @PostMapping("/write")
     // @ModelAttribute automatically add annotated object to model. https://developer-joe.tistory.com/197
-    public String submitBoardArticle(@ModelAttribute("command") @Valid ArticleSubmitCommand command, BindingResult bindingResult){
+    public String submitBoardArticle(@ModelAttribute("command") @Valid ArticleSubmitCommand command, BindingResult bindingResult, HttpServletResponse response){
         if(bindingResult.hasErrors()){
             // It has more priority than controller advice's exception handler.
             // Validation should not be handled by exception handlers because of user feedback.
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "board/write";
         }
 

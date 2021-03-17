@@ -10,11 +10,11 @@
             border:1px solid black;
         }
 
-        .row .odd {
-            background-color:gray;
+        .row.odd {
+            background-color:antiquewhite;
         }
 
-        .row .even {
+        .row.even {
             background-color:white;
         }
 
@@ -39,13 +39,35 @@
         </tr>
     </table>
 
+    <form action="/board/search" method="get">
+        <table>
+            <tr>
+                <td>
+                    <select name="mode">
+                        <option value="WRITER">Writer</option>
+                        <option value="TITLE">Title</option>
+                        <option value="CONTENT" selected>Content</option>
+                        <option value="TITLE_CONTENT">Title & Content</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="keyword" required>
+                </td>
+                <td>
+                    <input type="submit" value="Submit">
+                </td>
+            </tr>
+        </table>
+    </form>
+
     <div>
+        <a href="/board/list">LIST</a>
         <a href="/board/write">WRITE</a>
     </div>
 
     <div th:if="${pages > 0}">
         <span th:each="i: ${#numbers.sequence(1, pages)}" th:classappend="${i == currentPage} == true ? current : ''">
-            <a th:href="@{'/board/list?pageNum='+${i-1}}" th:text="${i}">-</a>
+            <a th:href="@{/board/list(pageNum=${i-1}, pageSize=${command.pageSize})}" th:text="${i}">-</a>
         </span>
     </div>
 </body>

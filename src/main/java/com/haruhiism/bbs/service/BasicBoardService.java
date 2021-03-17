@@ -33,9 +33,11 @@ public class BasicBoardService implements ArticleService, CommentService {
 
     @Override
     @Transactional
-    public void createArticle(BoardArticle article) {
-        article.setPassword(dataEncoder.encode(article.getPassword()));
-        articleRepository.save(article);
+    public void createArticle(BoardArticle ...articles) {
+        for(BoardArticle article: articles){
+            article.setPassword(dataEncoder.encode(article.getPassword()));
+            articleRepository.save(article);
+        }
     }
 
 
@@ -49,10 +51,29 @@ public class BasicBoardService implements ArticleService, CommentService {
         }
     }
 
-
     @Override
     public Page<BoardArticle> readAllByPages(int pageNum, int pageSize){
         return articleRepository.findAllByOrderByArticleIDDesc(PageRequest.of(pageNum, pageSize));
+    }
+
+    @Override
+    public Page<BoardArticle> readAllByWriterByPages(String writer, int pageNum, int pageSize) {
+        return articleRepository.findAllByWriterContainingOrderByArticleIDDesc(writer, PageRequest.of(pageNum, pageSize));
+    }
+
+    @Override
+    public Page<BoardArticle> readAllByTitleByPages(String title, int pageNum, int pageSize) {
+        return articleRepository.findAllByTitleContainingOrderByArticleIDDesc(title, PageRequest.of(pageNum, pageSize));
+    }
+
+    @Override
+    public Page<BoardArticle> readAllByContentByPages(String content, int pageNum, int pageSize) {
+        return articleRepository.findAllByContentContainingOrderByArticleIDDesc(content, PageRequest.of(pageNum, pageSize));
+    }
+
+    @Override
+    public Page<BoardArticle> readAllByTitleOrContentByPages(String keyword, int pageNum, int pageSize) {
+        return articleRepository.findAllByTitleContainingOrContentContainingOrderByArticleIDDesc(keyword, keyword, PageRequest.of(pageNum, pageSize));
     }
 
 
@@ -82,6 +103,7 @@ public class BasicBoardService implements ArticleService, CommentService {
     public void deleteArticle(BoardArticle boardArticle) {
         articleRepository.delete(boardArticle);
     }
+
 
     @Override
     public boolean authArticleAccess(Long articleID, String rawPassword) {

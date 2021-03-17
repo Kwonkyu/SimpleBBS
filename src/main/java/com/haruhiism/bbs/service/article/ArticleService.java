@@ -5,11 +5,19 @@ import org.springframework.data.domain.Page;
 
 public interface ArticleService {
 
-    public void createArticle(BoardArticle article);
+    public void createArticle(BoardArticle ...articles);
 
     public BoardArticle readArticle(Long articleID);
 
     public Page<BoardArticle> readAllByPages(int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByWriterByPages(String writer, int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByTitleByPages(String title, int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByContentByPages(String content, int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByTitleOrContentByPages(String keyword, int pageNum, int pageSize);
 
     public void updateArticle(BoardArticle boardArticle);
 
