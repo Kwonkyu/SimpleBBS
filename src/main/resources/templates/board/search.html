@@ -1,0 +1,74 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <title>SimpleBBS - searched articles</title>
+    <style>
+        .row {
+            border:1px solid black;
+        }
+
+        .row.odd {
+            background-color:antiquewhite;
+        }
+
+        .row.even {
+            background-color:white;
+        }
+
+        span.current {
+            font-weight:800;
+        }
+    </style>
+</head>
+<body>
+<h1>Welcome to SimpleBBS</h1>
+
+<table>
+    <tr class="row">
+        <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th>
+    </tr>
+    <tr class="row" th:each="articleAndComment, state: ${articleAndComments}" th:classappend="${state.odd} == true ? odd : even">
+        <td th:text="${articleAndComment.article.articleID}">-</td>
+        <!-- https://www.thymeleaf.org/doc/articles/standardurlsyntax.html -->
+        <td><a th:text="${articleAndComment.article.title}" th:href="@{/board/read(id=${articleAndComment.article.articleID})}">TITLE HERE</a></td>
+        <td th:text="${articleAndComment.article.writer}">WRITER HERE</td>
+        <td th:text="${articleAndComment.commentSize}">COMMENT SIZE HERE</td>
+    </tr>
+</table>
+
+<form action="/board/search" method="get">
+    <table>
+        <tr>
+            <td>
+                <select name="mode">
+                    <option value="WRITER" th:selected="${command.mode.name() == 'WRITER'}">Writer</option>
+                    <option value="TITLE" th:selected="${command.mode.name() == 'TITLE'}">Title</option>
+                    <option value="CONTENT" th:selected="${command.mode.name() == 'CONTENT'}">Content</option>
+                    <option value="TITLE_CONTENT" th:selected="${command.mode.name() == 'TITLE_CONTENT'}">Title & Content</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="keyword" th:value="${command.keyword}" required>
+            </td>
+            <td>
+                <input type="submit" value="Submit">
+            </td>
+        </tr>
+    </table>
+</form>
+
+<div>
+    <a href="/board/list">LIST</a>
+    <a href="/board/write">WRITE</a>
+</div>
+
+<div th:if="${pages > 0}">
+        <span th:each="i: ${#numbers.sequence(1, pages)}" th:classappend="${i == currentPage} == true ? current : ''">
+            <a th:href="@{/board/search(pageNum=${i-1}, pageSize=${command.pageSize}, keyword=${command.keyword}, mode=${command.mode})}" th:text="${i}">-</a>
+        </span>
+</div>
+</body>
+</html>

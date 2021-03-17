@@ -13,7 +13,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
 import java.util.LinkedList;
@@ -29,23 +32,60 @@ public class ArticleController {
     private CommentService commentService;
 
 
-    @GetMapping("/")
-    public String redirectToList(){
-        return "redirect:/board/list";
-    }
-
     @GetMapping("/list")
-    public String listBoardArticles(Model model, @Valid ArticleListCommand command){
+    public String listBoardArticles(Model model, @ModelAttribute("command") @Valid ArticleListCommand command){
         Page<BoardArticle> articles = articleService.readAllByPages(command.getPageNum(), command.getPageSize());
-        // int[] articleCommentSizes = articles.get().mapToInt(boardArticle -> commentService.readAll(boardArticle.getArticleID()).size()).toArray();
-
         List<ArticleAndComments> articleAndComments = new LinkedList<>();
-        articles.get().forEachOrdered(boardArticle -> articleAndComments.add(new ArticleAndComments(boardArticle, commentService.readCommentsOfArticle(boardArticle.getArticleID()).size())));
+        articles.get().forEachOrdered(boardArticle ->
+                articleAndComments.add(
+                        new ArticleAndComments(
+                                boardArticle,
+                                commentService.readCommentsOfArticle(boardArticle.getArticleID()).size()
+                        )
+                )
+        );
 
         model.addAttribute("articleAndComments", articleAndComments);
         model.addAttribute("currentPage", articles.getNumber());
         model.addAttribute("pages", articles.getTotalPages());
         return "board/list";
+    }
+
+
+    @GetMapping("/search")
+    public String searchArticles(Model model, @ModelAttribute("command") @Valid ArticleSearchCommand command) {
+        Page<BoardArticle> articles = null;
+        switch(command.getMode()) {
+            case WRITER:
+                articles = articleService.readAllByWriterByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+
+            case TITLE:
+                articles = articleService.readAllByTitleByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+
+            case CONTENT:
+                articles = articleService.readAllByContentByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+
+            case TITLE_CONTENT:
+                articles = articleService.readAllByTitleOrContentByPages(command.getKeyword(), command.getPageNum(), command.getPageSize());
+                break;
+        }
+        List<ArticleAndComments> articleAndComments = new LinkedList<>();
+        articles.get().forEachOrdered(boardArticle ->
+                articleAndComments.add(
+                        new ArticleAndComments(
+                                boardArticle,
+                                commentService.readCommentsOfArticle(boardArticle.getArticleID()).size()
+                        )
+                )
+        );
+
+        model.addAttribute("articleAndComments", articleAndComments);
+        model.addAttribute("currentPage", articles.getNumber());
+        model.addAttribute("pages", articles.getTotalPages());
+        return "board/search";
     }
 
 

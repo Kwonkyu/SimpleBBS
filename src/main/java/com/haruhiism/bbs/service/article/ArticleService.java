@@ -11,6 +11,14 @@ public interface ArticleService {
 
     public Page<BoardArticle> readAllByPages(int pageNum, int pageSize);
 
+    public Page<BoardArticle> readAllByWriterByPages(String writer, int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByTitleByPages(String title, int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByContentByPages(String content, int pageNum, int pageSize);
+
+    public Page<BoardArticle> readAllByTitleOrContentByPages(String keyword, int pageNum, int pageSize);
+
     public void updateArticle(BoardArticle boardArticle);
 
     public void deleteArticle(Long articleID);

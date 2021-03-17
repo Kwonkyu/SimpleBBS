@@ -2,18 +2,17 @@ package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.command.comment.CommentRemoveRequestCommand;
 import com.haruhiism.bbs.domain.command.comment.CommentSubmitCommand;
-import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import com.haruhiism.bbs.exception.CommentAuthFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Controller
