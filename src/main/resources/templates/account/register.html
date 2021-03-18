@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - SimpleBBS</title>
+</head>
+<body>
+
+<form action="/account/register" method="post" th:object="${command}">
+    <table>
+        <caption>REGISTER</caption>
+        <tr>
+            <td><label for="id-form">ID</label></td>
+            <td><input id="id-form" name="userid" type="text" th:value="*{userid}" required></td>
+            <td><span th:if="${#fields.hasErrors('userid')}" th:errors="*{userid}"></span></td>
+            <!-- *{} for accessing fields of th:object's object. -->
+        </tr>
+        <tr>
+            <td><label for="name-form">NAME</label></td>
+            <td><input id="name-form" name="username" type="text" th:value="*{username}" required></td>
+            <td><span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span></td>
+        </tr>
+        <tr>
+            <td><label for="password-form">PASSWORD</label></td>
+            <td><input id="password-form" name="password" type="password" th:value="*{password}" required></td>
+            <td><span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span></td>
+        </tr>
+        <tr>
+            <td><label for="email-form">EMAIL</label></td>
+            <td><input id="email-form" name="email" type="email" th:value="*{email}" required></td>
+            <td><span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span></td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Register"></td>
+        </tr>
+    </table>
+</form>
+
+</body>
+</html>

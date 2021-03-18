@@ -21,6 +21,9 @@ Features 탭에 나열된 순서대로 개발할 예정입니다.
 - [ ] 게시글 조회수 기록
 - [ ] 게시글 추천
 ### Auth
+- [X] 회원 가입
+- [ ] 이메일 인증
+- [ ] 회원 탈퇴
 - [ ] 로그인, 로그아웃
 - [ ] Spring Security 적용
 ### Back office
@@ -31,7 +34,6 @@ Features 탭에 나열된 순서대로 개발할 예정입니다.
 - Java 11
 - Spring Boot 2.4.3
 - Spring Data JPA
-- Spring Security
 - Thymeleaf
 - Lombok
 - JUnit

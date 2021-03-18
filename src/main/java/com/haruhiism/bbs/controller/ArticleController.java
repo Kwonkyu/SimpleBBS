@@ -1,7 +1,7 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.command.article.*;
-import com.haruhiism.bbs.domain.entity.ArticleAndComments;
+import com.haruhiism.bbs.domain.ArticleAndComments;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.ArticleAuthFailedException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
