@@ -63,7 +63,8 @@
     <div>
         <a href="/board/list">LIST</a>
         <a href="/board/write">WRITE</a>
-        <a href="/account/login">LOGIN.</a>
+        <a th:href="${session.loginSessionInfo == null ? '/account/login' : '/account/logout'}"
+           th:text="${session.loginSessionInfo == null ? 'LOGIN' : 'LOGOUT'}">LOGIN/LOGOUT</a>
         <a href="/account/register">REGISTER</a>
     </div>
 

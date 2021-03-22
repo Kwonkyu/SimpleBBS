@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.domain.command.article;
+package com.haruhiism.bbs.command.article;
 
 
 import lombok.Getter;

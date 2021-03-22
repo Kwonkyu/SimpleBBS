@@ -1,21 +1,19 @@
-package com.haruhiism.bbs.domain.command.article;
+package com.haruhiism.bbs.command.comment;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-@Setter
 @Getter
-public class ArticleEditAuthCommand {
+@Setter
+public class CommentRemoveRequestCommand {
 
     @NotNull
     @Positive
-    private Long articleID;
+    private Long commentID;
     @NotBlank
-    @Length(min = 4)
     private String password;
 }

@@ -1,9 +1,14 @@
 package com.haruhiism.bbs.controller;
 
+import com.haruhiism.bbs.command.account.LoginRequestCommand;
 import com.haruhiism.bbs.domain.AccountLevel;
-import com.haruhiism.bbs.domain.command.account.RegisterRequestCommand;
+import com.haruhiism.bbs.command.account.RegisterRequestCommand;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.exception.AuthenticationFailedException;
+import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.service.account.AccountService;
+import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -14,17 +19,16 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 
 @Controller
 @RequestMapping("/account")
+@RequiredArgsConstructor
 public class AccountController {
 
-    @Autowired
-    private AccountService accountService;
+    private final AccountService accountService;
 
     @GetMapping("/register")
     public String requestRegister(@ModelAttribute("command") RegisterRequestCommand command) {
@@ -52,13 +56,37 @@ public class AccountController {
 
 
     @GetMapping("/login")
-    public String requestLogin() {
-        return "redirect:/not-implemented.html";
+    public String requestLogin(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if(session == null){
+            return "account/login";
+        } else {
+            return "redirect:/board/list";
+        }
     }
 
     @PostMapping("/login")
-    public String submitLogin(){
-        return "redirect:/not-implemented.html";
+    public String submitLogin(@ModelAttribute(name = "command") @Valid LoginRequestCommand command, BindingResult bindingResult, HttpServletRequest request /*HttpSession session*/){
+        // session object is always given when HttpSession parameter is set. session object is either newly generated session or existing session.
+        if(bindingResult.hasErrors()) return "/account/login";
+        if(request.getSession(false) != null) return "/board/list";
+
+        try {
+            LoginSessionInfo loginSessionInfo = accountService.authenticateAccount(command.getUserid(), command.getPassword());
+            HttpSession session = request.getSession();
+            session.setAttribute("loginSessionInfo", loginSessionInfo);
+        } catch (AuthenticationFailedException | NoAccountFoundException e){
+            return "/account/login";
+        }
+
+        return "redirect:/board/list";
+    }
+
+
+    @GetMapping("/logout")
+    public String requestLogout(HttpSession session){
+        session.invalidate();
+        return "redirect:/board/list";
     }
 
 

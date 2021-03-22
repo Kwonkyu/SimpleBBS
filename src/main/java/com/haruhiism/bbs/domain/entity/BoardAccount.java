@@ -21,7 +21,7 @@ public class BoardAccount {
     private long accountID;
     @NonNull
     @NotBlank
-    private String userid;
+    private String userID;
     @NonNull
     @NotBlank
     @Length(min = 1)

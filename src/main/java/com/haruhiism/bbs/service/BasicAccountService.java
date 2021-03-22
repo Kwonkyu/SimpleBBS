@@ -3,10 +3,13 @@ package com.haruhiism.bbs.service;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
+import com.haruhiism.bbs.exception.AuthenticationFailedException;
+import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.account.AccountService;
+import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,23 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public boolean isDuplicatedAccountByID(String id) {
-        return accountRepository.existsByUserid(id);
+        return accountRepository.existsByUserID(id);
+    }
+
+    @Override
+    public LoginSessionInfo authenticateAccount(String id, String password) {
+        BoardAccount account = accountRepository.findByUserID(id)
+                .orElseThrow(NoAccountFoundException::new);
+
+        if(dataEncoder.compare(password, account.getPassword())){
+            return new LoginSessionInfo(account.getAccountID(),
+                    account.getUserID(),
+                    account.getUsername(),
+                    account.getPassword(),
+                    account.getEmail(),
+                    account.getLevels());
+        } else {
+            throw new AuthenticationFailedException();
+        }
     }
 }

@@ -1,7 +1,7 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.domain.command.comment.CommentRemoveRequestCommand;
-import com.haruhiism.bbs.domain.command.comment.CommentSubmitCommand;
+import com.haruhiism.bbs.command.comment.CommentRemoveRequestCommand;
+import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import com.haruhiism.bbs.exception.CommentAuthFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;

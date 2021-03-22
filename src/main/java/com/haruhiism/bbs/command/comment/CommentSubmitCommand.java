@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.domain.command.comment;
+package com.haruhiism.bbs.command.comment;
 
 import lombok.Getter;
 import lombok.Setter;
