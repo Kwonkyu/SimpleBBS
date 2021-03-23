@@ -5,22 +5,24 @@ import com.haruhiism.bbs.command.account.WithdrawRequestCommand;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.command.account.RegisterRequestCommand;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.LinkedList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/account")
@@ -108,7 +110,22 @@ public class AccountController {
 
 
     @GetMapping("/manage")
-    public String manage() {
-        return "redirect:/not-implemented.html";
+    public String manage(@RequestParam(name = "articlePage", required = false) Long page, Model model, HttpSession session) {
+        LoginSessionInfo loginSessionInfo = (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
+        Page<BoardArticle> boardArticles = accountService.readArticlesOfAccount(loginSessionInfo.getUserID(), page == null ? 0 : page);
+
+        model.addAttribute("userInfo", loginSessionInfo);
+        model.addAttribute("articleCount", boardArticles.getTotalElements());
+        model.addAttribute("pageCount", boardArticles.getTotalPages());
+        model.addAttribute("articles", boardArticles.getContent());
+
+        int[] pages = new int[boardArticles.getTotalPages()];
+        for(int i=0;i<pages.length;i++){
+            pages[i] = i;
+        }
+        model.addAttribute("currentPage", page == null ? 0 : page);
+        model.addAttribute("pages", pages);
+
+        return "account/info";
     }
 }

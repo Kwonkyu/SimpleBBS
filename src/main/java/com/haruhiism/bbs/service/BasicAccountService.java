@@ -3,27 +3,28 @@ package com.haruhiism.bbs.service;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
+import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.account.AccountService;
+import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class BasicAccountService implements AccountService {
 
-    @Autowired
-    private AccountRepository accountRepository;
-    @Autowired
-    private AccountLevelRepository accountLevelRepository;
-
-    @Autowired
-    private DataEncoder dataEncoder;
+    private final AccountRepository accountRepository;
+    private final AccountLevelRepository accountLevelRepository;
+    private final ArticleService articleService;
+    private final DataEncoder dataEncoder;
 
 
     @Override
@@ -40,8 +41,13 @@ public class BasicAccountService implements AccountService {
     }
 
     @Override
-    public boolean isDuplicatedAccountByID(String id) {
-        return accountRepository.existsByUserID(id);
+    public boolean isDuplicatedAccountByID(String userID) {
+        return accountRepository.existsByUserID(userID);
+    }
+
+    @Override
+    public Page<BoardArticle> readArticlesOfAccount(String userID, Long page) {
+        return articleService.readAllByWriterByPages(userID, 0, 10);
     }
 
     @Override

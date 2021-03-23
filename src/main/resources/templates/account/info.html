@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Information - SimpleBBS</title>
+    <style>
+        span.current {
+            font-weight:800;
+        }
+    </style>
+
+</head>
+<body>
+
+<div>
+    <div>
+        <h1 th:text="|Hello, ${userInfo.username}(${userInfo.userID})|"></h1>
+    </div>
+    <div>
+        <ul>
+            <li th:text="|Your EMAIL: ${userInfo.email}|">Your EMAIL: -</li>
+            <li th:text="|You've wrotten ${articleCount} articles.|"></li>
+        </ul>
+    </div>
+
+    <div>
+        <table>
+            <tr>
+                <th>ID</th><th>TITLE</th>
+            </tr>
+            <tr th:each="article: ${articles}">
+                <td>
+                    <span th:text="${article.articleID}">0</span>
+                </td>
+                <td>
+                    <a th:href="@{/board/read(id=${article.articleID})}" th:text="${article.title}">-</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <span th:each="page: ${pages}">
+            <a th:href="@{/account/manage(articlePage=${page})}" th:text="${page+1}" th:classappend="${page == currentPage ? current : ''}"></a>
+        </span>
+    </div>
+</div>
+</body>
+</html>
