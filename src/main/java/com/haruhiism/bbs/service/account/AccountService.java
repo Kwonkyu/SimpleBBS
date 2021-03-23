@@ -8,7 +8,11 @@ public interface AccountService {
 
     public void registerAccount(BoardAccount boardAccount, AccountLevel level);
 
+    public void withdrawAccount(BoardAccount boardAccount);
+
     public boolean isDuplicatedAccountByID(String id);
 
-    public LoginSessionInfo authenticateAccount(String id, String password);
+    public BoardAccount authenticateAccount(String id, String password);
+
+    public LoginSessionInfo loginAccount(String id, String password);
 }

@@ -35,14 +35,30 @@ public class BasicAccountService implements AccountService {
     }
 
     @Override
+    public void withdrawAccount(BoardAccount boardAccount) {
+        accountRepository.delete(boardAccount);
+    }
+
+    @Override
     public boolean isDuplicatedAccountByID(String id) {
         return accountRepository.existsByUserID(id);
     }
 
     @Override
-    public LoginSessionInfo authenticateAccount(String id, String password) {
+    public BoardAccount authenticateAccount(String id, String password) {
         BoardAccount account = accountRepository.findByUserID(id)
                 .orElseThrow(NoAccountFoundException::new);
+
+        if(!dataEncoder.compare(password, account.getPassword())){
+            throw new AuthenticationFailedException();
+        }
+
+        return account;
+    }
+
+    @Override
+    public LoginSessionInfo loginAccount(String id, String password) {
+        BoardAccount account = authenticateAccount(id, password);
 
         if(dataEncoder.compare(password, account.getPassword())){
             return new LoginSessionInfo(account.getAccountID(),
