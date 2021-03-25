@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AccountLevelRepository extends CrudRepository<BoardAccountLevel, Long> {
+
+    public void deleteAllByAccountID(Long accountID);
 }

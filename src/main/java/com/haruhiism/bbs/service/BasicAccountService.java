@@ -18,6 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class BasicAccountService implements AccountService {
@@ -38,6 +43,7 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public void withdrawAccount(BoardAccount boardAccount) {
+        accountLevelRepository.deleteAllByAccountID(boardAccount.getAccountID());
         accountRepository.delete(boardAccount);
     }
 
@@ -78,6 +84,7 @@ public class BasicAccountService implements AccountService {
     public LoginSessionInfo loginAccount(String id, String password) {
         BoardAccount account = authenticateAccount(id, password);
 
+        // TODO: duplicated auth?
         if(dataEncoder.compare(password, account.getPassword())){
             return accountToLoginSessionInfo(account);
         } else {

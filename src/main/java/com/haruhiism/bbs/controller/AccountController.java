@@ -10,6 +10,7 @@ import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,6 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
@@ -35,8 +37,9 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public String submitRegister(@ModelAttribute("command") @Valid RegisterRequestCommand command, BindingResult bindingResult){
+    public String submitRegister(HttpServletResponse response, @ModelAttribute("command") @Valid RegisterRequestCommand command, BindingResult bindingResult){
         if(bindingResult.hasErrors()) {
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "account/register";
         }
         if(accountService.isDuplicatedAccountByID(command.getUserid())) {
@@ -59,7 +62,7 @@ public class AccountController {
     }
 
     @PostMapping("/withdraw")
-    public String submitWithdraw(@ModelAttribute("command") @Valid WithdrawRequestCommand command, HttpSession session){
+    public String submitWithdraw(HttpServletResponse response, @ModelAttribute("command") @Valid WithdrawRequestCommand command, HttpSession session){
 
         try {
             BoardAccount account = accountService.authenticateAccount(
@@ -69,6 +72,7 @@ public class AccountController {
             accountService.withdrawAccount(account);
             session.invalidate();
         } catch (NoAccountFoundException | AuthenticationFailedException exception){
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return "account/withdraw";
         }
 
@@ -82,15 +86,19 @@ public class AccountController {
     }
 
     @PostMapping("/login")
-    public String submitLogin(@ModelAttribute(name = "command") @Valid LoginRequestCommand command, BindingResult bindingResult, HttpServletRequest request /*HttpSession session*/){
+    public String submitLogin(@ModelAttribute(name = "command") @Valid LoginRequestCommand command, BindingResult bindingResult, HttpServletRequest request, HttpServletResponse response /*HttpSession session*/){
         // session object is always given when HttpSession parameter is set. session object is either newly generated session or existing session.
-        if(bindingResult.hasErrors()) return "/account/login";
+        if(bindingResult.hasErrors()) {
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            return "/account/login";
+        }
 
         try {
             LoginSessionInfo loginSessionInfo = accountService.loginAccount(command.getUserid(), command.getPassword());
             HttpSession session = request.getSession();
             session.setAttribute(sessionAuthAttribute, loginSessionInfo);
         } catch (AuthenticationFailedException | NoAccountFoundException e){
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return "/account/login";
         }
 
@@ -149,7 +157,12 @@ public class AccountController {
     }
 
     @PostMapping("/manage/change")
-    public String submitChangePersonalInformation(HttpServletRequest request, Model model, @Valid InfoUpdateSubmitCommand command){
+    public String submitChangePersonalInformation(HttpServletRequest request, HttpServletResponse response, @Valid InfoUpdateSubmitCommand command, BindingResult result){
+        if(result.hasErrors()){
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            return "account/change";
+        }
+
         HttpSession session = request.getSession(false);
         LoginSessionInfo userInfo = (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
         LoginSessionInfo updatedUserInfo = accountService.updateAccount(userInfo.getUserID(), command.getAuth(), command.getMode(), command.getUpdated());
