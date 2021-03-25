@@ -97,8 +97,7 @@ class AccountControllerTest {
         assertEquals("testuserid", loginSessionInfo.getUserID());
         assertEquals("testusername", loginSessionInfo.getUsername());
         assertEquals("testuseremail@domain.com", loginSessionInfo.getEmail());
-        // TODO: check account level
-
+        assertEquals(AccountLevel.NORMAL, loginSessionInfo.getLevels().get(0).getAccountLevel());
     }
 
 

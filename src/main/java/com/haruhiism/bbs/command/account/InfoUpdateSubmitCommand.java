@@ -9,7 +9,6 @@ import javax.validation.constraints.NotNull;
 @Getter
 @RequiredArgsConstructor
 public class InfoUpdateSubmitCommand {
-    // TODO: extend info update request command?
     @NotNull
     private final UpdatableInformation mode;
     @NotBlank

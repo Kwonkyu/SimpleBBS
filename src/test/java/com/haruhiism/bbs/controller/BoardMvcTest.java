@@ -31,7 +31,7 @@ public class BoardMvcTest {
     @Autowired
     MockMvc mockMvc;
 
-    // TODO: test codes for not only invalid but valid requests.
+
     @Test
     void createBoardArticleTest() throws Exception {
         // given
@@ -135,21 +135,6 @@ public class BoardMvcTest {
         BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
         assertEquals(readArticle.getTitle(), originalTitle);
         assertEquals(readArticle.getContent(), originalContent);
-
-//        TODO: duplicated test?
-//        // when
-//        mockMvc.perform(post("/board/edit/submit")
-//                .param("bid", String.valueOf(boardArticle.getBid()))
-//                .param("writer", "writer")
-//                .param("password", "THIS_IS_NOT_YOUR_PASSWORD")
-//                .param("title", "edited_title")
-//                .param("content", "edited_content"))
-//                // then
-//                .andExpect(status().isUnauthorized());
-//        // then
-//        readArticle = boardService.readArticle(boardArticle.getBid());
-//        assertEquals(readArticle.getTitle(), originalTitle);
-//        assertEquals(readArticle.getContent(), originalContent);
     }
 
     @Test

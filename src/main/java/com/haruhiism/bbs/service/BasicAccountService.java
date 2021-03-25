@@ -57,6 +57,17 @@ public class BasicAccountService implements AccountService {
         return articleService.readAllByWriterByPages(userID, 0, 10);
     }
 
+
+    private LoginSessionInfo accountToLoginSessionInfo(BoardAccount account){
+        return new LoginSessionInfo(
+                account.getAccountID(),
+                account.getUserID(),
+                account.getUsername(),
+                account.getPassword(),
+                account.getEmail(),
+                accountLevelRepository.findAllByAccountID(account.getAccountID()));
+    }
+
     @Override
     public BoardAccount authenticateAccount(String id, String password) {
         BoardAccount account = accountRepository.findByUserID(id)
@@ -69,28 +80,11 @@ public class BasicAccountService implements AccountService {
         return account;
     }
 
-
-    private LoginSessionInfo accountToLoginSessionInfo(BoardAccount account){
-        return new LoginSessionInfo(
-                account.getAccountID(),
-                account.getUserID(),
-                account.getUsername(),
-                account.getPassword(),
-                account.getEmail(),
-                account.getLevels());
-    }
-
     @Override
     public LoginSessionInfo loginAccount(String id, String password) {
-        BoardAccount account = authenticateAccount(id, password);
-
-        // TODO: duplicated auth?
-        if(dataEncoder.compare(password, account.getPassword())){
-            return accountToLoginSessionInfo(account);
-        } else {
-            throw new AuthenticationFailedException();
-        }
+        return accountToLoginSessionInfo(authenticateAccount(id, password));
     }
+
 
     @Override
     @Transactional
