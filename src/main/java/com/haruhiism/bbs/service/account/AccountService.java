@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.service.account;
 
+import com.haruhiism.bbs.command.account.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
@@ -20,4 +21,6 @@ public interface AccountService {
     public BoardAccount authenticateAccount(String id, String password);
 
     public LoginSessionInfo loginAccount(String id, String password);
+
+    public LoginSessionInfo updateAccount(String id, String password, UpdatableInformation updatedField, String updatedValue);
 }

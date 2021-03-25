@@ -24,7 +24,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         registry.addInterceptor(redirectIfNotLogined)
                 .addPathPatterns(
                         "/account/logout",
-                        "/account/manage",
+                        "/account/manage/**",
                         "/account/withdraw");
     }
 }

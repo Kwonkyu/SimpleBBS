@@ -1,9 +1,7 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.account.LoginRequestCommand;
-import com.haruhiism.bbs.command.account.WithdrawRequestCommand;
+import com.haruhiism.bbs.command.account.*;
 import com.haruhiism.bbs.domain.AccountLevel;
-import com.haruhiism.bbs.command.account.RegisterRequestCommand;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
@@ -21,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.LinkedList;
-import java.util.List;
 
 @Controller
 @RequestMapping("/account")
@@ -128,4 +124,39 @@ public class AccountController {
 
         return "account/info";
     }
+
+
+    @GetMapping("/manage/change")
+    public String requestChangePersonalInformation(HttpServletRequest request, Model model, @Valid InfoUpdateRequestCommand command) {
+        model.addAttribute("attributeType", command.getMode().name());
+        LoginSessionInfo userInfo = (LoginSessionInfo) request.getSession(false).getAttribute(sessionAuthAttribute);
+
+        switch(command.getMode()){
+            case password:
+                model.addAttribute("attributeValue", "********");
+                break;
+
+            case email:
+                model.addAttribute("attributeValue", userInfo.getEmail());
+                break;
+
+            case username:
+                model.addAttribute("attributeValue", userInfo.getUsername());
+                break;
+        }
+
+        return "account/change";
+    }
+
+    @PostMapping("/manage/change")
+    public String submitChangePersonalInformation(HttpServletRequest request, Model model, @Valid InfoUpdateSubmitCommand command){
+        HttpSession session = request.getSession(false);
+        LoginSessionInfo userInfo = (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
+        LoginSessionInfo updatedUserInfo = accountService.updateAccount(userInfo.getUserID(), command.getAuth(), command.getMode(), command.getUpdated());
+        session.setAttribute(sessionAuthAttribute, updatedUserInfo);
+        return "redirect:/account/manage";
+    }
+
+
+
 }

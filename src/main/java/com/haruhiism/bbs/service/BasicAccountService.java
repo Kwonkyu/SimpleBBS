@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.service;
 
+import com.haruhiism.bbs.command.account.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
@@ -62,19 +63,46 @@ public class BasicAccountService implements AccountService {
         return account;
     }
 
+
+    private LoginSessionInfo accountToLoginSessionInfo(BoardAccount account){
+        return new LoginSessionInfo(
+                account.getAccountID(),
+                account.getUserID(),
+                account.getUsername(),
+                account.getPassword(),
+                account.getEmail(),
+                account.getLevels());
+    }
+
     @Override
     public LoginSessionInfo loginAccount(String id, String password) {
         BoardAccount account = authenticateAccount(id, password);
 
         if(dataEncoder.compare(password, account.getPassword())){
-            return new LoginSessionInfo(account.getAccountID(),
-                    account.getUserID(),
-                    account.getUsername(),
-                    account.getPassword(),
-                    account.getEmail(),
-                    account.getLevels());
+            return accountToLoginSessionInfo(account);
         } else {
             throw new AuthenticationFailedException();
         }
+    }
+
+    @Override
+    @Transactional
+    public LoginSessionInfo updateAccount(String id, String password, UpdatableInformation updatedField, String updatedValue) {
+        BoardAccount account = authenticateAccount(id, password);
+        switch(updatedField){
+            case username:
+                account.setUsername(updatedValue);
+                break;
+
+            case email:
+                account.setEmail(updatedValue);
+                break;
+
+            case password:
+                account.setPassword(dataEncoder.encode(updatedValue));
+                break;
+        }
+
+        return accountToLoginSessionInfo(account);
     }
 }

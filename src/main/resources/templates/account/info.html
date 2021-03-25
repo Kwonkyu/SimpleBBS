@@ -15,15 +15,39 @@
 
 <div>
     <div>
-        <h1 th:text="|Hello, ${userInfo.username}(${userInfo.userID})|"></h1>
+        <h1 th:text="|Hello, ${userInfo.username}|">Hello, USERNAME</h1>
     </div>
     <div>
-        <ul>
-            <li th:text="|Your EMAIL: ${userInfo.email}|">Your EMAIL: -</li>
-            <li th:text="|You've wrotten ${articleCount} articles.|"></li>
-        </ul>
+        <table>
+            <tr>
+                <td><span th:text="|Username: ${userInfo.username}|">Username: USERNAME</span></td>
+                <td><a th:href="@{/account/manage/change(mode=username)}">CHANGE</a></td>
+            </tr>
+            <tr>
+                <td><span th:text="|UserID: ${userInfo.userID}|">UserID: USERID</span></td>
+            </tr>
+            <tr>
+                <td><span>Password: ********</span></td>
+                <td><a th:href="@{/account/manage/change(mode=password)}">CHANGE</a></td>
+            </tr>
+            <tr>
+                <td><span th:text="|Registered Date: ${userInfo.email}|">Registered Date: 0000-00-00</span></td>
+            </tr>
+            <tr>
+                <td><span th:text="|Your EMAIL: ${userInfo.email}|">Your EMAIL: -</span></td>
+                <td><a th:href="@{/account/manage/change(mode=email)}">CHANGE</a></td>
+            </tr>
+            <tr>
+                <td><span th:text="|You've wrotten ${articleCount} articles.|">You've wrotten 0 articles.</span></td>
+            </tr>
+        </table>
+        <div>
+            <a href="/board/list">LIST</a>
+            <a href="/account/logout">LOGOUT</a>
+            <a href="/account/withdraw">WITHDRAW</a>
+        </div>
     </div>
-
+<hr>
     <div>
         <table>
             <tr>
