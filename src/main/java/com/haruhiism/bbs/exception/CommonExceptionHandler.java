@@ -6,6 +6,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -14,8 +15,8 @@ public class CommonExceptionHandler {
 
     // MethodArgumentNotValidException for @Valid, BindException for @ModelAttribute
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    public String methodArgumentNotValid(Model model, HttpServletResponse response){
-        response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public String methodArgumentNotValid(Model model){
         model.addAttribute("errorTitle", "Transmitted Request Can Not Be Processed.");
         model.addAttribute("errorDescription", "Requested has incompatible parameter or something is wrong.");
         return "board/error/request-failed";

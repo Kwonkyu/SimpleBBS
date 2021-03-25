@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 
 @SpringBootTest
@@ -107,7 +108,8 @@ class ArticleControllerTest {
             Page<BoardArticle> articles = articleService.readAllByWriterByPages(target, 0, 10);
 
             // then
-            assertEquals(count, articles.getTotalElements());
+            // not equals, greater than or equal because there could be other articles written before this test.
+            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
             articles.get().map(BoardArticle::getWriter).forEach(writer -> {
                 assertTrue(writer.contains(target) || writer.contains(target.toUpperCase()) || writer.contains(target.toLowerCase()),
                         String.format("Expected writer '%s' to contain '%s' but it doesn't.", writer, target));
@@ -128,7 +130,7 @@ class ArticleControllerTest {
             Page<BoardArticle> articles = articleService.readAllByTitleByPages(target, 0, 10);
 
             // then
-            assertEquals(count, articles.getTotalElements());
+            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
             articles.get().map(BoardArticle::getTitle).forEach(title -> {
                 assertTrue(title.contains(target) || title.contains(target.toUpperCase()) || title.contains(target.toLowerCase()),
                         String.format("Expected title '%s' to contain '%s' but it doesn't.", title, target));
@@ -150,7 +152,7 @@ class ArticleControllerTest {
             Page<BoardArticle> articles = articleService.readAllByContentByPages(target, 0, 10);
 
             // then
-            assertEquals(count, articles.getTotalElements());
+            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
             articles.get().map(BoardArticle::getContent).forEach(content -> {
                 assertTrue(content.contains(target) || content.contains(target.toUpperCase()) || content.contains(target.toLowerCase()),
                         String.format("Expected content '%s' to contain '%s' but it doesn't.", content, target));
@@ -170,7 +172,7 @@ class ArticleControllerTest {
             Page<BoardArticle> articles = articleService.readAllByTitleOrContentByPages(target, 0, 10);
 
             // then
-            assertEquals(count, articles.getTotalElements());
+            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
             articles.get().forEach(article -> {
                 String title = article.getTitle();
                 String content = article.getContent();

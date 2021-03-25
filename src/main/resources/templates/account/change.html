@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Information - SimpleBBS</title>
+</head>
+<body>
+
+<form action="/account/manage/change" method="post">
+    <table>
+        <caption th:text="|Change ${attributeType}|">Change AttributeType</caption>
+        <input type="hidden" name="mode" th:value="${attributeType}" readonly required>
+        <tr>
+            <th colspan="2"><label for="form-auth">AUTHENTICATION(Type your password again)</label></th>
+        </tr>
+        <tr>
+            <td colspan="2"><input id="form-auth" type="password" name="auth" required></td>
+        </tr>
+        <tr>
+            <th><label for="form-previous">PREVIOUS VALUE</label></th>
+            <th><label for="form-new">NEW VALUE</label></th>
+        </tr>
+        <tr>
+            <td><input id="form-previous" name="previous" th:value="${attributeValue}" readonly></td>
+            <td th:switch="${attributeType}">
+                <input th:case="'password'" id="form-new" type="password" name="updated" required>
+                <input th:case="'email'" id="form-new" type="email" name="updated" required>
+                <input th:case="'username'" id="form-new" type="text" name="updated" required>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="CHANGE"></td>
+        </tr>
+    </table>
+</form>
+
+</body>
+</html>

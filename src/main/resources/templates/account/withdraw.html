@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Account - SimpleBBS</title>
+</head>
+<body>
+
+<form action="/account/withdraw" method="post">
+    <table>
+        <caption>WITHDRAW</caption>
+        <tr>
+            <td><label for="password-form">PASSWORD</label></td>
+            <td><input id="password-form" name="password" type="password" required></td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Withdraw"></td>
+        </tr>
+    </table>
+</form>
+
+</body>
+</html>

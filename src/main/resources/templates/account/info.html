@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Information - SimpleBBS</title>
+    <style>
+        span.current {
+            font-weight:800;
+        }
+    </style>
+
+</head>
+<body>
+
+<div>
+    <div>
+        <h1 th:text="|Hello, ${userInfo.username}|">Hello, USERNAME</h1>
+    </div>
+    <div>
+        <table>
+            <tr>
+                <td><span th:text="|Username: ${userInfo.username}|">Username: USERNAME</span></td>
+                <td><a th:href="@{/account/manage/change(mode=username)}">CHANGE</a></td>
+            </tr>
+            <tr>
+                <td><span th:text="|UserID: ${userInfo.userID}|">UserID: USERID</span></td>
+            </tr>
+            <tr>
+                <td><span>Password: ********</span></td>
+                <td><a th:href="@{/account/manage/change(mode=password)}">CHANGE</a></td>
+            </tr>
+            <tr>
+                <td><span th:text="|Registered Date: ${userInfo.email}|">Registered Date: 0000-00-00</span></td>
+            </tr>
+            <tr>
+                <td><span th:text="|Your EMAIL: ${userInfo.email}|">Your EMAIL: -</span></td>
+                <td><a th:href="@{/account/manage/change(mode=email)}">CHANGE</a></td>
+            </tr>
+            <tr>
+                <td><span th:text="|You've wrotten ${articleCount} articles.|">You've wrotten 0 articles.</span></td>
+            </tr>
+        </table>
+        <div>
+            <a href="/board/list">LIST</a>
+            <a href="/account/logout">LOGOUT</a>
+            <a href="/account/withdraw">WITHDRAW</a>
+        </div>
+    </div>
+<hr>
+    <div>
+        <table>
+            <tr>
+                <th>ID</th><th>TITLE</th>
+            </tr>
+            <tr th:each="article: ${articles}">
+                <td>
+                    <span th:text="${article.articleID}">0</span>
+                </td>
+                <td>
+                    <a th:href="@{/board/read(id=${article.articleID})}" th:text="${article.title}">-</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <span th:each="page: ${pages}">
+            <a th:href="@{/account/manage(articlePage=${page})}" th:text="${page+1}" th:classappend="${page == currentPage ? current : ''}"></a>
+        </span>
+    </div>
+</div>
+</body>
+</html>

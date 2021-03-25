@@ -1,9 +1,9 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.domain.command.article.*;
-import com.haruhiism.bbs.domain.entity.ArticleAndComments;
+import com.haruhiism.bbs.command.article.*;
+import com.haruhiism.bbs.domain.ArticleAndComments;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
-import com.haruhiism.bbs.exception.ArticleAuthFailedException;
+import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
 import com.haruhiism.bbs.service.article.ArticleService;
@@ -146,7 +146,7 @@ public class ArticleController {
             model.addAttribute("article", editArticle);
             return "board/edit";
         } else {
-            throw new ArticleAuthFailedException();
+            throw new AuthenticationFailedException();
         }
     }
 
@@ -163,7 +163,7 @@ public class ArticleController {
                 throw new UpdateDeletedArticleException();
             }
         } else {
-            throw new ArticleAuthFailedException();
+            throw new AuthenticationFailedException();
         }
 
         return "redirect:/board/list";
@@ -182,7 +182,7 @@ public class ArticleController {
             articleService.deleteArticle(command.getArticleID());
             return "redirect:/board/list";
         } else {
-            throw new ArticleAuthFailedException();
+            throw new AuthenticationFailedException();
         }
     }
 }

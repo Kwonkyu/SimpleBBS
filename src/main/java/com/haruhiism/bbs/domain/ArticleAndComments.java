@@ -1,4 +1,7 @@
-package com.haruhiism.bbs.domain.entity;
+package com.haruhiism.bbs.domain;
+
+import com.haruhiism.bbs.domain.entity.BoardArticle;
+import com.haruhiism.bbs.domain.entity.BoardComment;
 
 import java.util.List;
 

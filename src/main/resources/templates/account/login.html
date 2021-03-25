@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - SimpleBBS</title>
+</head>
+<body>
+<form action="/account/login" method="post">
+    <table>
+        <tr>
+            <td><label for="form-id">ID</label></td>
+            <td><input id="form-id" type="text" name="userid" th:value="${command?.userid}" required></td>
+        </tr>
+        <tr>
+            <td><label for="form-password">PASSWORD</label></td>
+            <td><input id="form-password" type="password" name="password" required></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="LOGIN"></td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>
