@@ -1,42 +1,42 @@
 package com.haruhiism.bbs.domain.entity;
 
-import com.haruhiism.bbs.domain.AccountLevel;
 import lombok.*;
-import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-import java.util.List;
 
 @Getter
-@Setter
-@ToString
-@EqualsAndHashCode(of = "accountID")
-@Entity
+@EqualsAndHashCode(of = "id")
+@NoArgsConstructor
 @RequiredArgsConstructor
+@Entity
 public class BoardAccount {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long accountID;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "BOARD_ACCOUNT_ID")
+    private long id;
     @NonNull
-    @NotBlank
-    private String userID;
+    @Column(name = "USER_ID")
+    private String userId;
     @NonNull
-    @NotBlank
-    @Length(min = 1)
+    @Column(name = "USERNAME")
     private String username;
     @NonNull
-    @NotBlank
-    @Length(min = 4)
+    @Column(name = "PASSWORD")
     private String password;
     @NonNull
-    @NotBlank
-    @Email
+    @Column(name = "EMAIL")
     private String email;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER) // load account info and account level info eagerly.
-    @JoinColumn(name = "accountID")
-    private List<BoardAccountLevel> levels;
 
-    public BoardAccount() {}
+
+    public void changeUsername(String username){
+        this.username = username;
+    }
+
+    public void changePassword(String encodedPassword){
+        this.password = encodedPassword;
+    }
+
+    public void changeEmail(String email){
+        this.email = email;
+    }
 }

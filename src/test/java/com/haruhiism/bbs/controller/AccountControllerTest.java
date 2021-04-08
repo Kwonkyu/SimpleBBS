@@ -1,8 +1,8 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.account.UpdatableInformation;
+import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
-import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountRepository;
@@ -24,124 +24,128 @@ class AccountControllerTest {
     @Autowired
     AccountRepository accountRepository;
 
-    private final String sessionAuthAttribute = "loginAuthInfo";
+    // test values
+    String testUserId = "testuserid";
+    String testUsername = "testusername";
+    String testPassword = "testuserpassword";
+    String testEmail = "testemail@domain.com";
+
+    String normalUserId = "normaluserid";
+    String normalPassword = "normalpassword";
 
 
     @Test
     void registerAccountTest() {
         // given
-        BoardAccount account = new BoardAccount("testuserid", "testusername", "testuserpassword", "testuseremail@domain.com");
-        accountService.registerAccount(account, AccountLevel.NORMAL);
+        BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
         assertThrows(NoAccountFoundException.class, () -> {
             // then
-            accountService.authenticateAccount("normaluserid", "testuserpassword");
+            accountService.authenticateAccount(normalUserId, normalPassword);
         });
 
         // when
         assertThrows(AuthenticationFailedException.class, () -> {
             // then
-            accountService.authenticateAccount("testuserid", "normaluserpassword");
+            accountService.authenticateAccount(testUserId, normalPassword);
         });
 
         // when
         assertDoesNotThrow(() -> {
             // then
-            accountService.authenticateAccount("testuserid", "testuserpassword");
+            accountService.authenticateAccount(testUserId, testPassword);
         });
 
         // then
-        assertFalse(accountRepository.findByUserID("testuserid").isEmpty());
+        assertFalse(accountRepository.findByUserId(testUserId).isEmpty());
     }
 
     @Test
     void withdrawAccountTest() {
         // given
-        BoardAccount account = new BoardAccount("testuserid", "testusername", "testuserpassword", "testuseremail@domain.com");
-        accountService.registerAccount(account, AccountLevel.NORMAL);
+        BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.withdrawAccount(account);
+        accountService.withdrawAccount(accountService.authenticateAccount(testUserId, testPassword));
         assertThrows(NoAccountFoundException.class, () -> {
             // then
-            accountService.authenticateAccount("testuserid", "testuserpassword");
+            accountService.authenticateAccount(testUserId, testPassword);
         });
 
         //then
-        assertTrue(accountRepository.findByUserID("testuserid").isEmpty());
+        assertTrue(accountRepository.findByUserId(testUserId).isEmpty());
     }
 
     @Test
     void loginAccountTest() {
         // given
-        BoardAccount account = new BoardAccount("testuserid", "testusername", "testuserpassword", "testuseremail@domain.com");
-        accountService.registerAccount(account, AccountLevel.NORMAL);
+        BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
         assertThrows(AuthenticationFailedException.class, () -> {
             // then
-            accountService.loginAccount("testuserid", "normaluserpassword");
+            accountService.loginAccount(testUserId, normalPassword);
         });
 
         // when
         assertThrows(NoAccountFoundException.class, () -> {
             // then
-            accountService.loginAccount("normaluserid", "testuserpassword");
+            accountService.loginAccount(normalUserId, testPassword);
         });
 
         // when
-        LoginSessionInfo loginSessionInfo = accountService.loginAccount("testuserid", "testuserpassword");
+        LoginSessionInfo loginSessionInfo = accountService.loginAccount(testUserId, testPassword);
 
         // then
-        assertEquals("testuserid", loginSessionInfo.getUserID());
-        assertEquals("testusername", loginSessionInfo.getUsername());
-        assertEquals("testuseremail@domain.com", loginSessionInfo.getEmail());
-        assertEquals(AccountLevel.NORMAL, loginSessionInfo.getLevels().get(0).getAccountLevel());
+        assertEquals(testUserId, loginSessionInfo.getUserID());
+        assertEquals(testUsername, loginSessionInfo.getUsername());
+        assertEquals(testEmail, loginSessionInfo.getEmail());
     }
 
 
     @Test
     void updateUsernameTest() {
         // given
-        BoardAccount account = new BoardAccount("testuserid", "testusername", "testuserpassword", "testuseremail@domain.com");
-        accountService.registerAccount(account, AccountLevel.NORMAL);
+        BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.updateAccount("testuserid", "testuserpassword", UpdatableInformation.username, "updatedusername");
+        accountService.updateAccount(testUserId, testPassword, UpdatableInformation.username, "updatedusername");
 
         // then
-        assertEquals("updatedusername", accountService.authenticateAccount("testuserid", "testuserpassword").getUsername());
+        assertEquals("updatedusername", accountService.authenticateAccount(testUserId, testPassword).getUsername());
     }
 
     @Test
     void updateEmailTest() {
         // given
-        BoardAccount account = new BoardAccount("testuserid", "testusername", "testuserpassword", "testuseremail@domain.com");
-        accountService.registerAccount(account, AccountLevel.NORMAL);
+        BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.updateAccount("testuserid", "testuserpassword", UpdatableInformation.email, "updateduseremail@domain.com");
+        accountService.updateAccount(testUserId, testPassword, UpdatableInformation.email, "updateduseremail@domain.com");
 
         // then
-        assertEquals("updateduseremail@domain.com", accountService.authenticateAccount("testuserid", "testuserpassword").getEmail());
+        assertEquals("updateduseremail@domain.com", accountService.authenticateAccount(testUserId, testPassword).getEmail());
     }
 
     @Test
     void updatePasswordTest() {
         // given
-        BoardAccount account = new BoardAccount("testuserid", "testusername", "testuserpassword", "testuseremail@domain.com");
-        accountService.registerAccount(account, AccountLevel.NORMAL);
+        BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.updateAccount("testuserid", "testuserpassword", UpdatableInformation.password, "updatedpassword");
+        accountService.updateAccount(testUserId, testPassword, UpdatableInformation.password, "updatedpassword");
 
         // then
-        assertThrows(AuthenticationFailedException.class, () -> {
-            accountService.authenticateAccount("testuserid", "testuserpassword");
-        });
+        assertThrows(AuthenticationFailedException.class, () -> accountService.authenticateAccount(testUserId, testPassword));
         assertDoesNotThrow(() -> {
-            accountService.authenticateAccount("testuserid", "updatedpassword");
+            accountService.authenticateAccount(testUserId, "updatedpassword");
         });
     }
 }

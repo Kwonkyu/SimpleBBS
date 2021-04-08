@@ -1,9 +1,13 @@
 package com.haruhiism.bbs.controller;
 
+import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
+import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.NoCommentFoundException;
+import com.haruhiism.bbs.repository.ArticleRepository;
+import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.junit.jupiter.api.Test;
@@ -23,71 +27,86 @@ class CommentControllerTest {
     ArticleService articleService;
     @Autowired
     CommentService commentService;
+    @Autowired
+    ArticleRepository articleRepository;
+    @Autowired
+    CommentRepository commentRepository;
 
+
+    // test values
+    String testWriter = "testwriter";
+    String testPassword = "testpassword";
+    String testTitle = "testtitle";
+    String testContent = "testcontent";
+
+    String testCommentWriter = "testcommentwriter";
+    String testCommentPassword = "testcommentpassword";
+    String testCommentContent = "testcommentcontent";
 
     @Test
     void createAndReadArticleCommentTest() {
         // given
-        BoardArticle commentedArticle = new BoardArticle("testwriter", "testpassword", "testtitle", "testcontent");
-        articleService.createArticle(commentedArticle);
+        BoardArticle commentedArticle = new BoardArticle(testWriter, testPassword, testTitle, testContent);
+        articleRepository.save(commentedArticle);
 
-        BoardComment comment = new BoardComment("testcommentwriter", "testcommentpassword", "testcommentcontent", commentedArticle.getArticleID());
-        commentService.createComment(comment);
+        BoardComment comment = new BoardComment(testCommentWriter, testCommentPassword, testCommentContent, commentedArticle);
+        commentRepository.save(comment);
 
         // when
-        List<BoardComment> comments = commentService.readCommentsOfArticle(commentedArticle.getArticleID());
+        BoardCommentsDTO commentsDTO = commentService.readCommentsOfArticle(commentedArticle.getId(), 0, 10);
+        BoardCommentDTO commentDTO = commentsDTO.getBoardComments().get(0);
 
         // then
-        assertTrue(comments.contains(comment));
+        assertEquals(testCommentWriter, commentDTO.getWriter());
+        assertEquals(testCommentContent, commentDTO.getContent());
     }
 
     @Test
     void createInvalidArticleCommentTest(){
         // given
-        BoardComment comment = new BoardComment("writer", "password", "content", -1L);
 
         // then
         assertThrows(NoArticleFoundException.class, () -> {
             // when
-            commentService.createComment(comment);
+            commentService.createComment(new BoardCommentDTO(-1L, testWriter, testPassword, testContent));
         });
     }
 
     @Test
     void createAndDeleteCommentTest(){
         // given
-        BoardArticle commentedArticle = new BoardArticle("testwriter", "testpassword", "testtitle", "testcontent");
-        articleService.createArticle(commentedArticle);
+        BoardArticle commentedArticle = new BoardArticle(testWriter, testPassword, testTitle, testContent);
+        articleRepository.save(commentedArticle);
+
 
         // when
-        BoardComment comment = new BoardComment("writer1", "password1", "content1", commentedArticle.getArticleID());
-        commentService.createComment(comment);
+        BoardComment comment = new BoardComment(testCommentWriter, testCommentPassword, testCommentContent, commentedArticle);
+        commentRepository.save(comment);
 
         // then
-        List<BoardComment> comments = commentService.readCommentsOfArticle(commentedArticle.getArticleID());
-        assertFalse(comments.isEmpty());
+        BoardCommentsDTO comments = commentService.readCommentsOfArticle(commentedArticle.getId(), 0, 10);
+        assertFalse(comments.getBoardComments().isEmpty());
+
 
         // when
-        commentService.deleteComment(comment);
+        commentService.deleteComment(comment.getId());
 
         // then
-        comments = commentService.readCommentsOfArticle(commentedArticle.getArticleID());
-        assertTrue(comments.isEmpty());
-
-
+        comments = commentService.readCommentsOfArticle(commentedArticle.getId(), 0, 10);
+        assertTrue(comments.getBoardComments().isEmpty());
     }
 
     @Test
     void deleteInvalidCommentTest(){
         // given
         BoardArticle commentedArticle = new BoardArticle("testwriter", "testpassword", "testtitle", "testcontent");
-        articleService.createArticle(commentedArticle);
+        articleRepository.save(commentedArticle);
 
         // when
-        BoardComment comment = new BoardComment("writer2", "password2", "content2", commentedArticle.getArticleID());
-        commentService.createComment(comment);
+        BoardComment comment = new BoardComment("writer2", "password2", "content2", commentedArticle);
+        commentRepository.save(comment);
 
         // then
-        assertThrows(NoCommentFoundException.class, () -> commentService.deleteComment(comment.getCommentID()+1));
+        assertThrows(NoCommentFoundException.class, () -> commentService.deleteComment(comment.getId()+1));
     }
 }

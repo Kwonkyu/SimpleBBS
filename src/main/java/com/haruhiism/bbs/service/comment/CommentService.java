@@ -1,25 +1,21 @@
 package com.haruhiism.bbs.service.comment;
 
-import com.haruhiism.bbs.domain.entity.BoardComment;
-import org.springframework.data.domain.Page;
-
-import java.util.List;
+import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
+import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 
 public interface CommentService {
 
-    public void createComment(BoardComment comment);
+    public void createComment(BoardCommentDTO comment);
 
-    public BoardComment readComment(Long commentID);
+    public BoardCommentsDTO readCommentsOfArticle(Long articleID, int pageNum, int pageSize);
 
-    public List<BoardComment> readCommentsOfArticle(Long articleID);
+    public BoardCommentDTO readComment(Long commentID);
 
-    public Page<BoardComment> readCommentsOfArticleByPages(Long articleID, int pageNum, int pageSize);
-
-    public void updateComment(BoardComment comment);
+    public void updateComment(BoardCommentDTO comment);
 
     public void deleteComment(Long commentID);
 
-    public void deleteComment(BoardComment comment);
+    public void deleteCommentsOfArticle(Long articleID);
 
     public boolean authCommentAccess(Long commentID, String rawPassword);
 }

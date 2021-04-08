@@ -38,7 +38,7 @@
                 <td><a th:href="@{/account/manage/change(mode=email)}">CHANGE</a></td>
             </tr>
             <tr>
-                <td><span th:text="|You've wrotten ${articleCount} articles.|">You've wrotten 0 articles.</span></td>
+                <td><span th:text="|You've wrotten ${articles.size()} articles.|">You've wrotten 0 articles.</span></td>
             </tr>
         </table>
         <div>
@@ -55,17 +55,17 @@
             </tr>
             <tr th:each="article: ${articles}">
                 <td>
-                    <span th:text="${article.articleID}">0</span>
+                    <span th:text="${article.id}">0</span>
                 </td>
                 <td>
-                    <a th:href="@{/board/read(id=${article.articleID})}" th:text="${article.title}">-</a>
+                    <a th:href="@{/board/read(id=${article.id})}" th:text="${article.title}">-</a>
                 </td>
             </tr>
         </table>
     </div>
     <div>
         <span th:each="page: ${pages}">
-            <a th:href="@{/account/manage(articlePage=${page})}" th:text="${page+1}" th:classappend="${page == currentPage ? current : ''}"></a>
+            <a th:href="@{/account/manage(page=${page})}" th:text="${page+1}" th:classappend="${page == currentPage ? 'current' : ''}"></a>
         </span>
     </div>
 </div>

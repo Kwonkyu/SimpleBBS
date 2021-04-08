@@ -2,33 +2,35 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${articleAndComments.article.title}">Title - SimpleBBS</title>
+    <title th:text="${article.getTitle() + ' - SimpleBBS'}">Title - SimpleBBS</title>
 </head>
 <body>
 
 <div>
     <div>
-        <h1 th:text="${articleAndComments.article.title}">Title</h1>
+        <h1 th:text="${article.getTitle()}">Title</h1>
     </div>
     <div>
-        <h3 th:text="${'-' + articleAndComments.article.writer}">Writer</h3>
+        <h3 th:text="${'-' + article.getWriter()}">Writer</h3>
     </div>
 
     <div>
-        <p th:text="${articleAndComments.article.content}">Content</p>
+        <p th:text="${article.getContent()}">Content</p>
     </div>
 
     <div>
         <a href="/board/list">List</a>
-        <a th:href="@{/board/edit(id=${articleAndComments.article.articleID})}">Edit</a>
-        <a th:href="@{/board/remove(id=${articleAndComments.article.articleID})}">Delete</a>
+        <a th:href="@{/board/edit(id=${article.getId()})}">Edit</a>
+        <a th:href="@{/board/remove(id=${article.getId()})}">Delete</a>
     </div>
 
     <form action="/comment/create" method="post">
-        <input type="hidden" th:value="${articleAndComments.article.articleID}" name="articleID">
+        <input type="hidden" th:value="${article.getId()}" name="articleID">
         <table>
             <caption>WRITE YOUR COMMENT...</caption>
-            <th>WRITER</th><th>PASSWORD</th><th>CONTENT</th>
+            <tr>
+                <th>WRITER</th><th>PASSWORD</th><th>CONTENT</th>
+            </tr>
             <tr>
                 <td><input type="text" name="writer" maxlength="64" required></td>
                 <td><input type="password" name="password" minlength="4" required></td>
@@ -41,18 +43,23 @@
     <table>
         <caption>COMMENTS</caption>
         <tr><th>NO</th><th>WRITER</th><th>COMMENT</th></tr>
-        <tr th:each="comment: ${articleAndComments.comments}">
-            <td th:text="${comment.commentID}">-</td>
-            <td th:text="${comment.writer}">WRITER HERE</td>
-            <td th:text="${comment.content}">COMMENT HERE</td>
+        <tr th:each="comment: ${comments}">
+            <td th:text="${comment.getCommentId()}">-</td>
+            <td th:text="${comment.getWriter()}">WRITER HERE</td>
+            <td th:text="${comment.getContent()}">COMMENT HERE</td>
             <td>
                 <form action="/comment/remove" method="get">
-                    <input type="hidden" name="id" th:value="${comment.commentID}">
+                    <input type="hidden" name="id" th:value="${comment.getCommentId()}">
                     <input type="submit" value="DELETE">
                 </form>
             </td>
         </tr>
     </table>
+    <div th:if="${totalCommentPages > 0}">
+        <span th:each="i: ${#numbers.sequence(1, totalCommentPages)}" th:classappend="${i == currentCommentPage} == true ? 'current' : ''">
+            <a th:href="@{/board/read(id=${article.getId()}, commentPage=${i - 1})}" th:text="${i}">-</a>
+        </span>
+    </div>
 
 </div>
 

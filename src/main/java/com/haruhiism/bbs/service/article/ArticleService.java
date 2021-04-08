@@ -1,29 +1,22 @@
 package com.haruhiism.bbs.service.article;
 
-import com.haruhiism.bbs.domain.entity.BoardArticle;
-import org.springframework.data.domain.Page;
+import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 
 public interface ArticleService {
 
-    public void createArticle(BoardArticle ...articles);
+    void createArticle(BoardArticleDTO... articles);
 
-    public BoardArticle readArticle(Long articleID);
+    BoardArticleDTO readArticle(Long articleID);
 
-    public Page<BoardArticle> readAllByPages(int pageNum, int pageSize);
+    BoardArticlesDTO readAllByPages(int pageNum, int pageSize);
 
-    public Page<BoardArticle> readAllByWriterByPages(String writer, int pageNum, int pageSize);
+    BoardArticlesDTO searchAllByPages(SearchMode searchMode, String keyword, int pageNum, int pageSize);
 
-    public Page<BoardArticle> readAllByTitleByPages(String title, int pageNum, int pageSize);
+    void updateArticle(BoardArticleDTO boardArticle);
 
-    public Page<BoardArticle> readAllByContentByPages(String content, int pageNum, int pageSize);
-
-    public Page<BoardArticle> readAllByTitleOrContentByPages(String keyword, int pageNum, int pageSize);
-
-    public void updateArticle(BoardArticle boardArticle);
-
-    public void deleteArticle(Long articleID);
-
-    public void deleteArticle(BoardArticle boardArticle);
+    void deleteArticle(Long articleID);
 
     /**
      * Get entity by PK articleID, compare password with V rawPassword.
@@ -31,5 +24,5 @@ public interface ArticleService {
      * @param rawPassword Password to compare with entity's password.
      * @return Returns true if given raw password matches entity's decoded password else false.
      */
-    public boolean authArticleAccess(Long articleID, String rawPassword);
+    boolean authArticleAccess(Long articleID, String rawPassword);
 }

@@ -1,10 +1,12 @@
 package com.haruhiism.bbs.service;
 
-import com.haruhiism.bbs.command.account.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.UpdatableInformation;
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
-import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
@@ -14,16 +16,11 @@ import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.stream.Collectors;
-
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class BasicAccountService implements AccountService {
 
@@ -34,43 +31,49 @@ public class BasicAccountService implements AccountService {
 
 
     @Override
-    @Transactional
-    public void registerAccount(BoardAccount boardAccount, AccountLevel level) {
-        boardAccount.setPassword(dataEncoder.encode(boardAccount.getPassword()));
+    public void registerAccount(BoardAccountDTO boardAccountDTO, AccountLevel level) {
+        BoardAccount boardAccount = new BoardAccount(
+                boardAccountDTO.getUserId(),
+                boardAccountDTO.getUsername(),
+                dataEncoder.encode(boardAccountDTO.getRawPassword()),
+                boardAccountDTO.getEmail());
         accountRepository.save(boardAccount);
-        accountLevelRepository.save(new BoardAccountLevel(boardAccount.getAccountID(), level));
+
+        accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
     }
 
     @Override
     public void withdrawAccount(BoardAccount boardAccount) {
-        accountLevelRepository.deleteAllByAccountID(boardAccount.getAccountID());
+        accountLevelRepository.deleteAllByBoardAccount(boardAccount);
         accountRepository.delete(boardAccount);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isDuplicatedAccountByID(String userID) {
-        return accountRepository.existsByUserID(userID);
+        return accountRepository.existsByUserId(userID);
     }
 
     @Override
-    public Page<BoardArticle> readArticlesOfAccount(String userID, Long page) {
-        return articleService.readAllByWriterByPages(userID, 0, 10);
+    @Transactional(readOnly = true)
+    public BoardArticlesDTO readArticlesOfAccount(String userID, int page) {
+        return articleService.searchAllByPages(SearchMode.WRITER, userID, page, 10);
     }
 
 
-    private LoginSessionInfo accountToLoginSessionInfo(BoardAccount account){
+    private LoginSessionInfo updateAccountSession(BoardAccount account){
         return new LoginSessionInfo(
-                account.getAccountID(),
-                account.getUserID(),
+                account.getId(),
+                account.getUserId(),
                 account.getUsername(),
                 account.getPassword(),
-                account.getEmail(),
-                accountLevelRepository.findAllByAccountID(account.getAccountID()));
+                account.getEmail());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BoardAccount authenticateAccount(String id, String password) {
-        BoardAccount account = accountRepository.findByUserID(id)
+        BoardAccount account = accountRepository.findByUserId(id)
                 .orElseThrow(NoAccountFoundException::new);
 
         if(!dataEncoder.compare(password, account.getPassword())){
@@ -82,28 +85,27 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public LoginSessionInfo loginAccount(String id, String password) {
-        return accountToLoginSessionInfo(authenticateAccount(id, password));
+        return updateAccountSession(authenticateAccount(id, password));
     }
 
 
     @Override
-    @Transactional
     public LoginSessionInfo updateAccount(String id, String password, UpdatableInformation updatedField, String updatedValue) {
         BoardAccount account = authenticateAccount(id, password);
         switch(updatedField){
             case username:
-                account.setUsername(updatedValue);
+                account.changeUsername(updatedValue);
                 break;
 
             case email:
-                account.setEmail(updatedValue);
+                account.changeEmail(updatedValue);
                 break;
 
             case password:
-                account.setPassword(dataEncoder.encode(updatedValue));
+                account.changePassword(dataEncoder.encode(updatedValue));
                 break;
         }
 
-        return accountToLoginSessionInfo(account);
+        return updateAccountSession(account);
     }
 }

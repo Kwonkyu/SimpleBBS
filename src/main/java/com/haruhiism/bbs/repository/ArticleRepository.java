@@ -9,15 +9,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ArticleRepository extends CrudRepository<BoardArticle, Long> {
 
-    public Page<BoardArticle> findAllByOrderByArticleIDDesc(Pageable pageable);
+    public Page<BoardArticle> findAllByOrderByIdDesc(Pageable pageable);
 
-    public void deleteByArticleID(Long articleID);
+    public Page<BoardArticle> findAllByWriterContainingOrderByIdDesc(String writer, Pageable pageable);
 
-    public Page<BoardArticle> findAllByWriterContainingOrderByArticleIDDesc(String writer, Pageable pageable);
+    public Page<BoardArticle> findAllByTitleContainingOrderByIdDesc(String title, Pageable pageable);
 
-    public Page<BoardArticle> findAllByTitleContainingOrderByArticleIDDesc(String title, Pageable pageable);
+    public Page<BoardArticle> findAllByContentContainingOrderByIdDesc(String content, Pageable pageable);
 
-    public Page<BoardArticle> findAllByContentContainingOrderByArticleIDDesc(String content, Pageable pageable);
-
-    public Page<BoardArticle> findAllByTitleContainingOrContentContainingOrderByArticleIDDesc(String title, String content, Pageable pageable);
+    public Page<BoardArticle> findAllByTitleContainingOrContentContainingOrderByIdDesc(String title, String content, Pageable pageable);
 }

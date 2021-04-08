@@ -5,25 +5,33 @@ import lombok.*;
 import javax.persistence.*;
 
 @Getter
-@Setter
-@ToString
-@EqualsAndHashCode(of = "commentID")
-@Entity
+@EqualsAndHashCode(of = "id")
+@NoArgsConstructor
 @RequiredArgsConstructor
+@Entity
 public class BoardComment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long commentID;
-
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "BOARD_COMMENT_ID")
+    private Long id;
     @NonNull
+    @Column(name = "WRITER")
     private String writer;
     @NonNull
+    @Column(name = "PASSWORD")
     private String password;
     @NonNull
+    @Column(name = "CONTENT")
     private String content;
-    @NonNull
-    private Long articleID;
+    @NonNull @ManyToOne
+    @JoinColumn(name = "BOARD_ARTICLE_ID")
+    private BoardArticle boardArticle;
+    @ManyToOne
+    @JoinColumn(name = "BOARD_ACCOUNT_ID")
+    private BoardAccount boardAccount;
 
-    public BoardComment(){}
+
+    public void setCommentWriter(BoardAccount boardAccount){
+        this.boardAccount = boardAccount;
+    }
 }

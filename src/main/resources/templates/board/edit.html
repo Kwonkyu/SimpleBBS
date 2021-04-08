@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Edit your article.</title>
@@ -7,7 +7,7 @@
 <body>
 <div>
     <form method="post" action="/board/edit/submit" th:object="${article}">
-        <input type="hidden" name="articleID" th:value="${article.articleID}">
+        <input type="hidden" name="articleID" th:value="${article.id}">
         <table>
             <tr>
                 <td>
@@ -32,7 +32,7 @@
                 <td>
                     <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? article.title : ''}" maxlength="255" required>
                 </td>
-                <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title is not valid.</td>
+                <td th:if="${#fields.hasErrors('title')}" th:errors="${article.title}">Title is not valid.</td>
             </tr>
 
             <tr>
@@ -40,16 +40,16 @@
                     <label for="form-content">CONTENT</label>
                 </td>
                 <td>
-                    <textarea id="form-content" name="content" type="text" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
+                    <textarea id="form-content" name="content" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
                 </td>
-                <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content is not valid.</td>
+                <td th:if="${#fields.hasErrors('content')}" th:errors="${article.content}">Content is not valid.</td>
             </tr>
 
             <tr>
                 <td colspan="2">
                     <input type="submit" value="Submit">
                 </td>
-            <tr/>
+            </tr>
         </table>
     </form>
 </div>

@@ -14,7 +14,7 @@ public class ArticleEditAuthCommand {
 
     @NotNull
     @Positive
-    private Long articleID;
+    private Long id;
     @NotBlank
     @Length(min = 4)
     private String password;

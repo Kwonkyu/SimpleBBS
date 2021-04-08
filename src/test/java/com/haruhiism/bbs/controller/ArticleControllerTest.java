@@ -1,13 +1,21 @@
 package com.haruhiism.bbs.controller;
 
+import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
+import com.haruhiism.bbs.repository.ArticleRepository;
+import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -18,25 +26,34 @@ import static org.assertj.core.api.Assertions.*;
 
 
 @SpringBootTest
-@Transactional
+@ActiveProfiles("test")
 class ArticleControllerTest {
 
     @Autowired
     ArticleService articleService;
+    @Autowired
+    ArticleRepository articleRepository;
+
+    @Autowired
+    DataEncoder dataEncoder;
 
 
     @Test
     void createAndReadBoardArticleTest() {
         // given
         String content = "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit";
-        BoardArticle boardArticle = new BoardArticle("writer01", "p@ssw0rd01", "title01", content);
+        BoardArticleDTO boardArticle = new BoardArticleDTO("writer01", "p@ssw0rd01", "title01", content);
 
         // when
         articleService.createArticle(boardArticle);
-        BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
+        BoardArticlesDTO articlesDTO = articleService.searchAllByPages(SearchMode.WRITER, "writer01", 0, 10);
+        BoardArticleDTO readArticle = articlesDTO.getBoardArticles().get(0);
 
         // then
-        assertEquals(boardArticle, readArticle);
+        assertEquals(boardArticle.getTitle(), readArticle.getTitle());
+        assertEquals(boardArticle.getWriter(), readArticle.getWriter());
+        assertEquals(boardArticle.getContent(), readArticle.getContent());
+        assertTrue(dataEncoder.compare(boardArticle.getPassword(), readArticle.getPassword()));
     }
 
     @Test
@@ -49,89 +66,98 @@ class ArticleControllerTest {
     @Test
     void createAndEditArticleTest() {
         // given
-        BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
-        articleService.createArticle(boardArticle);
 
-        boardArticle.setTitle("edited_title");
-        boardArticle.setContent("edited_content");
-        articleService.updateArticle(boardArticle);
+        BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
+        articleRepository.save(boardArticle);
+
+        articleService.updateArticle(new BoardArticleDTO(
+                boardArticle.getId(),
+                "writer",
+                "password",
+                "edited_title",
+                "edited_content"));
 
         // when
-        BoardArticle readArticle = articleService.readArticle(boardArticle.getArticleID());
+        BoardArticleDTO readArticle = articleService.readArticle(boardArticle.getId());
 
         // then
         assertEquals("edited_title", readArticle.getTitle());
         assertEquals("edited_content", readArticle.getContent());
 
         // when
-        boardArticle.setTitle("delete_title");
-        boardArticle.setContent("delete_content");
-        articleService.deleteArticle(boardArticle);
+        articleRepository.delete(boardArticle);
 
         // then
-        assertThrows(UpdateDeletedArticleException.class, () -> articleService.updateArticle(boardArticle));
+        assertThrows(UpdateDeletedArticleException.class, () -> articleService.updateArticle(
+                new BoardArticleDTO(
+                        boardArticle.getId(),
+                        "writer",
+                        "password",
+                        "deleted_title",
+                        "deleted_content")));
     }
 
     @Test
     void createAndDeleteArticleTest() {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
-        articleService.createArticle(boardArticle);
+        articleRepository.save(boardArticle);
 
         // when
-        articleService.deleteArticle(boardArticle);
+        articleService.deleteArticle(boardArticle.getId());
 
         // then
-        assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle.getArticleID()));
+        assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle.getId()));
     }
 
     @Test
     void searchArticleTest() {
         // given
-        BoardArticle boardArticle1 = new BoardArticle("Jason", "password", "How was your today", "I was fine.");
-        BoardArticle boardArticle2 = new BoardArticle("Alva", "password", "Zullie where are you?", "Oh Zullie, oh...");
-        BoardArticle boardArticle3 = new BoardArticle("Zullie", "password", "Alva where are you?", "Oh Alva, oh...");
-        BoardArticle boardArticle4 = new BoardArticle("Writer", "password", "Hello World", "Cruel World");
-        BoardArticle boardArticle5 = new BoardArticle("Writer", "password", "Cruel World", "Hello World");
+        BoardArticleDTO boardArticle1 = new BoardArticleDTO("Jason", "password", "How was your today", "I was fine.");
+        BoardArticleDTO boardArticle2 = new BoardArticleDTO("Alva", "password", "Zullie where are you?", "Oh Zullie, oh...");
+        BoardArticleDTO boardArticle3 = new BoardArticleDTO("Zullie", "password", "Alva where are you?", "Oh Alva, oh...");
+        BoardArticleDTO boardArticle4 = new BoardArticleDTO("Writer", "password", "Hello World", "Cruel World");
+        BoardArticleDTO boardArticle5 = new BoardArticleDTO("Writer", "password", "Cruel World", "Hello World");
         articleService.createArticle(boardArticle1, boardArticle2, boardArticle3, boardArticle4, boardArticle5);
 
-        Map<String, Long> writerTestValue = new HashMap<>();
-        writerTestValue.put("Writer", 2L);
-        writerTestValue.put("Alva", 1L);
-        writerTestValue.put("Zullie", 1L);
-        writerTestValue.put("Jason", 1L);
-        writerTestValue.put("e", 3L);
-        writerTestValue.put("a", 2L);
+        Map<String, Integer> writerTestValue = new HashMap<>();
+        writerTestValue.put("Writer", 2);
+        writerTestValue.put("Alva", 1);
+        writerTestValue.put("Zullie", 1);
+        writerTestValue.put("Jason", 1);
+        writerTestValue.put("e", 3);
+        writerTestValue.put("a", 2);
 
         writerTestValue.forEach((target, count) -> {
             // when
-            Page<BoardArticle> articles = articleService.readAllByWriterByPages(target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.WRITER, target, 0, 10);
 
             // then
-            // not equals, greater than or equal because there could be other articles written before this test.
-            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
-            articles.get().map(BoardArticle::getWriter).forEach(writer -> {
+            assertThat(articles.getBoardArticles().size()).isEqualTo(count);
+            articles.getBoardArticles().forEach(boardArticle -> {
+                String writer = boardArticle.getWriter();
                 assertTrue(writer.contains(target) || writer.contains(target.toUpperCase()) || writer.contains(target.toLowerCase()),
                         String.format("Expected writer '%s' to contain '%s' but it doesn't.", writer, target));
             });
         });
 
 
-        Map<String, Long> titleTestValue = new HashMap<>();
-        titleTestValue.put("Zullie", 1L);
-        titleTestValue.put("Alva", 1L);
-        titleTestValue.put("where are you?", 2L);
-        titleTestValue.put("day", 1L);
-        titleTestValue.put("World", 2L);
-        titleTestValue.put("h", 4L);
+        Map<String, Integer> titleTestValue = new HashMap<>();
+        titleTestValue.put("Zullie", 1);
+        titleTestValue.put("Alva", 1);
+        titleTestValue.put("where are you?", 2);
+        titleTestValue.put("day", 1);
+        titleTestValue.put("World", 2);
+        titleTestValue.put("h", 4);
 
         titleTestValue.forEach((target, count) -> {
             // when
-            Page<BoardArticle> articles = articleService.readAllByTitleByPages(target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.TITLE, target, 0, 10);
 
             // then
-            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
-            articles.get().map(BoardArticle::getTitle).forEach(title -> {
+            assertThat(articles.getBoardArticles().size()).isEqualTo(count);
+            articles.getBoardArticles().forEach(boardArticle -> {
+                String title = boardArticle.getTitle();
                 assertTrue(title.contains(target) || title.contains(target.toUpperCase()) || title.contains(target.toLowerCase()),
                         String.format("Expected title '%s' to contain '%s' but it doesn't.", title, target));
             });
@@ -139,21 +165,22 @@ class ArticleControllerTest {
 
 
         // given
-        Map<String, Long> contentTestValue = new HashMap<>();
-        contentTestValue.put("oh", 2L);
-        contentTestValue.put("World", 2L);
-        contentTestValue.put("fine", 1L);
-        contentTestValue.put("e", 4L);
-        contentTestValue.put("o", 4L);
-        contentTestValue.put("ll", 2L);
+        Map<String, Integer> contentTestValue = new HashMap<>();
+        contentTestValue.put("oh", 2);
+        contentTestValue.put("World", 2);
+        contentTestValue.put("fine", 1);
+        contentTestValue.put("e", 4);
+        contentTestValue.put("o", 4);
+        contentTestValue.put("ll", 2);
 
         contentTestValue.forEach((target, count) -> {
             // when
-            Page<BoardArticle> articles = articleService.readAllByContentByPages(target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.CONTENT, target, 0, 10);
 
             // then
-            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
-            articles.get().map(BoardArticle::getContent).forEach(content -> {
+            assertThat(articles.getBoardArticles().size()).isEqualTo(count);
+            articles.getBoardArticles().forEach(boardArticle -> {
+                String content = boardArticle.getContent();
                 assertTrue(content.contains(target) || content.contains(target.toUpperCase()) || content.contains(target.toLowerCase()),
                         String.format("Expected content '%s' to contain '%s' but it doesn't.", content, target));
             });
@@ -161,19 +188,19 @@ class ArticleControllerTest {
 
 
         // given
-        Map<String, Long> titleOrContentTestValue = new HashMap<>();
-        titleOrContentTestValue.put("oh", 2L);
-        titleOrContentTestValue.put("you", 3L);
-        titleOrContentTestValue.put("Hello", 2L);
-        titleOrContentTestValue.put("Cruel", 2L);
+        Map<String, Integer> titleOrContentTestValue = new HashMap<>();
+        titleOrContentTestValue.put("oh", 2);
+        titleOrContentTestValue.put("you", 3);
+        titleOrContentTestValue.put("Hello", 2);
+        titleOrContentTestValue.put("Cruel", 2);
 
         titleOrContentTestValue.forEach((target, count) -> {
             // when
-            Page<BoardArticle> articles = articleService.readAllByTitleOrContentByPages(target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.TITLE_CONTENT, target, 0, 10);
 
             // then
-            assertThat(articles.getTotalElements()).isGreaterThanOrEqualTo(count);
-            articles.get().forEach(article -> {
+            assertThat(articles.getBoardArticles().size()).isEqualTo(count);
+            articles.getBoardArticles().forEach(article -> {
                 String title = article.getTitle();
                 String content = article.getContent();
                 assertTrue(title.contains(target) || title.contains(target.toUpperCase()) || title.contains(target.toLowerCase())
