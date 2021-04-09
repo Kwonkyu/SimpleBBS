@@ -51,15 +51,12 @@ public class ArticleController {
                 command.getKeyword(),
                 command.getPageNum(),
                 command.getPageSize());
-        // TODO: is search page necessary?
-//        model.addAttribute("articleAndComments", articleAndComments);
-//        model.addAttribute("currentPage", articles.getNumber());
-//        model.addAttribute("pages", articles.getTotalPages());
         model.addAttribute("articles", searchedArticles.getBoardArticles());
         model.addAttribute("commentSizes", searchedArticles.getBoardArticleCommentSize());
         model.addAttribute("currentPage", searchedArticles.getCurrentPage());
         model.addAttribute("totalPages", searchedArticles.getTotalPages());
-//        return "board/search";
+        model.addAttribute("searchMode", command.getMode().name());
+        model.addAttribute("searchKeyword", command.getKeyword());
         return "board/list";
     }
 

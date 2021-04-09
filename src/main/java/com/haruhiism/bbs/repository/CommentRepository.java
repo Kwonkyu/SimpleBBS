@@ -18,4 +18,6 @@ public interface CommentRepository extends CrudRepository<BoardComment, Long> {
     public Page<BoardComment> findAllByBoardArticleOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
 
     public void deleteAllByBoardArticle(BoardArticle boardArticle);
+
+    public int countAllByBoardArticle(BoardArticle boardArticle);
 }

@@ -44,14 +44,14 @@
             <tr>
                 <td>
                     <select name="mode">
-                        <option value="WRITER">Writer</option>
-                        <option value="TITLE">Title</option>
-                        <option value="CONTENT" selected>Content</option>
-                        <option value="TITLE_CONTENT">Title & Content</option>
+                        <option value="WRITER" th:selected="${'WRITER'.equals(searchMode)}">Writer</option>
+                        <option value="TITLE" th:selected="${'TITLE'.equals(searchMode)}">Title</option>
+                        <option value="CONTENT" th:selected="${'CONTENT'.equals(searchMode) || searchMode == null}">Content</option>
+                        <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT'.equals(searchMode)}">Title & Content</option>
                     </select>
                 </td>
                 <td>
-                    <input type="text" name="keyword" required>
+                    <input type="text" name="keyword" th:value="${searchKeyword}" required>
                 </td>
                 <td>
                     <input type="submit" value="Submit">
