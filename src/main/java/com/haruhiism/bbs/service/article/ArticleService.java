@@ -3,10 +3,13 @@ package com.haruhiism.bbs.service.article;
 import com.haruhiism.bbs.domain.SearchMode;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
+import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+
+import java.util.Optional;
 
 public interface ArticleService {
 
-    void createArticle(BoardArticleDTO... articles);
+    void createArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo);
 
     BoardArticleDTO readArticle(Long articleID);
 
@@ -20,9 +23,11 @@ public interface ArticleService {
 
     /**
      * Get entity by PK articleID, compare password with V rawPassword.
-     * @param articleID Primary Key to get entity from DB.
+     * @param articleId Primary Key to get entity from DB.
      * @param rawPassword Password to compare with entity's password.
      * @return Returns true if given raw password matches entity's decoded password else false.
      */
-    boolean authArticleAccess(Long articleID, String rawPassword);
+    Optional<BoardArticleDTO> authArticleAccess(Long articleId, String rawPassword);
+
+    Optional<BoardArticleDTO> authArticleAccess(Long articleId, Long accountId);
 }

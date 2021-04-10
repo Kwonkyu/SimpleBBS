@@ -3,13 +3,17 @@ package com.haruhiism.bbs.service;
 import com.haruhiism.bbs.domain.SearchMode;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
+import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
+import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
+import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,20 +31,28 @@ public class BasicBoardService implements ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CommentRepository commentRepository;
+    private final AccountRepository accountRepository;
 
     private final DataEncoder dataEncoder;
 
 
     @Override
-    public void createArticle(BoardArticleDTO...articles) {
-        for(BoardArticleDTO article: articles){
-            articleRepository.save(new BoardArticle(
-                    article.getWriter(),
-                    dataEncoder.encode(article.getPassword()),
-                    article.getTitle(),
-                    article.getContent())
-            );
+    public void createArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo) {
+        BoardArticle boardArticle = new BoardArticle(
+                article.getWriter(),
+                dataEncoder.encode(article.getPassword()),
+                article.getTitle(),
+                article.getContent());
+
+        if(loginSessionInfo != null){
+            boardArticle.changeWriter(loginSessionInfo.getUsername());
+            
+            boardArticle.registerAccountInfo(
+                    accountRepository.findById(loginSessionInfo.getAccountID())
+                            .orElseThrow(NoAccountFoundException::new));
         }
+
+        articleRepository.save(boardArticle);
     }
 
 
@@ -57,7 +69,8 @@ public class BasicBoardService implements ArticleService {
                     article.getWriter(),
                     article.getPassword(),
                     article.getTitle(),
-                    article.getContent());
+                    article.getContent(),
+                    article.getBoardAccount() == null ? null : article.getBoardAccount().getId());
         }
     }
 
@@ -99,17 +112,18 @@ public class BasicBoardService implements ArticleService {
         List<BoardArticleDTO> articles = new ArrayList<>();
         List<Integer> commentSizes = new ArrayList<>();
 
+        // TODO: apply logic to check if this article is written by login user or not.
+
         result.get().forEachOrdered(boardArticle -> {
             BoardArticleDTO boardArticleDTO = new BoardArticleDTO(
                     boardArticle.getId(),
                     boardArticle.getWriter(),
                     boardArticle.getPassword(),
                     boardArticle.getTitle(),
-                    boardArticle.getContent());
+                    boardArticle.getContent(),
+                    boardArticle.getBoardAccount() == null ? null : boardArticle.getBoardAccount().getId());
 
-            boardArticleDTO.setId(boardArticleDTO.getId());
             articles.add(boardArticleDTO);
-
             commentSizes.add(commentRepository.countAllByBoardArticle(boardArticle));
         });
 
@@ -145,13 +159,44 @@ public class BasicBoardService implements ArticleService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean authArticleAccess(Long articleID, String rawPassword) {
-        Optional<BoardArticle> readArticle = articleRepository.findById(articleID);
-        if (readArticle.isEmpty()) {
-            throw new NoArticleFoundException();
-        }
+    public Optional<BoardArticleDTO> authArticleAccess(Long articleID, String rawPassword) {
+        BoardArticle article = articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new);
+        String encodedPassword = article.getPassword();
 
-        return dataEncoder.compare(rawPassword, readArticle.get().getPassword());
+        if(getArticleWriterId(article).isEmpty() && dataEncoder.compare(rawPassword, encodedPassword)){
+            return Optional.of(new BoardArticleDTO(
+                    articleID,
+                    article.getWriter(),
+                    rawPassword,
+                    article.getTitle(),
+                    article.getContent(),
+                    null));
+        } else {
+            return Optional.empty();
+        }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<BoardArticleDTO> authArticleAccess(Long articleId, Long accountId) {
+        BoardArticle boardArticle = articleRepository.findById(articleId).orElseThrow(NoArticleFoundException::new);
+        Optional<Long> articleWriterId = getArticleWriterId(boardArticle);
+
+        if(articleWriterId.isPresent() && articleWriterId.get().equals(accountId)){
+            return Optional.of(new BoardArticleDTO(
+                    articleId,
+                    boardArticle.getWriter(),
+                    "PASSWORD",
+                    boardArticle.getTitle(),
+                    boardArticle.getContent(),
+                    articleWriterId.get()));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Long> getArticleWriterId(BoardArticle boardArticle) {
+        if(boardArticle.getBoardAccount() == null) return Optional.empty();
+        return Optional.of(boardArticle.getBoardAccount().getId());
+    }
 }

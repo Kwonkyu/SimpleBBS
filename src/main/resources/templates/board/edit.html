@@ -13,16 +13,25 @@
                 <td>
                     <label for="form-writer">WRITER</label>
                 </td>
-                <td>
+
+                <td th:if="${article.accountId == null}">
                     <input id="form-writer" name="writer" type="text" th:value="${article.writer}" readonly>
+                </td>
+                <td th:unless="${article.accountId == null}">
+                    <span th:text="${article.writer}"></span>
+                    <input name="writer" th:value="${article.writer}" hidden>
                 </td>
             </tr>
             <tr>
                 <td>
                     <label for="form-password">PASSWORD</label>
                 </td>
-                <td>
+
+                <td th:if="${article.accountId == null}">
                     <input id="form-password" name="password" type="password" th:value="${article.password}" readonly>
+                </td>
+                <td th:unless="${article.accountId == null}">
+                    <input name="password" value="PASSWORD" hidden>
                 </td>
             </tr>
             <tr>

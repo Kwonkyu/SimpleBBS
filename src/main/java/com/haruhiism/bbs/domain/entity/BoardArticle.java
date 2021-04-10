@@ -26,7 +26,17 @@ public class BoardArticle {
     @NonNull
     @Column(name = "CONTENT")
     private String content;
+    @ManyToOne
+    @JoinColumn(name = "BOARD_ACCOUNT_ID")
+    private BoardAccount boardAccount;
 
+    public void changeWriter(String writer) {
+        this.writer = writer;
+    }
+
+    public void changePassword(String password){
+        this.password = password;
+    }
 
     public void changeTitle(String title){
         this.title = title;
@@ -34,5 +44,9 @@ public class BoardArticle {
 
     public void changeContent(String content){
         this.content = content;
+    }
+
+    public void registerAccountInfo(BoardAccount boardAccount) {
+        this.boardAccount = boardAccount;
     }
 }

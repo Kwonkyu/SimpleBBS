@@ -45,7 +45,7 @@ class ArticleControllerTest {
         BoardArticleDTO boardArticle = new BoardArticleDTO("writer01", "p@ssw0rd01", "title01", content);
 
         // when
-        articleService.createArticle(boardArticle);
+        articleService.createArticle(boardArticle, null);
         BoardArticlesDTO articlesDTO = articleService.searchAllByPages(SearchMode.WRITER, "writer01", 0, 10);
         BoardArticleDTO readArticle = articlesDTO.getBoardArticles().get(0);
 
@@ -113,12 +113,17 @@ class ArticleControllerTest {
     @Test
     void searchArticleTest() {
         // given
-        BoardArticleDTO boardArticle1 = new BoardArticleDTO("Jason", "password", "How was your today", "I was fine.");
-        BoardArticleDTO boardArticle2 = new BoardArticleDTO("Alva", "password", "Zullie where are you?", "Oh Zullie, oh...");
-        BoardArticleDTO boardArticle3 = new BoardArticleDTO("Zullie", "password", "Alva where are you?", "Oh Alva, oh...");
-        BoardArticleDTO boardArticle4 = new BoardArticleDTO("Writer", "password", "Hello World", "Cruel World");
-        BoardArticleDTO boardArticle5 = new BoardArticleDTO("Writer", "password", "Cruel World", "Hello World");
-        articleService.createArticle(boardArticle1, boardArticle2, boardArticle3, boardArticle4, boardArticle5);
+        BoardArticleDTO[] boardArticleDTOS = new BoardArticleDTO[]{
+                new BoardArticleDTO("Jason", "password", "How was your today", "I was fine."),
+                new BoardArticleDTO("Alva", "password", "Zullie where are you?", "Oh Zullie, oh..."),
+                new BoardArticleDTO("Zullie", "password", "Alva where are you?", "Oh Alva, oh..."),
+                new BoardArticleDTO("Writer", "password", "Hello World", "Cruel World"),
+                new BoardArticleDTO("Writer", "password", "Cruel World", "Hello World")
+        };
+
+        for (BoardArticleDTO boardArticleDTO : boardArticleDTOS) {
+            articleService.createArticle(boardArticleDTO, null);
+        }
 
         Map<String, Integer> writerTestValue = new HashMap<>();
         writerTestValue.put("Writer", 2);

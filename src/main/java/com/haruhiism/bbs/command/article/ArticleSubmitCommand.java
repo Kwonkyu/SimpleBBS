@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -22,8 +23,6 @@ public class ArticleSubmitCommand {
     @Length(max = 255)
     private String title;
     @NotBlank
-    @Column(columnDefinition = "TEXT", length = 65536)
     @Length(max = 65535)
     private String content;
-
 }
