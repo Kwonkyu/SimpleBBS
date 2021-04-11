@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.service.authentication;
 
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,4 +14,11 @@ public class LoginSessionInfo {
     private final String password;
     private final String email;
 
+    public LoginSessionInfo(BoardAccount account) {
+        this.accountID = account.getId();
+        this.userID = account.getUserId();
+        this.username = account.getUsername();
+        this.password = account.getPassword();
+        this.email = account.getEmail();
+    }
 }

@@ -129,7 +129,7 @@ public class BasicBoardService implements ArticleService {
         BoardArticle updatedArticle = articleRepository.findById(article.getId())
                 .orElseThrow(UpdateDeletedArticleException::new);
 
-        if(verifyArticleAndAccount(updatedArticle, article.getPassword(), authDTO.getLoginSessionInfo())){
+        if(verifyArticleAndAccount(updatedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
             updatedArticle.changeTitle(article.getTitle());
             updatedArticle.changeContent(article.getContent());
         } else {
@@ -139,8 +139,8 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void deleteArticle(BoardArticleAuthDTO authDTO){
-        BoardArticle deletedArticle = articleRepository.findById(authDTO.getArticleId())
+    public void deleteArticle(Long articleId, BoardArticleAuthDTO authDTO){
+        BoardArticle deletedArticle = articleRepository.findById(articleId)
                 .orElseThrow(NoArticleFoundException::new);
 
         if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
@@ -154,8 +154,8 @@ public class BasicBoardService implements ArticleService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<BoardArticleDTO> authArticleEdit(BoardArticleAuthDTO authDTO) {
-        BoardArticle article = articleRepository.findById(authDTO.getArticleId())
+    public Optional<BoardArticleDTO> authArticleEdit(Long articleId, BoardArticleAuthDTO authDTO) {
+        BoardArticle article = articleRepository.findById(articleId)
                 .orElseThrow(NoArticleFoundException::new);
 
         if(verifyArticleAndAccount(article, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){

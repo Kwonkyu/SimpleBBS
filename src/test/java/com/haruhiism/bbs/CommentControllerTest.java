@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.controller;
+package com.haruhiism.bbs;
 
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
@@ -13,6 +13,7 @@ import com.haruhiism.bbs.service.comment.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class CommentControllerTest {
 

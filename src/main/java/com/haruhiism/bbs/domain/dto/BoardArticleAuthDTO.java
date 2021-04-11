@@ -11,8 +11,6 @@ import lombok.Setter;
 @Setter
 @Builder
 public class BoardArticleAuthDTO {
-
-    private Long articleId;
     private String rawPassword;
     private LoginSessionInfo loginSessionInfo;
 }

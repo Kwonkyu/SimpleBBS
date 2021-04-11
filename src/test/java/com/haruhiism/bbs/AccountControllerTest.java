@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.controller;
+package com.haruhiism.bbs;
 
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
@@ -11,11 +11,13 @@ import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 class AccountControllerTest {
 

@@ -17,7 +17,7 @@ public class BoardArticleDTO {
     private String password;
     private String title;
     private String content;
-    private Long accountId;
+    private boolean isWrittenByAccount;
 
     public BoardArticleDTO(BoardArticle article){
         this.id = article.getId();
@@ -25,7 +25,7 @@ public class BoardArticleDTO {
         this.password = article.getPassword();
         this.title = article.getTitle();
         this.content = article.getContent();
-        this.accountId = article.getBoardAccount() == null ? null : article.getBoardAccount().getId();
+        this.isWrittenByAccount = article.getBoardAccount() == null;
     }
 
 }

@@ -126,7 +126,7 @@ public class ArticleController {
 
 
     private boolean isArticleWrittenByLoggedInAccount(Long articleId){
-        return articleService.readArticle(articleId).getAccountId() != null;
+        return articleService.readArticle(articleId).isWrittenByAccount();
     }
 
     @GetMapping("/edit")
@@ -141,7 +141,7 @@ public class ArticleController {
             }
 
             BoardArticleDTO accessArticleDTO = articleService.authArticleEdit(
-                    BoardArticleAuthDTO.builder().articleId(command.getId()).loginSessionInfo(loginSessionInfo).build())
+                    command.getId(), BoardArticleAuthDTO.builder().loginSessionInfo(loginSessionInfo).build())
                     .orElseThrow(AuthenticationFailedException::new);
 
             model.addAttribute("article", accessArticleDTO);
@@ -156,7 +156,7 @@ public class ArticleController {
     public String authEditArticle(Model model,
                                   @ModelAttribute("command") @Valid ArticleEditAuthCommand command){
         BoardArticleDTO boardArticleDTO = articleService.authArticleEdit(
-                BoardArticleAuthDTO.builder().articleId(command.getId()).rawPassword(command.getPassword()).build())
+                command.getId(), BoardArticleAuthDTO.builder().rawPassword(command.getPassword()).build())
                 .orElseThrow(AuthenticationFailedException::new);
 
         model.addAttribute("article", boardArticleDTO);
@@ -171,11 +171,11 @@ public class ArticleController {
 
         BoardArticleDTO editedArticleDTO = BoardArticleDTO.builder()
                 .id(command.getArticleID())
-                .password(command.getPassword())
                 .title(command.getTitle())
                 .content(command.getContent()).build();
 
         BoardArticleAuthDTO authDTO = BoardArticleAuthDTO.builder()
+                .rawPassword(command.getPassword())
                 .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build();
 
         articleService.updateArticle(editedArticleDTO, authDTO);
@@ -191,8 +191,8 @@ public class ArticleController {
 
         if (isArticleWrittenByLoggedInAccount(command.getId())) {
             articleService.deleteArticle(
+                    command.getId(),
                     BoardArticleAuthDTO.builder()
-                            .articleId(command.getId())
                             .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false)))
                             .build());
             return "redirect:/board/list";
@@ -205,8 +205,9 @@ public class ArticleController {
     @PostMapping("/remove")
     public String authRemoveArticle(@Valid ArticleRemoveAuthCommand command){
 
-        articleService.deleteArticle(BoardArticleAuthDTO.builder()
-                        .articleId(command.getId())
+        articleService.deleteArticle(
+                command.getId(),
+                BoardArticleAuthDTO.builder()
                         .rawPassword(command.getPassword())
                         .build());
 

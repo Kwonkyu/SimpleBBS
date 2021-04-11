@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.controller;
+package com.haruhiism.bbs.mvc;
 
 
 import com.haruhiism.bbs.domain.UpdatableInformation;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -174,6 +175,7 @@ public class AccountMvcTest {
                 .params(params))
                 // then
                 .andExpect(status().isUnprocessableEntity());
+                // TODO: use request()'s sessionAttribute on andExpect().
 
 
         // given

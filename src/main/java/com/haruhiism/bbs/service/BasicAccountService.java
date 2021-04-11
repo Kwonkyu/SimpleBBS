@@ -62,12 +62,7 @@ public class BasicAccountService implements AccountService {
 
 
     private LoginSessionInfo updateAccountSession(BoardAccount account){
-        return new LoginSessionInfo(
-                account.getId(),
-                account.getUserId(),
-                account.getUsername(),
-                account.getPassword(),
-                account.getEmail());
+        return new LoginSessionInfo(account);
     }
 
     @Override

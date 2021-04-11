@@ -12,7 +12,7 @@ public interface ArticleService {
 
     void createArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO);
 
-    BoardArticleDTO readArticle(Long articleID);
+    BoardArticleDTO readArticle(Long articleId);
 
     BoardArticlesDTO readAllByPages(int pageNum, int pageSize);
 
@@ -20,7 +20,7 @@ public interface ArticleService {
 
     void updateArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO);
 
-    void deleteArticle(BoardArticleAuthDTO article);
+    void deleteArticle(Long articleId, BoardArticleAuthDTO authDTO);
 
-    Optional<BoardArticleDTO> authArticleEdit(BoardArticleAuthDTO articleAuthDTO);
+    Optional<BoardArticleDTO> authArticleEdit(Long articleId, BoardArticleAuthDTO articleAuthDTO);
 }
