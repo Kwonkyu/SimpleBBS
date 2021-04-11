@@ -1,25 +1,31 @@
 package com.haruhiism.bbs.domain.dto;
 
+import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.*;
 import org.springframework.lang.Nullable;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
-@RequiredArgsConstructor
+// TODO: @Builder와 커스텀 생성자는 같이 존재할 수 없는듯. @AllArgsConstructor가 명시적으로 필요한 듯 한데 이에 대해서 조사 및 기록.
 public class BoardArticleDTO {
 
     private Long id;
-    @NonNull
     private String writer;
-    @NonNull
     private String password;
-    @NonNull
     private String title;
-    @NonNull
     private String content;
-
-    @Nullable
     private Long accountId;
+
+    public BoardArticleDTO(BoardArticle article){
+        this.id = article.getId();
+        this.writer = article.getWriter();
+        this.password = article.getPassword();
+        this.title = article.getTitle();
+        this.content = article.getContent();
+        this.accountId = article.getBoardAccount() == null ? null : article.getBoardAccount().getId();
+    }
+
 }

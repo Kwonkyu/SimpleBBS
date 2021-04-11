@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.service.article;
 
 import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
@@ -17,17 +18,9 @@ public interface ArticleService {
 
     BoardArticlesDTO searchAllByPages(SearchMode searchMode, String keyword, int pageNum, int pageSize);
 
-    void updateArticle(BoardArticleDTO boardArticle);
+    void updateArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo);
 
-    void deleteArticle(Long articleID);
+    void deleteArticle(BoardArticleAuthDTO article, LoginSessionInfo loginSessionInfo);
 
-    /**
-     * Get entity by PK articleID, compare password with V rawPassword.
-     * @param articleId Primary Key to get entity from DB.
-     * @param rawPassword Password to compare with entity's password.
-     * @return Returns true if given raw password matches entity's decoded password else false.
-     */
-    Optional<BoardArticleDTO> authArticleAccess(Long articleId, String rawPassword);
-
-    Optional<BoardArticleDTO> authArticleAccess(Long articleId, Long accountId);
+    Optional<BoardArticleDTO> authArticleAccess(BoardArticleAuthDTO articleAuthDTO);
 }

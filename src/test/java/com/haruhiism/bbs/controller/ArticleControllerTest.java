@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
@@ -42,7 +43,11 @@ class ArticleControllerTest {
     void createAndReadBoardArticleTest() {
         // given
         String content = "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit";
-        BoardArticleDTO boardArticle = new BoardArticleDTO("writer01", "p@ssw0rd01", "title01", content);
+        BoardArticleDTO boardArticle = BoardArticleDTO.builder()
+                .writer("writer01")
+                .password("p@ssw0rd01")
+                .title("title01")
+                .content(content).build();
 
         // when
         articleService.createArticle(boardArticle, null);
@@ -70,12 +75,13 @@ class ArticleControllerTest {
         BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
         articleRepository.save(boardArticle);
 
-        articleService.updateArticle(new BoardArticleDTO(
-                boardArticle.getId(),
-                "writer",
-                "password",
-                "edited_title",
-                "edited_content"));
+        articleService.updateArticle(BoardArticleDTO.builder()
+                        .id(boardArticle.getId())
+                        .writer("writer")
+                        .password("password")
+                        .title("edited_title")
+                        .content("edited_content").build(),
+                null);
 
         // when
         BoardArticleDTO readArticle = articleService.readArticle(boardArticle.getId());
@@ -89,12 +95,12 @@ class ArticleControllerTest {
 
         // then
         assertThrows(UpdateDeletedArticleException.class, () -> articleService.updateArticle(
-                new BoardArticleDTO(
-                        boardArticle.getId(),
-                        "writer",
-                        "password",
-                        "deleted_title",
-                        "deleted_content")));
+                BoardArticleDTO.builder()
+                        .id(boardArticle.getId())
+                        .writer("writer")
+                        .password("password")
+                        .title("deleted_title")
+                        .content("deleted_content").build(), null));
     }
 
     @Test
@@ -104,7 +110,9 @@ class ArticleControllerTest {
         articleRepository.save(boardArticle);
 
         // when
-        articleService.deleteArticle(boardArticle.getId());
+        articleService.deleteArticle(
+                BoardArticleAuthDTO.builder().articleId(boardArticle.getId()).rawPassword("password").build(),
+                null);
 
         // then
         assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle.getId()));
@@ -114,11 +122,11 @@ class ArticleControllerTest {
     void searchArticleTest() {
         // given
         BoardArticleDTO[] boardArticleDTOS = new BoardArticleDTO[]{
-                new BoardArticleDTO("Jason", "password", "How was your today", "I was fine."),
-                new BoardArticleDTO("Alva", "password", "Zullie where are you?", "Oh Zullie, oh..."),
-                new BoardArticleDTO("Zullie", "password", "Alva where are you?", "Oh Alva, oh..."),
-                new BoardArticleDTO("Writer", "password", "Hello World", "Cruel World"),
-                new BoardArticleDTO("Writer", "password", "Cruel World", "Hello World")
+                BoardArticleDTO.builder().writer("Jason").password("password").title("How was your today").content("I was fine.").build(),
+                BoardArticleDTO.builder().writer("Alva").password("password").title("Zullie where are you?").content("Oh Zullie, oh...").build(),
+                BoardArticleDTO.builder().writer("Zullie").password("password").title("Alva where are you?").content("Oh Alva, oh...").build(),
+                BoardArticleDTO.builder().writer("Writer").password("password").title("Hello World").content("Cruel World").build(),
+                BoardArticleDTO.builder().writer("Writer").password("password").title("Cruel World").content("Hello World").build()
         };
 
         for (BoardArticleDTO boardArticleDTO : boardArticleDTOS) {

@@ -13,7 +13,7 @@ public class BoardAccount {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOARD_ACCOUNT_ID")
-    private long id;
+    private Long id;
     @NonNull
     @Column(name = "USER_ID")
     private String userId;

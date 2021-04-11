@@ -1,12 +1,11 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.article.*;
+import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
-import com.haruhiism.bbs.exception.NoArticleFoundException;
-import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.service.comment.CommentService;
@@ -19,13 +18,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.client.HttpClientErrorException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -34,8 +31,6 @@ public class ArticleController {
 
     private final ArticleService articleService;
     private final CommentService commentService;
-
-    private final String sessionAuthAttribute = "loginAuthInfo";
 
 
     // TODO: pageSize option.
@@ -74,8 +69,6 @@ public class ArticleController {
         BoardArticleDTO article = articleService.readArticle(command.getId());
         BoardCommentsDTO comments = commentService.readCommentsOfArticle(article.getId(), command.getCommentPage(), 10);
 
-        // TODO: logged in users vs not logged in users.
-
         model.addAttribute("article", article);
         model.addAttribute("comments", comments.getBoardComments());
         model.addAttribute("currentCommentPage", comments.getCurrentPage());
@@ -86,14 +79,15 @@ public class ArticleController {
 
 
     @GetMapping("/write")
-    // no validation here because it's writing a new article.
     public String writeBoardArticle(
             Model model,
             @ModelAttribute("command") ArticleSubmitCommand command,
             HttpServletRequest request){
 
-        getLoginSessionInfoFromHttpSession(request.getSession(false))
-        .ifPresent(l -> model.addAttribute("loginUsername", l.getUsername()));
+        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
+        if(loginSessionInfo != null){
+            model.addAttribute("loginUsername", loginSessionInfo.getUsername());
+        }
 
         return "board/write";
     }
@@ -106,55 +100,62 @@ public class ArticleController {
             HttpServletRequest request,
             HttpServletResponse response){
 
-        Optional<LoginSessionInfo> loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
+        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
 
         if(bindingResult.hasErrors()){
             // Validation should not be handled by exception handlers because of user feedback.
             response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
-            loginSessionInfo.ifPresent(l -> model.addAttribute("loginUsername", l.getUsername()));
+            if(loginSessionInfo != null) {
+                model.addAttribute("loginUsername", loginSessionInfo.getUsername());
+            }
             return "/board/write";
         }
 
-        BoardArticleDTO articleDTO = new BoardArticleDTO(
-                command.getWriter(),
-                command.getPassword(),
-                command.getTitle(),
-                command.getContent());
+        BoardArticleDTO articleDTO = BoardArticleDTO.builder()
+                .writer(command.getWriter())
+                .password(command.getPassword())
+                .title(command.getTitle())
+                .content(command.getContent()).build();
 
-        // TODO: is it good code?
-        articleService.createArticle(articleDTO, loginSessionInfo.orElse(null));
+        articleService.createArticle(articleDTO, loginSessionInfo);
         return "redirect:/board/list";
     }
 
+
+    private boolean isArticleWrittenByLoggedInAccount(Long articleId){
+        return articleService.readArticle(articleId).getAccountId() != null;
+    }
 
     @GetMapping("/edit")
     public String requestEditArticle(Model model,
                                      @Valid ArticleEditRequestCommand command,
                                      HttpServletRequest request){
 
-        if (articleService.readArticle(command.getId()).getAccountId() == null) {
-            model.addAttribute("id", command.getId());
-            return "board/editRequest";
-        } else {
-            // TODO: throw proper exception? like bad request, access...
-            // TODO: it's duplicated withe edit/submit.
-            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false))
-                    .orElseThrow(AuthenticationFailedException::new);
+        if (isArticleWrittenByLoggedInAccount(command.getId())) {
+            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
+            if(loginSessionInfo == null){
+                throw new AuthenticationFailedException();
+            }
 
             BoardArticleDTO accessArticleDTO = articleService.authArticleAccess(
-                    command.getId(), loginSessionInfo.getAccountID())
+                    BoardArticleAuthDTO.builder().articleId(command.getId()).loginSessionInfo(loginSessionInfo).build())
                     .orElseThrow(AuthenticationFailedException::new);
 
             model.addAttribute("article", accessArticleDTO);
             return "board/edit";
+        } else {
+            model.addAttribute("id", command.getId());
+            return "board/editRequest";
         }
     }
 
     @PostMapping("/edit")
-    public String authEditArticle(Model model, @ModelAttribute("command") @Valid ArticleEditAuthCommand command){
+    public String authEditArticle(Model model,
+                                  @ModelAttribute("command") @Valid ArticleEditAuthCommand command){
         BoardArticleDTO boardArticleDTO = articleService.authArticleAccess(
-                command.getId(), command.getPassword())
+                BoardArticleAuthDTO.builder().articleId(command.getId()).rawPassword(command.getPassword()).build())
                 .orElseThrow(AuthenticationFailedException::new);
+
         model.addAttribute("article", boardArticleDTO);
         return "board/edit";
     }
@@ -165,26 +166,15 @@ public class ArticleController {
             @Valid ArticleEditSubmitCommand command,
             HttpServletRequest request){
 
-        // TODO: 컨트롤러의 인증 관련 로직을 서비스로 좀 이동할 필요가 있지 않을까?
-        BoardArticleDTO editRequestedArticleDTO = articleService.readArticle(command.getArticleID());
-        BoardArticleDTO editedArticleDTO = null;
-        if(editRequestedArticleDTO.getAccountId() == null){
-            editedArticleDTO = articleService.authArticleAccess(
-                    command.getArticleID(), command.getPassword())
-                    .orElseThrow(AuthenticationFailedException::new);
-        } else {
-            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false))
-                    .orElseThrow(AuthenticationFailedException::new);
+        LoginSessionInfo sessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
 
-            editedArticleDTO = articleService.authArticleAccess(
-                    command.getArticleID(), loginSessionInfo.getAccountID())
-                    .orElseThrow(AuthenticationFailedException::new);
-        }
+        BoardArticleDTO editedArticleDTO = BoardArticleDTO.builder()
+                .id(command.getArticleID())
+                .password(command.getPassword())
+                .title(command.getTitle())
+                .content(command.getContent()).build();
 
-        editedArticleDTO.setTitle(command.getTitle());
-        editedArticleDTO.setContent(command.getContent());
-
-        articleService.updateArticle(editedArticleDTO);
+        articleService.updateArticle(editedArticleDTO, sessionInfo);
         return "redirect:/board/list";
     }
 
@@ -194,44 +184,31 @@ public class ArticleController {
             Model model,
             @Valid ArticleRemoveRequestCommand command,
             HttpServletRequest request){
-        BoardArticleDTO removeRequestedArticle = articleService.readArticle(command.getId());
-        if (removeRequestedArticle.getAccountId() == null) {
+
+        if (isArticleWrittenByLoggedInAccount(command.getId())) {
+            articleService.deleteArticle(
+                    BoardArticleAuthDTO.builder().articleId(command.getId()).build(),
+                    getLoginSessionInfoFromHttpSession(request.getSession(false)));
+            return "redirect:/board/list";
+        } else {
             model.addAttribute("id", command.getId());
             return "board/removeRequest";
-        } else {
-            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false))
-                    .orElseThrow(AuthenticationFailedException::new);
-
-            // TODO: 굳이 컨트롤러에서?
-            Optional<BoardArticleDTO> articleAccess = articleService.authArticleAccess(command.getId(), loginSessionInfo.getAccountID());
-            if (articleAccess.isPresent()) {
-                articleService.deleteArticle(command.getId());
-            } else {
-                throw new AuthenticationFailedException();
-            }
-
-            return "redirect:/board/list";
         }
     }
 
     @PostMapping("/remove")
     public String authRemoveArticle(@Valid ArticleRemoveAuthCommand command){
-        Optional<BoardArticleDTO> boardArticleDTO = articleService.authArticleAccess(command.getId(), command.getPassword());
 
-        if(boardArticleDTO.isPresent()){
-            // TODO: 댓글 삭제 로직을 서비스 계층으로 이동?
-            commentService.deleteCommentsOfArticle(command.getId());
-            articleService.deleteArticle(command.getId());
-            return "redirect:/board/list";
-        } else {
-            throw new AuthenticationFailedException();
-        }
+        articleService.deleteArticle(
+                BoardArticleAuthDTO.builder().articleId(command.getId()).rawPassword(command.getPassword()).build(),
+                null);
+
+        return "redirect:/board/list";
     }
 
-    private Optional<LoginSessionInfo> getLoginSessionInfoFromHttpSession(HttpSession session) {
-        if(session == null) return Optional.empty();
-        LoginSessionInfo loginSessionInfo = (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
-
-        return loginSessionInfo == null ? Optional.empty() : Optional.of(loginSessionInfo);
+    private LoginSessionInfo getLoginSessionInfoFromHttpSession(HttpSession session) {
+        if(session == null) return null;
+        String sessionAuthAttribute = "loginAuthInfo";
+        return (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
     }
 }

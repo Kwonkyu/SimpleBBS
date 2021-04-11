@@ -38,7 +38,7 @@
                 <td th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is not valid.</td>
 
                 <td th:unless="${loginUsername == null}">
-                    <input name="password" type="password" value="PASSWORD" hidden>
+                    <input name="password" type="password" value="THIS_IS_USELESS_PASSWORD" hidden>
                 </td>
 
             </tr>
