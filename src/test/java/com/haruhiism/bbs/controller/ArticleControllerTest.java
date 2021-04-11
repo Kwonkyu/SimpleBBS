@@ -110,9 +110,9 @@ class ArticleControllerTest {
         articleRepository.save(boardArticle);
 
         // when
-        articleService.deleteArticle(
-                BoardArticleAuthDTO.builder().articleId(boardArticle.getId()).rawPassword("password").build(),
-                null);
+        articleService.deleteArticle(BoardArticleAuthDTO.builder()
+                        .articleId(boardArticle.getId())
+                        .rawPassword("password").build());
 
         // then
         assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle.getId()));

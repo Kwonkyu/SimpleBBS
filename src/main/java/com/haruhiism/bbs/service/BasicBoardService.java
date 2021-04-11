@@ -38,13 +38,14 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void createArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo) {
+    public void createArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO) {
         BoardArticle boardArticle = new BoardArticle(
                 article.getWriter(),
                 dataEncoder.encode(article.getPassword()),
                 article.getTitle(),
                 article.getContent());
 
+        LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
         if(loginSessionInfo != null){
             boardArticle.changeWriter(loginSessionInfo.getUsername());
 
@@ -117,20 +118,18 @@ public class BasicBoardService implements ArticleService {
 
     private boolean verifyArticleAndAccount(BoardArticle boardArticle, String authValue, LoginSessionInfo loginSessionInfo){
         Optional<Long> articleWriter = getArticleWriterId(boardArticle);
-        if(articleWriter.isPresent()){
-            return loginSessionInfo != null && articleWriter.get().equals(loginSessionInfo.getAccountID());
-        } else {
-            return dataEncoder.compare(authValue, boardArticle.getPassword());
-        }
+        return articleWriter.map(articleWriterId ->
+                loginSessionInfo != null && articleWriterId.equals(loginSessionInfo.getAccountID()))
+                .orElseGet(() -> dataEncoder.compare(authValue, boardArticle.getPassword()));
     }
 
 
     @Override
-    public void updateArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo) {
+    public void updateArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO) {
         BoardArticle updatedArticle = articleRepository.findById(article.getId())
                 .orElseThrow(UpdateDeletedArticleException::new);
 
-        if(verifyArticleAndAccount(updatedArticle, article.getPassword(), loginSessionInfo)){
+        if(verifyArticleAndAccount(updatedArticle, article.getPassword(), authDTO.getLoginSessionInfo())){
             updatedArticle.changeTitle(article.getTitle());
             updatedArticle.changeContent(article.getContent());
         } else {
@@ -140,11 +139,11 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void deleteArticle(BoardArticleAuthDTO authDTO, LoginSessionInfo loginSessionInfo){
+    public void deleteArticle(BoardArticleAuthDTO authDTO){
         BoardArticle deletedArticle = articleRepository.findById(authDTO.getArticleId())
                 .orElseThrow(NoArticleFoundException::new);
 
-        if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), loginSessionInfo)){
+        if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
             commentRepository.deleteAllByBoardArticle(deletedArticle);
             articleRepository.delete(deletedArticle);
         } else {
@@ -155,7 +154,7 @@ public class BasicBoardService implements ArticleService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<BoardArticleDTO> authArticleAccess(BoardArticleAuthDTO authDTO) {
+    public Optional<BoardArticleDTO> authArticleEdit(BoardArticleAuthDTO authDTO) {
         BoardArticle article = articleRepository.findById(authDTO.getArticleId())
                 .orElseThrow(NoArticleFoundException::new);
 

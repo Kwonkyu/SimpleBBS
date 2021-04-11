@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface ArticleService {
 
-    void createArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo);
+    void createArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO);
 
     BoardArticleDTO readArticle(Long articleID);
 
@@ -18,9 +18,9 @@ public interface ArticleService {
 
     BoardArticlesDTO searchAllByPages(SearchMode searchMode, String keyword, int pageNum, int pageSize);
 
-    void updateArticle(BoardArticleDTO article, LoginSessionInfo loginSessionInfo);
+    void updateArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO);
 
-    void deleteArticle(BoardArticleAuthDTO article, LoginSessionInfo loginSessionInfo);
+    void deleteArticle(BoardArticleAuthDTO article);
 
-    Optional<BoardArticleDTO> authArticleAccess(BoardArticleAuthDTO articleAuthDTO);
+    Optional<BoardArticleDTO> authArticleEdit(BoardArticleAuthDTO articleAuthDTO);
 }
