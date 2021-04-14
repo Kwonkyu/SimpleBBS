@@ -5,6 +5,7 @@ import com.haruhiism.bbs.domain.entity.BoardComment;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.comment.CommentService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,6 +38,7 @@ public class CommentMvcTest {
     MockMvc mockMvc;
 
     @Test
+    @DisplayName("부적절한 댓글 작성")
     void createInvalidCommentTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
@@ -83,87 +85,8 @@ public class CommentMvcTest {
                 .andExpect(status().isUnprocessableEntity());
     }
 
-
     @Test
-    void requestSearchTest() throws Exception {
-        // given
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("mode", "WRITER");
-        headers.set("keyword", "normal_keyword");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isOk());
-
-
-        // given
-        headers.set("mode", "TITLE");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isOk());
-
-
-        // given
-        headers.set("mode", "CONTENT");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isOk());
-
-
-        // given
-        headers.set("mode", "TITLE_CONTENT");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void requestInvalidSearchTest() throws Exception {
-        // given
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("mode", "UNAVAILABLE_MODE");
-        headers.set("keyword", "normal_keyword");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isUnprocessableEntity());
-
-
-        // given
-        headers.set("mode", "");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isUnprocessableEntity());
-
-
-        // given
-        headers.set("mode", "CONTENT");
-        headers.set("keyword", "");
-
-        // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
+    @DisplayName("부적절한 댓글 삭제 요청")
     void requestInvalidDeleteCommentTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
@@ -185,6 +108,7 @@ public class CommentMvcTest {
 
 
     @Test
+    @DisplayName("부적절한 댓글 삭제")
     void deleteInvalidCommentTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");

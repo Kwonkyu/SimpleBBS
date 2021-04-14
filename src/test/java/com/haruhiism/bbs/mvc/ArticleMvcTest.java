@@ -247,4 +247,86 @@ public class ArticleMvcTest {
                 // then
                 .andExpect(status().isUnauthorized());
     }
+
+
+    @Test
+    @DisplayName("게시글 검색")
+    void requestSearchTest() throws Exception {
+        // given
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("mode", "WRITER");
+        headers.set("keyword", "normal_keyword");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+
+
+        // given
+        headers.set("mode", "TITLE");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+
+
+        // given
+        headers.set("mode", "CONTENT");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+
+
+        // given
+        headers.set("mode", "TITLE_CONTENT");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("부적절한 게시글 검색")
+    void requestInvalidSearchTest() throws Exception {
+        // given
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("mode", "UNAVAILABLE_MODE");
+        headers.set("keyword", "normal_keyword");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+
+
+        // given
+        headers.set("mode", "");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+
+
+        // given
+        headers.set("mode", "CONTENT");
+        headers.set("keyword", "");
+
+        // when
+        mockMvc.perform(get("/board/search")
+                .params(headers))
+                // then
+                .andExpect(status().isUnprocessableEntity());
+    }
 }

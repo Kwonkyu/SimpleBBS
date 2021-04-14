@@ -1,4 +1,4 @@
-package com.haruhiism.bbs;
+package com.haruhiism.bbs.service;
 
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
@@ -8,6 +8,7 @@ import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class AccountControllerTest {
+class AccountServiceTest {
 
     @Autowired
     AccountService accountService;
@@ -37,6 +38,7 @@ class AccountControllerTest {
 
 
     @Test
+    @DisplayName("회원가입 시도")
     void registerAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
@@ -65,6 +67,7 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("회원탈퇴 시도")
     void withdrawAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
@@ -82,6 +85,7 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("로그인 시도")
     void loginAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
@@ -110,6 +114,7 @@ class AccountControllerTest {
 
 
     @Test
+    @DisplayName("계정 이름 변경")
     void updateUsernameTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
@@ -123,6 +128,7 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("계정 이메일 변경")
     void updateEmailTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
@@ -136,6 +142,7 @@ class AccountControllerTest {
     }
 
     @Test
+    @DisplayName("계정 비밀번호 변경")
     void updatePasswordTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);

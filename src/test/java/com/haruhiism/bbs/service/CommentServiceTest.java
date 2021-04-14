@@ -1,4 +1,4 @@
-package com.haruhiism.bbs;
+package com.haruhiism.bbs.service;
 
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
@@ -10,6 +10,7 @@ import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class CommentControllerTest {
+class CommentServiceTest {
 
     @Autowired
     ArticleService articleService;
@@ -46,6 +47,7 @@ class CommentControllerTest {
     String testCommentContent = "testcommentcontent";
 
     @Test
+    @DisplayName("댓글 작성")
     void createAndReadArticleCommentTest() {
         // given
         BoardArticle commentedArticle = new BoardArticle(testWriter, testPassword, testTitle, testContent);
@@ -64,6 +66,7 @@ class CommentControllerTest {
     }
 
     @Test
+    @DisplayName("부적절한 댓글 작성")
     void createInvalidArticleCommentTest(){
         // given
 
@@ -75,6 +78,7 @@ class CommentControllerTest {
     }
 
     @Test
+    @DisplayName("댓글 삭제")
     void createAndDeleteCommentTest(){
         // given
         BoardArticle commentedArticle = new BoardArticle(testWriter, testPassword, testTitle, testContent);
@@ -99,6 +103,7 @@ class CommentControllerTest {
     }
 
     @Test
+    @DisplayName("부적절한 댓글 삭제")
     void deleteInvalidCommentTest(){
         // given
         BoardArticle commentedArticle = new BoardArticle("testwriter", "testpassword", "testtitle", "testcontent");

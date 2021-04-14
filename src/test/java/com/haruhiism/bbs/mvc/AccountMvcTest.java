@@ -44,6 +44,7 @@ public class AccountMvcTest {
 
 
     @Test
+    @DisplayName("허가되지 않은 접근")
     void unauthorizedAccessTest() throws Exception {
         // given
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -83,11 +84,9 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 회원가입 시도")
     void submitInvalidRegisterTest() throws Exception {
         // given
-        accountService.registerAccount(
-                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
-                AccountLevel.NORMAL);
         HttpHeaders params = new HttpHeaders();
 
         // when
@@ -138,6 +137,7 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 회원탈퇴 시도")
     void submitInvalidWithdrawTest() throws Exception {
         // given
         accountService.registerAccount(
@@ -160,6 +160,7 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 로그인 시도")
     void submitInvalidLoginTest() throws Exception {
         // given
         accountService.registerAccount(
@@ -175,7 +176,6 @@ public class AccountMvcTest {
                 .params(params))
                 // then
                 .andExpect(status().isUnprocessableEntity());
-                // TODO: use request()'s sessionAttribute on andExpect().
 
 
         // given
@@ -200,6 +200,7 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 회원정보 갱신")
     void submitInvalidInfoUpdateTest() throws Exception {
         // given
         accountService.registerAccount(
