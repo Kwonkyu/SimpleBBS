@@ -25,7 +25,11 @@ public class BoardArticleDTO {
         this.password = article.getPassword();
         this.title = article.getTitle();
         this.content = article.getContent();
-        this.isWrittenByAccount = article.getBoardAccount() == null;
+        this.isWrittenByAccount = (article.getBoardAccount() != null);
     }
 
+    @Override
+    public String toString() {
+        return String.format("[#%d] '%s' written by '%s'(account=%s).\nContents: %10s...\n", id, title, writer, isWrittenByAccount, content);
+    }
 }

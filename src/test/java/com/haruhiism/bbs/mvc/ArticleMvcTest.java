@@ -6,6 +6,7 @@ import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
+import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.AfterAll;
@@ -44,13 +45,15 @@ public class ArticleMvcTest {
 
     @Autowired
     MockMvc mockMvc;
+    @Autowired
+    DataEncoder dataEncoder;
 
 
     @Test
     @DisplayName("게시글 작성")
     void createArticleTest() throws Exception {
         // given
-        BoardAccount boardAccount = new BoardAccount("userid", "username", "password", "email@domain.com");
+        BoardAccount boardAccount = new BoardAccount("userid", "username", dataEncoder.encode("password"), "email@domain.com");
         accountRepository.save(boardAccount);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -80,7 +83,7 @@ public class ArticleMvcTest {
     @DisplayName("부적절한 게시글 작성")
     void createInvalidArticleTest() throws Exception {
         // given
-        BoardAccount boardAccount = new BoardAccount("userid", "username", "password", "email@domain.com");
+        BoardAccount boardAccount = new BoardAccount("userid", "username", dataEncoder.encode("password"), "email@domain.com");
         accountRepository.save(boardAccount);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -167,10 +170,10 @@ public class ArticleMvcTest {
     @DisplayName("부적절한 게시물 수정")
     void editInvalidArticleTest() throws Exception {
         // given
-        BoardAccount boardAccount = new BoardAccount("userid", "username", "password", "email@domain.com");
+        BoardAccount boardAccount = new BoardAccount("userid", "username", dataEncoder.encode("password"), "email@domain.com");
         accountRepository.save(boardAccount);
-        BoardArticle boardArticle1 = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
-        BoardArticle boardArticle2 = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
+        BoardArticle boardArticle1 = new BoardArticle("writer", dataEncoder.encode("password"), "edit_me_title", "edit_me_content");
+        BoardArticle boardArticle2 = new BoardArticle("writer", dataEncoder.encode("password"), "edit_me_title", "edit_me_content");
         boardArticle2.registerAccountInfo(boardAccount);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -218,10 +221,10 @@ public class ArticleMvcTest {
     @DisplayName("부적절한 게시물 삭제")
     void deleteInvalidArticleTest() throws Exception {
         // given
-        BoardAccount boardAccount = new BoardAccount("userid", "username", "password", "email@domain.com");
+        BoardAccount boardAccount = new BoardAccount("userid", "username", dataEncoder.encode("password"), "email@domain.com");
         accountRepository.save(boardAccount);
-        BoardArticle boardArticle1 = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
-        BoardArticle boardArticle2 = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
+        BoardArticle boardArticle1 = new BoardArticle("writer", dataEncoder.encode("password"), "edit_me_title", "edit_me_content");
+        BoardArticle boardArticle2 = new BoardArticle("writer", dataEncoder.encode("password"), "edit_me_title", "edit_me_content");
         boardArticle2.registerAccountInfo(boardAccount);
 
         MockHttpSession mockHttpSession = new MockHttpSession();

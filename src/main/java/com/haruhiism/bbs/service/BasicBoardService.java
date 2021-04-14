@@ -18,6 +18,7 @@ import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +39,7 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void createArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO) {
+    public void createArticle(BoardArticleDTO article, @NonNull BoardArticleAuthDTO authDTO) {
         BoardArticle boardArticle = new BoardArticle(
                 article.getWriter(),
                 dataEncoder.encode(article.getPassword()),
@@ -117,9 +118,9 @@ public class BasicBoardService implements ArticleService {
 
 
     private boolean verifyArticleAndAccount(BoardArticle boardArticle, String authValue, LoginSessionInfo loginSessionInfo){
-        Optional<Long> articleWriter = getArticleWriterId(boardArticle);
-        return articleWriter.map(articleWriterId ->
-                loginSessionInfo != null && articleWriterId.equals(loginSessionInfo.getAccountID()))
+        Optional<Long> articleWriterId = getArticleWriterId(boardArticle);
+        return articleWriterId.map(id ->
+                loginSessionInfo != null && id.equals(loginSessionInfo.getAccountID()))
                 .orElseGet(() -> dataEncoder.compare(authValue, boardArticle.getPassword()));
     }
 

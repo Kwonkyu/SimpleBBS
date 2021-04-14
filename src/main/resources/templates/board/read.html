@@ -11,8 +11,8 @@
         <h1 th:text="${article.getTitle()}">Title</h1>
     </div>
     <div>
-        <h3 th:if="${article.accountId == null}" th:text="${'-' + article.getWriter()}">Writer</h3>
-        <h3 th:unless="${article.accountId == null}" th:text="${'- [' + article.getWriter() + ']'}">Writer</h3>
+        <h3 th:if="${article.isWrittenByAccount}" th:text="${'- [' + article.getWriter() + ']'}">Writer</h3>
+        <h3 th:unless="${article.isWrittenByAccount}" th:text="${'-' + article.getWriter()}">Writer</h3>
     </div>
 
     <div>

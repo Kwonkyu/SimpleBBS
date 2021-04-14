@@ -22,4 +22,9 @@ public class BoardArticlesDTO {
     private int currentPage;
     @NonNull
     private int totalPages;
+
+    @Override
+    public String toString() {
+        return String.format("[%d] articles with page %d of %d.\n", boardArticles.size(), currentPage, totalPages);
+    }
 }

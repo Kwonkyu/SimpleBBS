@@ -49,4 +49,9 @@ public class BoardArticle {
     public void registerAccountInfo(BoardAccount boardAccount) {
         this.boardAccount = boardAccount;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[#%d] '%s' written by '%s'.\nContents: %10s...\n", id, title, writer, content);
+    }
 }

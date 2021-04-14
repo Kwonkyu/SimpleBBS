@@ -60,7 +60,7 @@ class ArticleServiceTest {
                 .content("content").build();
 
         // when
-        articleService.createArticle(boardArticleDTO, null);
+        articleService.createArticle(boardArticleDTO, BoardArticleAuthDTO.builder().build());
         BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(SearchMode.WRITER, "writer01", 0, 10);
         BoardArticleDTO createdArticle1 = articlesDTO1.getBoardArticles().get(0);
 
@@ -75,7 +75,7 @@ class ArticleServiceTest {
     @DisplayName("로그인 게시글 작성 및 조회")
     void createArticleWithAccountTest(){
         // given
-        BoardAccount account = new BoardAccount("userid", "username", "userpassword", "email@domain.com");
+        BoardAccount account = new BoardAccount("userid", "username", dataEncoder.encode("userpassword"), "email@domain.com");
         accountRepository.save(account);
 
         BoardArticleDTO boardArticleDTO = BoardArticleDTO.builder()
@@ -89,12 +89,21 @@ class ArticleServiceTest {
         articleService.createArticle(
                 boardArticleDTO,
                 BoardArticleAuthDTO.builder().loginSessionInfo(new LoginSessionInfo(account)).build());
-        BoardArticlesDTO articlesDTO2 = articleService.searchAllByPages(SearchMode.WRITER, "writer02", 0, 10);
+
+        BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(SearchMode.WRITER, "writer02", 0, 10);
+        BoardArticlesDTO articlesDTO2 = articleService.searchAllByPages(SearchMode.WRITER, "username", 0, 10);
+
+        // then
+        assertTrue(articlesDTO1.getBoardArticles().isEmpty()); // because logged-in user's article's writer name will be changed to username of user.
+        assertFalse(articlesDTO2.getBoardArticles().isEmpty());
+
+
+        //when
         BoardArticleDTO createdArticle = articlesDTO2.getBoardArticles().get(0);
 
         // then
         assertEquals(boardArticleDTO.getTitle(), createdArticle.getTitle());
-        assertEquals(boardArticleDTO.getWriter(), createdArticle.getWriter());
+        assertEquals(account.getUsername(), createdArticle.getWriter()); // same here.
         assertEquals(boardArticleDTO.getContent(), createdArticle.getContent());
         assertTrue(dataEncoder.compare(boardArticleDTO.getPassword(), createdArticle.getPassword()));
         assertTrue(createdArticle.isWrittenByAccount());
@@ -112,7 +121,7 @@ class ArticleServiceTest {
     @DisplayName("비로그인 게시글 작성 후 수정")
     void editArticleWithoutAccountTest() {
         // given
-        BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
+        BoardArticle boardArticle = new BoardArticle("writer", dataEncoder.encode("password"), "edit_me_title", "edit_me_content");
         articleRepository.save(boardArticle);
 
         // when
@@ -131,12 +140,14 @@ class ArticleServiceTest {
 
 
         // when
-        articleService.updateArticle(
-                BoardArticleDTO.builder()
-                        .id(boardArticle.getId())
-                        .title("edited_again_title")
-                        .content("edited_again_content").build(),
-                BoardArticleAuthDTO.builder().rawPassword("NOT_THIS_PASSWORD").build());
+        assertThrows(AuthenticationFailedException.class, () -> {
+            articleService.updateArticle(
+                            BoardArticleDTO.builder()
+                                    .id(boardArticle.getId())
+                                    .title("edited_again_title")
+                                    .content("edited_again_content").build(),
+                            BoardArticleAuthDTO.builder().rawPassword("NOT_THIS_PASSWORD").build());
+                });
 
         createdArticle = articleService.readArticle(boardArticle.getId());
 
@@ -149,8 +160,8 @@ class ArticleServiceTest {
     @DisplayName("로그인 게시글 작성 후 수정")
     void editArticleWithAccountTest(){
         // given
-        BoardArticle boardArticle = new BoardArticle("writer", "password", "edit_me_title", "edit_me_content");
-        BoardAccount boardAccount = new BoardAccount("userid", "username", "userpassword", "email@domain.com");
+        BoardArticle boardArticle = new BoardArticle("writer", dataEncoder.encode("password"), "edit_me_title", "edit_me_content");
+        BoardAccount boardAccount = new BoardAccount("userid", "username", dataEncoder.encode("userpassword"), "email@domain.com");
 
         accountRepository.save(boardAccount);
         boardArticle.registerAccountInfo(boardAccount);
@@ -172,12 +183,14 @@ class ArticleServiceTest {
 
 
         // when
-        articleService.updateArticle(
-                BoardArticleDTO.builder()
-                        .id(boardArticle.getId())
-                        .title("edited_again_title")
-                        .content("edited_again_content").build(),
-                BoardArticleAuthDTO.builder().loginSessionInfo(null).build());
+        assertThrows(AuthenticationFailedException.class, () -> {
+            articleService.updateArticle(
+                            BoardArticleDTO.builder()
+                                    .id(boardArticle.getId())
+                                    .title("edited_again_title")
+                                    .content("edited_again_content").build(),
+                            BoardArticleAuthDTO.builder().loginSessionInfo(null).build());
+                });
 
         createdArticle = articleService.readArticle(boardArticle.getId());
 
@@ -190,9 +203,10 @@ class ArticleServiceTest {
     @DisplayName("비로그인 게시글 작성 및 삭제")
     void deleteArticleWithoutAccountTest() {
         // given
-        BoardArticle boardArticle1 = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
-        BoardArticle boardArticle2 = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
+        BoardArticle boardArticle1 = new BoardArticle("writer", dataEncoder.encode("password"), "delete_me_title", "delete_me_content");
+        BoardArticle boardArticle2 = new BoardArticle("writer", dataEncoder.encode("password"), "delete_me_title", "delete_me_content");
         articleRepository.save(boardArticle1);
+        articleRepository.save(boardArticle2);
 
         // when
         assertDoesNotThrow(() ->
@@ -222,14 +236,15 @@ class ArticleServiceTest {
         // given
         // TODO: 공통부분 함수로 추출?
         // Transactional won't be applied to test life cycle methods.
-        BoardAccount account = new BoardAccount("userid", "username", "userpassword", "email@domain.com");
-        BoardArticle boardArticle1 = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
-        BoardArticle boardArticle2 = new BoardArticle("writer", "password", "delete_me_title", "delete_me_content");
+        BoardAccount account = new BoardAccount("userid", "username", dataEncoder.encode("userpassword"), "email@domain.com");
+        BoardArticle boardArticle1 = new BoardArticle("writer", dataEncoder.encode("password"), "delete_me_title", "delete_me_content");
+        BoardArticle boardArticle2 = new BoardArticle("writer", dataEncoder.encode("password"), "delete_me_title", "delete_me_content");
 
         accountRepository.save(account);
         boardArticle1.registerAccountInfo(account);
         boardArticle2.registerAccountInfo(account);
         articleRepository.save(boardArticle1);
+        articleRepository.save(boardArticle2);
 
         // when
         assertDoesNotThrow(() ->
@@ -240,7 +255,7 @@ class ArticleServiceTest {
         // then
         assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle1.getId()));
         assertThrows(UpdateDeletedArticleException.class, () -> articleService.updateArticle(
-                BoardArticleDTO.builder().id(boardArticle1.getId()).build(), null));
+                BoardArticleDTO.builder().id(boardArticle1.getId()).build(), BoardArticleAuthDTO.builder().build()));
 
 
         // when
