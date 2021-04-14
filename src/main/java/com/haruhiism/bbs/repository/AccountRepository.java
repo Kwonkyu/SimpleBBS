@@ -9,7 +9,7 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends CrudRepository<BoardAccount, Long> {
 
-    public Optional<BoardAccount> findByUserID(String userid);
+    public Optional<BoardAccount> findByUserId(String userid);
 
-    public boolean existsByUserID(String userid);
+    public boolean existsByUserId(String userid);
 }

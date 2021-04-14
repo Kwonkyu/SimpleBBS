@@ -1,8 +1,9 @@
-package com.haruhiism.bbs.controller;
+package com.haruhiism.bbs.mvc;
 
 
-import com.haruhiism.bbs.command.account.UpdatableInformation;
+import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -31,8 +33,18 @@ public class AccountMvcTest {
     @Autowired
     MockMvc mockMvc;
 
+    // test values
+    String testUserId = "testuserid";
+    String testUsername = "testusername";
+    String testPassword = "testuserpassword";
+    String testEmail = "testemail@domain.com";
+
+    String normalUserId = "normaluserid";
+    String normalPassword = "normalpassword";
+
 
     @Test
+    @DisplayName("허가되지 않은 접근")
     void unauthorizedAccessTest() throws Exception {
         // given
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -72,18 +84,16 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 회원가입 시도")
     void submitInvalidRegisterTest() throws Exception {
         // given
-        accountService.registerAccount(
-                new BoardAccount("testuserid", "testusername", "testpassword", "testemail@domain.com"),
-                AccountLevel.NORMAL);
         HttpHeaders params = new HttpHeaders();
 
         // when
         params.set("userid", "");
-        params.set("username", "testusername");
-        params.set("password", "testpassword");
-        params.set("email", "testemail@domain.com");
+        params.set("username", testUsername);
+        params.set("password", testPassword);
+        params.set("email", testEmail);
 
         mockMvc.perform(post("/account/register")
                 .params(params))
@@ -91,7 +101,7 @@ public class AccountMvcTest {
                 .andExpect(status().isUnprocessableEntity());
 
         // when
-        params.set("userid", "testuserid");
+        params.set("userid", testUserId);
         params.set("username", "");
 
         mockMvc.perform(post("/account/register")
@@ -100,7 +110,7 @@ public class AccountMvcTest {
                 .andExpect(status().isUnprocessableEntity());
 
         // when
-        params.set("username", "testusername");
+        params.set("username", testUsername);
         params.set("password", "");
 
         mockMvc.perform(post("/account/register")
@@ -109,7 +119,7 @@ public class AccountMvcTest {
                 .andExpect(status().isUnprocessableEntity());
 
         // when
-        params.set("password", "testuserpassword");
+        params.set("password", testPassword);
         params.set("email", "");
 
         mockMvc.perform(post("/account/register")
@@ -127,18 +137,19 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 회원탈퇴 시도")
     void submitInvalidWithdrawTest() throws Exception {
         // given
         accountService.registerAccount(
-                new BoardAccount("testuserid", "testusername", "testpassword", "testemail@domain.com"),
+                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
                 AccountLevel.NORMAL);
 
-        LoginSessionInfo loginSessionInfo = accountService.loginAccount("testuserid", "testpassword");
+        LoginSessionInfo loginSessionInfo = accountService.loginAccount(testUserId, testPassword);
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("loginAuthInfo", loginSessionInfo);
 
         HttpHeaders params = new HttpHeaders();
-        params.set("password", "normalpassword");
+        params.set("password", normalPassword);
 
         // when
         mockMvc.perform(post("/account/withdraw")
@@ -149,15 +160,16 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 로그인 시도")
     void submitInvalidLoginTest() throws Exception {
         // given
         accountService.registerAccount(
-                new BoardAccount("testuserid", "testusername", "testpassword", "testemail@domain.com"),
+                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
                 AccountLevel.NORMAL);
 
         HttpHeaders params = new HttpHeaders();
         params.set("userid", "");
-        params.set("password", "testpassword");
+        params.set("password", testPassword);
 
         // when
         mockMvc.perform(post("/account/login")
@@ -167,7 +179,7 @@ public class AccountMvcTest {
 
 
         // given
-        params.set("userid", "testuserid");
+        params.set("userid", testUserId);
         params.set("password", "");
 
         // when
@@ -178,7 +190,7 @@ public class AccountMvcTest {
 
 
         // given
-        params.set("password", "normalpassword");
+        params.set("password", normalPassword);
 
         // when
         mockMvc.perform(post("/account/login")
@@ -188,18 +200,20 @@ public class AccountMvcTest {
     }
 
     @Test
+    @DisplayName("부적절한 회원정보 갱신")
     void submitInvalidInfoUpdateTest() throws Exception {
         // given
         accountService.registerAccount(
-                new BoardAccount("testuserid", "testusername", "testpassword", "testemail@domain.com"),
+                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
                 AccountLevel.NORMAL);
+
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginAuthInfo", accountService.loginAccount("testuserid", "testpassword"));
+        session.setAttribute("loginAuthInfo", accountService.loginAccount(testUserId, testPassword));
 
         HttpHeaders params = new HttpHeaders();
         params.set("mode", "");
-        params.set("auth", "testpassword");
-        params.set("previous", "testusername");
+        params.set("auth", testPassword);
+        params.set("previous", testUsername);
         params.set("updated", "updatedusername");
 
         // when
@@ -223,7 +237,7 @@ public class AccountMvcTest {
 
 
         // given
-        params.set("auth", "testpassword");
+        params.set("auth", testPassword);
         params.set("updated", ""); // currently previous field value has nothing to do with authorization.
 
         // when
@@ -236,7 +250,7 @@ public class AccountMvcTest {
 
         // given
         params.set("updated", "updatedusername");
-        params.set("auth", "normalpassword");
+        params.set("auth", normalPassword);
 
         // when
         mockMvc.perform(post("/account/manage/change")

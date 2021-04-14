@@ -1,10 +1,8 @@
 package com.haruhiism.bbs.service.authentication;
 
-import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
@@ -15,7 +13,12 @@ public class LoginSessionInfo {
     private final String username;
     private final String password;
     private final String email;
-    private final List<BoardAccountLevel> levels;
 
-
+    public LoginSessionInfo(BoardAccount account) {
+        this.accountID = account.getId();
+        this.userID = account.getUserId();
+        this.username = account.getUsername();
+        this.password = account.getPassword();
+        this.email = account.getEmail();
+    }
 }

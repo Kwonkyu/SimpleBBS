@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Edit your article.</title>
@@ -7,22 +7,31 @@
 <body>
 <div>
     <form method="post" action="/board/edit/submit" th:object="${article}">
-        <input type="hidden" name="articleID" th:value="${article.articleID}">
+        <input type="hidden" name="articleID" th:value="${article.id}">
         <table>
             <tr>
                 <td>
                     <label for="form-writer">WRITER</label>
                 </td>
-                <td>
+
+                <td th:if="${article.accountId == null}">
                     <input id="form-writer" name="writer" type="text" th:value="${article.writer}" readonly>
+                </td>
+                <td th:unless="${article.accountId == null}">
+                    <span th:text="${article.writer}"></span>
+                    <input name="writer" th:value="${article.writer}" hidden>
                 </td>
             </tr>
             <tr>
                 <td>
                     <label for="form-password">PASSWORD</label>
                 </td>
-                <td>
+
+                <td th:if="${article.accountId == null}">
                     <input id="form-password" name="password" type="password" th:value="${article.password}" readonly>
+                </td>
+                <td th:unless="${article.accountId == null}">
+                    <input name="password" value="PASSWORD" hidden>
                 </td>
             </tr>
             <tr>
@@ -32,7 +41,7 @@
                 <td>
                     <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? article.title : ''}" maxlength="255" required>
                 </td>
-                <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title is not valid.</td>
+                <td th:if="${#fields.hasErrors('title')}" th:errors="${article.title}">Title is not valid.</td>
             </tr>
 
             <tr>
@@ -40,16 +49,16 @@
                     <label for="form-content">CONTENT</label>
                 </td>
                 <td>
-                    <textarea id="form-content" name="content" type="text" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
+                    <textarea id="form-content" name="content" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
                 </td>
-                <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content is not valid.</td>
+                <td th:if="${#fields.hasErrors('content')}" th:errors="${article.content}">Content is not valid.</td>
             </tr>
 
             <tr>
                 <td colspan="2">
                     <input type="submit" value="Submit">
                 </td>
-            <tr/>
+            </tr>
         </table>
     </form>
 </div>

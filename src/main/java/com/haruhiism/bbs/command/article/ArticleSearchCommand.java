@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.command.article;
 
+import com.haruhiism.bbs.domain.SearchMode;
 import lombok.Getter;
 import lombok.Setter;
 

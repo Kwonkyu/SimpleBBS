@@ -2,14 +2,14 @@ package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.account.*;
 import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -49,7 +49,11 @@ public class AccountController {
         }
 
         accountService.registerAccount(
-                new BoardAccount(command.getUserid(), command.getUsername(), command.getPassword(), command.getEmail()),
+                new BoardAccountDTO(
+                        command.getUserid(),
+                        command.getUsername(),
+                        command.getPassword(),
+                        command.getEmail()),
                 AccountLevel.NORMAL);
 
         return "redirect:/board/list";
@@ -81,7 +85,7 @@ public class AccountController {
 
 
     @GetMapping("/login")
-    public String requestLogin(HttpServletRequest request) {
+    public String requestLogin() {
         return "account/login";
     }
 
@@ -114,20 +118,19 @@ public class AccountController {
 
 
     @GetMapping("/manage")
-    public String manage(@RequestParam(name = "articlePage", required = false) Long page, Model model, HttpSession session) {
+    public String manage(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page, Model model, HttpSession session) {
         LoginSessionInfo loginSessionInfo = (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
-        Page<BoardArticle> boardArticles = accountService.readArticlesOfAccount(loginSessionInfo.getUserID(), page == null ? 0 : page);
+        BoardArticlesDTO boardArticles = accountService.readArticlesOfAccount(loginSessionInfo.getUserID(), page);
 
         model.addAttribute("userInfo", loginSessionInfo);
-        model.addAttribute("articleCount", boardArticles.getTotalElements());
         model.addAttribute("pageCount", boardArticles.getTotalPages());
-        model.addAttribute("articles", boardArticles.getContent());
+        model.addAttribute("articles", boardArticles.getBoardArticles());
 
         int[] pages = new int[boardArticles.getTotalPages()];
         for(int i=0;i<pages.length;i++){
             pages[i] = i;
         }
-        model.addAttribute("currentPage", page == null ? 0 : page);
+        model.addAttribute("currentPage", page);
         model.addAttribute("pages", pages);
 
         return "account/info";

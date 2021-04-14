@@ -2,10 +2,10 @@ package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.comment.CommentRemoveRequestCommand;
 import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
-import com.haruhiism.bbs.domain.entity.BoardComment;
+import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.exception.CommentAuthFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,20 +17,22 @@ import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/comment")
+@RequiredArgsConstructor
 public class CommentController {
 
-    @Autowired
-    private CommentService commentService;
+    private final CommentService commentService;
 
 
     @PostMapping("/create")
-    // order of parameter matters!!
     public String createComment(@Valid CommentSubmitCommand command) {
-        commentService.createComment(new BoardComment(
-                command.getWriter(),
-                command.getPassword(),
-                command.getContent(),
-                command.getArticleID()));
+        // TODO: handle login-ed user's request.
+        commentService.createComment(
+                new BoardCommentDTO(
+                        command.getArticleID(),
+                        command.getWriter(),
+                        command.getPassword(),
+                        command.getContent()));
+
         return String.format("redirect:/board/read?id=%d", command.getArticleID());
     }
 
@@ -43,9 +45,9 @@ public class CommentController {
     @PostMapping("/remove")
     public String submitRemoveComment(@Valid CommentRemoveRequestCommand command) {
         if(commentService.authCommentAccess(command.getCommentID(), command.getPassword())) {
-            Long commentedArticleID = commentService.readComment(command.getCommentID()).getArticleID();
+            BoardCommentDTO boardCommentDTO = commentService.readComment(command.getCommentID());
             commentService.deleteComment(command.getCommentID());
-            return String.format("redirect:/board/read?id=%d", commentedArticleID);
+            return String.format("redirect:/board/read?id=%d", boardCommentDTO.getArticleID());
         } else {
             throw new CommentAuthFailedException();
         }

@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.command.account;
+package com.haruhiism.bbs.domain;
 
 public enum UpdatableInformation {
     username, email, password;

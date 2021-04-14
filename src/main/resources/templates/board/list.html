@@ -30,12 +30,12 @@
         <tr class="row">
             <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th>
         </tr>
-        <tr class="row" th:each="articleAndComment, state: ${articleAndComments}" th:classappend="${state.odd} == true ? odd : even">
-        	<td th:text="${articleAndComment.article.articleID}">-</td>
+        <tr class="row" th:each="article, state: ${articles}" th:classappend="${state.odd} == true ? 'odd' : 'even'">
+        	<td th:text="${article.getId()}">-</td>
             <!-- https://www.thymeleaf.org/doc/articles/standardurlsyntax.html -->
-            <td><a th:text="${articleAndComment.article.title}" th:href="@{/board/read(id=${articleAndComment.article.articleID})}">TITLE HERE</a></td>
-            <td th:text="${articleAndComment.article.writer}">WRITER HERE</td>
-            <td th:text="${articleAndComment.commentSize}">COMMENT SIZE HERE</td>
+            <td><a th:text="${article.getTitle()}" th:href="@{/board/read(id=${article.getId()})}">TITLE HERE</a></td>
+            <td th:text="${article.getWriter()}">WRITER HERE</td>
+            <td th:text="${commentSizes.get(state.index)}">COMMENT SIZE HERE</td>
         </tr>
     </table>
 
@@ -44,14 +44,14 @@
             <tr>
                 <td>
                     <select name="mode">
-                        <option value="WRITER">Writer</option>
-                        <option value="TITLE">Title</option>
-                        <option value="CONTENT" selected>Content</option>
-                        <option value="TITLE_CONTENT">Title & Content</option>
+                        <option value="WRITER" th:selected="${'WRITER'.equals(searchMode)}">Writer</option>
+                        <option value="TITLE" th:selected="${'TITLE'.equals(searchMode)}">Title</option>
+                        <option value="CONTENT" th:selected="${'CONTENT'.equals(searchMode) || searchMode == null}">Content</option>
+                        <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT'.equals(searchMode)}">Title & Content</option>
                     </select>
                 </td>
                 <td>
-                    <input type="text" name="keyword" required>
+                    <input type="text" name="keyword" th:value="${searchKeyword}" required>
                 </td>
                 <td>
                     <input type="submit" value="Submit">
@@ -70,9 +70,9 @@
         <a th:if="${#session != null}" href="/account/manage">MANAGE</a>
     </div>
 
-    <div th:if="${pages > 0}">
-        <span th:each="i: ${#numbers.sequence(1, pages)}" th:classappend="${i == currentPage} == true ? current : ''">
-            <a th:href="@{/board/list(pageNum=${i-1}, pageSize=${command.pageSize})}" th:text="${i}">-</a>
+    <div th:if="${totalPages > 0}">
+        <span th:each="i: ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} == true ? 'current' : ''">
+            <a th:href="@{/board/list(pageNum=${i - 1}, pageSize=${command.pageSize})}" th:text="${i}">-</a>
         </span>
     </div>
 </body>

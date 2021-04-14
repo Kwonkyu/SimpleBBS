@@ -1,187 +1,176 @@
 package com.haruhiism.bbs.service;
 
+import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
-import com.haruhiism.bbs.domain.entity.BoardComment;
+import com.haruhiism.bbs.exception.AuthenticationFailedException;
+import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
-import com.haruhiism.bbs.exception.NoCommentFoundException;
 import com.haruhiism.bbs.exception.UpdateDeletedArticleException;
+import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
-import com.haruhiism.bbs.service.comment.CommentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class BasicBoardService implements ArticleService, CommentService {
+@Transactional
+@RequiredArgsConstructor
+public class BasicBoardService implements ArticleService {
 
-    @Autowired
-    private ArticleRepository articleRepository;
-    @Autowired
-    private CommentRepository commentRepository;
+    private final ArticleRepository articleRepository;
+    private final CommentRepository commentRepository;
+    private final AccountRepository accountRepository;
 
-    @Autowired
-    private DataEncoder dataEncoder;
+    private final DataEncoder dataEncoder;
 
 
     @Override
-    @Transactional
-    public void createArticle(BoardArticle ...articles) {
-        for(BoardArticle article: articles){
-            article.setPassword(dataEncoder.encode(article.getPassword()));
-            articleRepository.save(article);
+    public void createArticle(BoardArticleDTO article, @NonNull BoardArticleAuthDTO authDTO) {
+        BoardArticle boardArticle = new BoardArticle(
+                article.getWriter(),
+                dataEncoder.encode(article.getPassword()),
+                article.getTitle(),
+                article.getContent());
+
+        LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
+        if(loginSessionInfo != null){
+            boardArticle.changeWriter(loginSessionInfo.getUsername());
+
+            boardArticle.registerAccountInfo(
+                    accountRepository.findById(loginSessionInfo.getAccountID())
+                            .orElseThrow(NoAccountFoundException::new));
         }
+
+        articleRepository.save(boardArticle);
     }
 
 
     @Override
-    public BoardArticle readArticle(Long articleID) {
+    @Transactional(readOnly = true)
+    public BoardArticleDTO readArticle(Long articleID) {
         Optional<BoardArticle> readArticle = articleRepository.findById(articleID);
         if(readArticle.isEmpty()){
             throw new NoArticleFoundException();
         } else {
-            return readArticle.get();
+            return new BoardArticleDTO(readArticle.get());
         }
     }
 
     @Override
-    public Page<BoardArticle> readAllByPages(int pageNum, int pageSize){
-        return articleRepository.findAllByOrderByArticleIDDesc(PageRequest.of(pageNum, pageSize));
+    @Transactional(readOnly = true)
+    public BoardArticlesDTO readAllByPages(int pageNum, int pageSize){
+        Page<BoardArticle> boardArticles = articleRepository.findAllByOrderByIdDesc(PageRequest.of(pageNum, pageSize));
+        return convertPageResultToBoardArticlesDTO(boardArticles, pageNum);
     }
 
     @Override
-    public Page<BoardArticle> readAllByWriterByPages(String writer, int pageNum, int pageSize) {
-        return articleRepository.findAllByWriterContainingOrderByArticleIDDesc(writer, PageRequest.of(pageNum, pageSize));
+    @Transactional(readOnly = true)
+    public BoardArticlesDTO searchAllByPages(SearchMode searchMode, String keyword, int pageNum, int pageSize) {
+        Page<BoardArticle> result = null;
+
+        switch(searchMode){
+            case TITLE:
+                result = articleRepository.findAllByTitleContainingOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                break;
+
+            case WRITER:
+                result = articleRepository.findAllByWriterContainingOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                break;
+
+            case CONTENT:
+                result = articleRepository.findAllByContentContainingOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                break;
+
+            case TITLE_CONTENT:
+                result = articleRepository.findAllByTitleContainingOrContentContainingOrderByIdDesc(keyword, keyword, PageRequest.of(pageNum, pageSize));
+                break;
+        }
+
+        return convertPageResultToBoardArticlesDTO(result, pageNum);
     }
 
-    @Override
-    public Page<BoardArticle> readAllByTitleByPages(String title, int pageNum, int pageSize) {
-        return articleRepository.findAllByTitleContainingOrderByArticleIDDesc(title, PageRequest.of(pageNum, pageSize));
+
+    private BoardArticlesDTO convertPageResultToBoardArticlesDTO(Page<BoardArticle> result, int currentPage){
+        List<BoardArticleDTO> articles = new ArrayList<>();
+        List<Integer> commentSizes = new ArrayList<>();
+
+        result.get().forEachOrdered(boardArticle -> {
+            articles.add(new BoardArticleDTO(boardArticle));
+            commentSizes.add(commentRepository.countAllByBoardArticle(boardArticle));
+        });
+
+        return new BoardArticlesDTO(articles, commentSizes, currentPage, result.getTotalPages());
     }
 
-    @Override
-    public Page<BoardArticle> readAllByContentByPages(String content, int pageNum, int pageSize) {
-        return articleRepository.findAllByContentContainingOrderByArticleIDDesc(content, PageRequest.of(pageNum, pageSize));
+
+    private boolean verifyArticleAndAccount(BoardArticle boardArticle, String authValue, LoginSessionInfo loginSessionInfo){
+        Optional<Long> articleWriterId = getArticleWriterId(boardArticle);
+        return articleWriterId.map(id ->
+                loginSessionInfo != null && id.equals(loginSessionInfo.getAccountID()))
+                .orElseGet(() -> dataEncoder.compare(authValue, boardArticle.getPassword()));
     }
 
-    @Override
-    public Page<BoardArticle> readAllByTitleOrContentByPages(String keyword, int pageNum, int pageSize) {
-        return articleRepository.findAllByTitleContainingOrContentContainingOrderByArticleIDDesc(keyword, keyword, PageRequest.of(pageNum, pageSize));
-    }
-
 
     @Override
-    @Transactional
-    public void updateArticle(BoardArticle boardArticle) {
-        if(articleRepository.existsById(boardArticle.getArticleID())){
-            articleRepository.save(boardArticle);
+    public void updateArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO) {
+        BoardArticle updatedArticle = articleRepository.findById(article.getId())
+                .orElseThrow(UpdateDeletedArticleException::new);
+
+        if(verifyArticleAndAccount(updatedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
+            updatedArticle.changeTitle(article.getTitle());
+            updatedArticle.changeContent(article.getContent());
         } else {
-            throw new UpdateDeletedArticleException();
+            throw new AuthenticationFailedException();
         }
     }
 
 
     @Override
-    @Transactional
-    public void deleteArticle(Long articleID){
-        if(articleRepository.existsById(articleID)) {
-            articleRepository.deleteByArticleID(articleID);
+    public void deleteArticle(Long articleId, BoardArticleAuthDTO authDTO){
+        BoardArticle deletedArticle = articleRepository.findById(articleId)
+                .orElseThrow(NoArticleFoundException::new);
+
+        if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
+            commentRepository.deleteAllByBoardArticle(deletedArticle);
+            articleRepository.delete(deletedArticle);
         } else {
-            throw new NoArticleFoundException();
+            throw new AuthenticationFailedException();
         }
     }
 
-    @Override
-    @Transactional
-    public void deleteArticle(BoardArticle boardArticle) {
-        articleRepository.delete(boardArticle);
-    }
-
 
     @Override
-    public boolean authArticleAccess(Long articleID, String rawPassword) {
-        if(articleRepository.existsById(articleID)) {
-            BoardArticle readArticle = readArticle(articleID);
-            return dataEncoder.compare(rawPassword, readArticle.getPassword());
+    @Transactional(readOnly = true)
+    public Optional<BoardArticleDTO> authArticleEdit(Long articleId, BoardArticleAuthDTO authDTO) {
+        BoardArticle article = articleRepository.findById(articleId)
+                .orElseThrow(NoArticleFoundException::new);
+
+        if(verifyArticleAndAccount(article, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
+            BoardArticleDTO boardArticleDTO = new BoardArticleDTO(article);
+            boardArticleDTO.setPassword(authDTO.getRawPassword() == null ? "PASSWORD" : authDTO.getRawPassword());
+            return Optional.of(boardArticleDTO);
         } else {
-            throw new NoArticleFoundException();
+            return Optional.empty();
         }
     }
 
 
-
-    @Override
-    @Transactional
-    public void createComment(BoardComment comment) {
-//        } else {
-//            BoardArticle article = commentedArticle.get();
-//            article.getComments().add(comment);
-//            articleRepository.save(article);
-//        }
-        if(articleRepository.existsById(comment.getArticleID())){
-            comment.setPassword(dataEncoder.encode(comment.getPassword()));
-            commentRepository.save(comment);
-        } else {
-            throw new NoArticleFoundException();
-        }
-    }
-
-    @Override
-    public BoardComment readComment(Long commentID) {
-        Optional<BoardComment> comment = commentRepository.findById(commentID);
-        if(comment.isEmpty()){
-            throw new NoCommentFoundException();
-        } else {
-            return comment.get();
-        }
-    }
-
-    @Override
-    public List<BoardComment> readCommentsOfArticle(Long articleID){
-        return commentRepository.findAllByArticleID(articleID);
-    }
-
-    @Override
-    public Page<BoardComment> readCommentsOfArticleByPages(Long articleID, int pageNum, int pageSize) {
-        return commentRepository.findByArticleIDOrderByCommentID(articleID, PageRequest.of(pageNum, pageSize));
-    }
-
-    @Override
-    @Transactional
-    public void updateComment(BoardComment comment) {
-
-    }
-
-    @Override
-    @Transactional
-    public void deleteComment(Long commentID) {
-        if(commentRepository.existsById(commentID)) {
-            commentRepository.deleteById(commentID);
-        } else {
-            throw new NoCommentFoundException();
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteComment(BoardComment comment) {
-        commentRepository.delete(comment);
-    }
-
-    @Override
-    public boolean authCommentAccess(Long commentID, String rawPassword){
-        if(commentRepository.existsById(commentID)) {
-            BoardComment comment = readComment(commentID);
-            return dataEncoder.compare(rawPassword, comment.getPassword());
-        } else {
-            throw new NoCommentFoundException();
-        }
+    private Optional<Long> getArticleWriterId(BoardArticle boardArticle) {
+        if(boardArticle.getBoardAccount() == null) return Optional.empty();
+        return Optional.of(boardArticle.getBoardAccount().getId());
     }
 }
