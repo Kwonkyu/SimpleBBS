@@ -1,7 +1,7 @@
 package com.haruhiism.bbs.service;
 
 import com.haruhiism.bbs.domain.SearchMode;
-import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
@@ -14,7 +14,7 @@ import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class BasicBoardService implements ArticleService {
+public class BasicArticleService implements ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CommentRepository commentRepository;
@@ -39,7 +39,7 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void createArticle(BoardArticleDTO article, @NonNull BoardArticleAuthDTO authDTO) {
+    public void createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
         BoardArticle boardArticle = new BoardArticle(
                 article.getWriter(),
                 dataEncoder.encode(article.getPassword()),
@@ -48,8 +48,6 @@ public class BasicBoardService implements ArticleService {
 
         LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
         if(loginSessionInfo != null){
-            boardArticle.changeWriter(loginSessionInfo.getUsername());
-
             boardArticle.registerAccountInfo(
                     accountRepository.findById(loginSessionInfo.getAccountID())
                             .orElseThrow(NoAccountFoundException::new));
@@ -126,7 +124,7 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void updateArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO) {
+    public void updateArticle(BoardArticleDTO article, AuthDTO authDTO) {
         BoardArticle updatedArticle = articleRepository.findById(article.getId())
                 .orElseThrow(UpdateDeletedArticleException::new);
 
@@ -140,7 +138,7 @@ public class BasicBoardService implements ArticleService {
 
 
     @Override
-    public void deleteArticle(Long articleId, BoardArticleAuthDTO authDTO){
+    public void deleteArticle(Long articleId, AuthDTO authDTO){
         BoardArticle deletedArticle = articleRepository.findById(articleId)
                 .orElseThrow(NoArticleFoundException::new);
 
@@ -155,7 +153,7 @@ public class BasicBoardService implements ArticleService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<BoardArticleDTO> authArticleEdit(Long articleId, BoardArticleAuthDTO authDTO) {
+    public Optional<BoardArticleDTO> authArticleEdit(Long articleId, AuthDTO authDTO) {
         BoardArticle article = articleRepository.findById(articleId)
                 .orElseThrow(NoArticleFoundException::new);
 

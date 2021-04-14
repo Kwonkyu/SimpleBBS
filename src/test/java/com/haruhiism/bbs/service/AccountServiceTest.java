@@ -7,7 +7,7 @@ import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.account.AccountService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

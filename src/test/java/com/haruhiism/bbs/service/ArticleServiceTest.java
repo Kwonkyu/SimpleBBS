@@ -1,7 +1,7 @@
 package com.haruhiism.bbs.service;
 
 import com.haruhiism.bbs.domain.SearchMode;
-import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
@@ -13,20 +13,15 @@ import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,7 +55,7 @@ class ArticleServiceTest {
                 .content("content").build();
 
         // when
-        articleService.createArticle(boardArticleDTO, BoardArticleAuthDTO.builder().build());
+        articleService.createArticle(boardArticleDTO, AuthDTO.builder().build());
         BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(SearchMode.WRITER, "writer01", 0, 10);
         BoardArticleDTO createdArticle1 = articlesDTO1.getBoardArticles().get(0);
 
@@ -88,7 +83,7 @@ class ArticleServiceTest {
         // when
         articleService.createArticle(
                 boardArticleDTO,
-                BoardArticleAuthDTO.builder().loginSessionInfo(new LoginSessionInfo(account)).build());
+                AuthDTO.builder().loginSessionInfo(new LoginSessionInfo(account)).build());
 
         BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(SearchMode.WRITER, "writer02", 0, 10);
         BoardArticlesDTO articlesDTO2 = articleService.searchAllByPages(SearchMode.WRITER, "username", 0, 10);
@@ -130,7 +125,7 @@ class ArticleServiceTest {
                         .id(boardArticle.getId())
                         .title("edited_title")
                         .content("edited_content").build(),
-                BoardArticleAuthDTO.builder().rawPassword("password").build());
+                AuthDTO.builder().rawPassword("password").build());
 
         BoardArticleDTO createdArticle = articleService.readArticle(boardArticle.getId());
 
@@ -146,7 +141,7 @@ class ArticleServiceTest {
                                     .id(boardArticle.getId())
                                     .title("edited_again_title")
                                     .content("edited_again_content").build(),
-                            BoardArticleAuthDTO.builder().rawPassword("NOT_THIS_PASSWORD").build());
+                            AuthDTO.builder().rawPassword("NOT_THIS_PASSWORD").build());
                 });
 
         createdArticle = articleService.readArticle(boardArticle.getId());
@@ -173,7 +168,7 @@ class ArticleServiceTest {
                         .id(boardArticle.getId())
                         .title("edited_title")
                         .content("edited_content").build(),
-                BoardArticleAuthDTO.builder().loginSessionInfo(new LoginSessionInfo(boardAccount)).build());
+                AuthDTO.builder().loginSessionInfo(new LoginSessionInfo(boardAccount)).build());
 
         BoardArticleDTO createdArticle = articleService.readArticle(boardArticle.getId());
 
@@ -189,7 +184,7 @@ class ArticleServiceTest {
                                     .id(boardArticle.getId())
                                     .title("edited_again_title")
                                     .content("edited_again_content").build(),
-                            BoardArticleAuthDTO.builder().loginSessionInfo(null).build());
+                            AuthDTO.builder().loginSessionInfo(null).build());
                 });
 
         createdArticle = articleService.readArticle(boardArticle.getId());
@@ -212,7 +207,7 @@ class ArticleServiceTest {
         assertDoesNotThrow(() ->
                 articleService.deleteArticle(
                         boardArticle1.getId(),
-                        BoardArticleAuthDTO.builder().rawPassword("password").build()));
+                        AuthDTO.builder().rawPassword("password").build()));
 
         // then
         assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle1.getId()));
@@ -224,7 +219,7 @@ class ArticleServiceTest {
         assertThrows(AuthenticationFailedException.class, () ->
                 articleService.deleteArticle(
                         boardArticle2.getId(),
-                        BoardArticleAuthDTO.builder().rawPassword("NOT_THIS_PASSWORD").build()));
+                        AuthDTO.builder().rawPassword("NOT_THIS_PASSWORD").build()));
 
         // then
         assertDoesNotThrow(() -> articleService.readArticle(boardArticle2.getId()));
@@ -250,19 +245,19 @@ class ArticleServiceTest {
         assertDoesNotThrow(() ->
                 articleService.deleteArticle(
                         boardArticle1.getId(),
-                        BoardArticleAuthDTO.builder().loginSessionInfo(new LoginSessionInfo(account)).build()));
+                        AuthDTO.builder().loginSessionInfo(new LoginSessionInfo(account)).build()));
 
         // then
         assertThrows(NoArticleFoundException.class, () -> articleService.readArticle(boardArticle1.getId()));
         assertThrows(UpdateDeletedArticleException.class, () -> articleService.updateArticle(
-                BoardArticleDTO.builder().id(boardArticle1.getId()).build(), BoardArticleAuthDTO.builder().build()));
+                BoardArticleDTO.builder().id(boardArticle1.getId()).build(), AuthDTO.builder().build()));
 
 
         // when
         assertThrows(AuthenticationFailedException.class, () ->
                 articleService.deleteArticle(
                         boardArticle2.getId(),
-                        BoardArticleAuthDTO.builder().loginSessionInfo(null).build()));
+                        AuthDTO.builder().loginSessionInfo(null).build()));
 
         // then
         assertDoesNotThrow(() -> articleService.readArticle(boardArticle2.getId()));
@@ -281,7 +276,7 @@ class ArticleServiceTest {
         };
 
         for (BoardArticleDTO boardArticleDTO : boardArticleDTOS) {
-            articleService.createArticle(boardArticleDTO, BoardArticleAuthDTO.builder().build());
+            articleService.createArticle(boardArticleDTO, AuthDTO.builder().build());
         }
 
         Map<String, Integer> writerTestValue = new HashMap<>();

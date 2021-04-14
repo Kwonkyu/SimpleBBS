@@ -14,24 +14,24 @@
                     <label for="form-writer">WRITER</label>
                 </td>
 
-                <td th:if="${article.accountId == null}">
+                <td th:unless="${article.isWrittenByAccount()}">
                     <input id="form-writer" name="writer" type="text" th:value="${article.writer}" readonly>
                 </td>
-                <td th:unless="${article.accountId == null}">
+                <td th:if="${article.isWrittenByAccount()}">
                     <span th:text="${article.writer}"></span>
                     <input name="writer" th:value="${article.writer}" hidden>
                 </td>
             </tr>
             <tr>
-                <td>
+                <td th:unless="${article.isWrittenByAccount()}">
                     <label for="form-password">PASSWORD</label>
                 </td>
 
-                <td th:if="${article.accountId == null}">
-                    <input id="form-password" name="password" type="password" th:value="${article.password}" readonly>
-                </td>
-                <td th:unless="${article.accountId == null}">
+                <td th:if="${article.isWrittenByAccount()}">
                     <input name="password" value="PASSWORD" hidden>
+                </td>
+                <td th:unless="${article.isWrittenByAccount()}">
+                    <input id="form-password" name="password" type="password" th:value="${article.password}" readonly>
                 </td>
             </tr>
             <tr>

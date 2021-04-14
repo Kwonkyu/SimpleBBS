@@ -14,7 +14,7 @@ import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.service.authentication;
+package com.haruhiism.bbs.domain.authentication;
 
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import lombok.Getter;

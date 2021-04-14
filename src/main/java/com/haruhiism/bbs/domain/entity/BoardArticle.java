@@ -30,10 +30,6 @@ public class BoardArticle {
     @JoinColumn(name = "BOARD_ACCOUNT_ID")
     private BoardAccount boardAccount;
 
-    public void changeWriter(String writer) {
-        this.writer = writer;
-    }
-
     public void changePassword(String password){
         this.password = password;
     }
@@ -48,6 +44,7 @@ public class BoardArticle {
 
     public void registerAccountInfo(BoardAccount boardAccount) {
         this.boardAccount = boardAccount;
+        this.writer = boardAccount.getUsername();
     }
 
     @Override

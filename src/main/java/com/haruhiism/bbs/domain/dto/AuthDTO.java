@@ -1,8 +1,7 @@
 package com.haruhiism.bbs.domain.dto;
 
 
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
-import lombok.AllArgsConstructor;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class BoardArticleAuthDTO {
+public class AuthDTO {
     private String rawPassword;
     private LoginSessionInfo loginSessionInfo;
 }

@@ -16,7 +16,7 @@ public class CommonExceptionHandler {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     public String methodArgumentNotValid(Model model){
         model.addAttribute("errorTitle", "Transmitted Request Can Not Be Processed.");
-        model.addAttribute("errorDescription", "Requested has incompatible parameter or something is wrong.");
+        model.addAttribute("errorDescription", "Request has incompatible parameter or something is wrong.");
         return "board/error/request-failed";
     }
 }

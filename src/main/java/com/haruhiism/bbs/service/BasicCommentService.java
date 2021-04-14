@@ -1,9 +1,14 @@
 package com.haruhiism.bbs.service;
 
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
+import com.haruhiism.bbs.exception.AuthenticationFailedException;
+import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.exception.NoArticleFoundException;
 import com.haruhiism.bbs.exception.NoCommentFoundException;
 import com.haruhiism.bbs.repository.AccountRepository;
@@ -33,19 +38,23 @@ public class BasicCommentService implements CommentService {
     private final DataEncoder dataEncoder;
 
     @Override
-    public void createComment(BoardCommentDTO comment) {
+    public void createComment(BoardCommentDTO commentDTO, AuthDTO authDTO) {
         BoardArticle commentedArticle = articleRepository
-                .findById(comment.getArticleID())
+                .findById(commentDTO.getArticleID())
                 .orElseThrow(NoArticleFoundException::new);
 
         BoardComment boardComment = new BoardComment(
-                comment.getWriter(),
-                dataEncoder.encode(comment.getPassword()),
-                comment.getContent(),
+                commentDTO.getWriter(),
+                dataEncoder.encode(commentDTO.getPassword()),
+                commentDTO.getContent(),
                 commentedArticle);
 
-        if(comment.getAccountID() != null){
-            accountRepository.findById(comment.getAccountID()).ifPresent(boardComment::setCommentWriter);
+        LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
+        if(loginSessionInfo != null){
+            BoardAccount boardAccount = accountRepository.findById(loginSessionInfo.getAccountID())
+                    .orElseThrow(NoAccountFoundException::new);
+
+            boardComment.setCommentWriter(boardAccount);
         }
 
         commentRepository.save(boardComment);
@@ -59,18 +68,8 @@ public class BasicCommentService implements CommentService {
                         .orElseThrow(NoArticleFoundException::new),
                 PageRequest.of(pageNum, pageSize));
 
-        List<BoardCommentDTO> comments = boardComments.get().map(
-                boardComment -> {
-                    BoardCommentDTO boardCommentDTO = new BoardCommentDTO(
-                            boardComment.getBoardArticle().getId(),
-                            boardComment.getWriter(),
-                            boardComment.getPassword(),
-                            boardComment.getContent());
-
-                    boardCommentDTO.setCommentId(boardComment.getId());
-                    return boardCommentDTO;
-                })
-                .collect(Collectors.toList());
+        List<BoardCommentDTO> comments = boardComments.get()
+                .map(BoardCommentDTO::new).collect(Collectors.toList());
 
         return new BoardCommentsDTO(comments, pageNum, boardComments.getTotalPages());
     }
@@ -83,42 +82,27 @@ public class BasicCommentService implements CommentService {
             throw new NoCommentFoundException();
         }
 
-        // TODO: DTO의 생성자로 Entity 객체들을 전달해서 생성하는 방법으로 변경?
-        BoardComment comment = boardComment.get();
-        return new BoardCommentDTO(
-                commentID,
-                comment.getWriter(),
-                comment.getPassword(),
-                comment.getContent());
+        return new BoardCommentDTO(boardComment.get());
+    }
+
+    private boolean authCommentDelete(Long commentId, AuthDTO authDTO){
+        BoardComment boardComment = commentRepository.findById(commentId).orElseThrow(NoCommentFoundException::new);
+
+        if (boardComment.isWrittenByLoggedInAccount()) {
+            LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
+            return loginSessionInfo != null &&
+                    boardComment.getBoardAccount().getId().equals(loginSessionInfo.getAccountID());
+        } else {
+            return dataEncoder.compare(authDTO.getRawPassword(), boardComment.getPassword());
+        }
     }
 
     @Override
-    public void updateComment(BoardCommentDTO comment) {
-
-    }
-
-    @Override
-    public void deleteComment(Long commentID) {
-        if(commentRepository.existsById(commentID)) {
+    public void deleteComment(Long commentID, AuthDTO authDTO) {
+        if (authCommentDelete(commentID, authDTO)) {
             commentRepository.deleteById(commentID);
         } else {
-            throw new NoCommentFoundException();
+            throw new AuthenticationFailedException();
         }
-    }
-
-    @Override
-    public void deleteCommentsOfArticle(Long articleID) {
-        commentRepository.deleteAllByBoardArticle(articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean authCommentAccess(Long commentID, String rawPassword){
-        Optional<BoardComment> comment = commentRepository.findById(commentID);
-        if (comment.isEmpty()) {
-            throw new NoCommentFoundException();
-        }
-
-        return dataEncoder.compare(rawPassword, comment.get().getPassword());
     }
 }

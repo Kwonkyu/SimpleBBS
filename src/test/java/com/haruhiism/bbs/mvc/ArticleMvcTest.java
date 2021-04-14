@@ -1,16 +1,12 @@
 package com.haruhiism.bbs.mvc;
 
-import com.haruhiism.bbs.controller.ArticleController;
-import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.article.ArticleService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +16,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MultiValueMap;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -57,7 +49,7 @@ public class ArticleMvcTest {
         accountRepository.save(boardAccount);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute("loginAuthInfo", new LoginSessionInfo(boardAccount));
+        mockHttpSession.setAttribute("loginSessionInfo", new LoginSessionInfo(boardAccount));
 
         HttpHeaders params = new HttpHeaders();
         params.set("writer", "writer");
@@ -87,7 +79,7 @@ public class ArticleMvcTest {
         accountRepository.save(boardAccount);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute("loginAuthInfo", new LoginSessionInfo(boardAccount));
+        mockHttpSession.setAttribute("loginSessionInfo", new LoginSessionInfo(boardAccount));
 
         HttpHeaders params = new HttpHeaders();
 
