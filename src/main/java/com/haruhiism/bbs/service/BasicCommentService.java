@@ -43,6 +43,10 @@ public class BasicCommentService implements CommentService {
                 .findById(commentDTO.getArticleID())
                 .orElseThrow(NoArticleFoundException::new);
 
+        if (commentedArticle.isDeleted()) {
+            throw new NoArticleFoundException();
+        }
+
         BoardComment boardComment = new BoardComment(
                 commentDTO.getWriter(),
                 dataEncoder.encode(commentDTO.getPassword()),
@@ -63,9 +67,8 @@ public class BasicCommentService implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public BoardCommentsDTO readCommentsOfArticle(Long articleID, int pageNum, int pageSize){
-        Page<BoardComment> boardComments = commentRepository.findAllByBoardArticleOrderByIdAsc(
-                articleRepository.findById(articleID)
-                        .orElseThrow(NoArticleFoundException::new),
+        Page<BoardComment> boardComments = commentRepository.findAllByBoardArticleAndDeletedFalseOrderByIdAsc(
+                articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new),
                 PageRequest.of(pageNum, pageSize));
 
         List<BoardCommentDTO> comments = boardComments.get()
@@ -77,16 +80,19 @@ public class BasicCommentService implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public BoardCommentDTO readComment(Long commentID) {
-        Optional<BoardComment> boardComment = commentRepository.findById(commentID);
-        if(boardComment.isEmpty()){
+        BoardComment boardComment = commentRepository.findById(commentID).orElseThrow(NoCommentFoundException::new);
+        if(boardComment.isDeleted()){
             throw new NoCommentFoundException();
         }
 
-        return new BoardCommentDTO(boardComment.get());
+        return new BoardCommentDTO(boardComment);
     }
 
     private boolean authCommentDelete(Long commentId, AuthDTO authDTO){
         BoardComment boardComment = commentRepository.findById(commentId).orElseThrow(NoCommentFoundException::new);
+        if (boardComment.isDeleted()) {
+            throw new NoCommentFoundException();
+        }
 
         if (boardComment.isWrittenByLoggedInAccount()) {
             LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
@@ -100,7 +106,8 @@ public class BasicCommentService implements CommentService {
     @Override
     public void deleteComment(Long commentID, AuthDTO authDTO) {
         if (authCommentDelete(commentID, authDTO)) {
-            commentRepository.deleteById(commentID);
+            BoardComment comment = commentRepository.findById(commentID).orElseThrow(NoCommentFoundException::new);
+            comment.delete();
         } else {
             throw new AuthenticationFailedException();
         }

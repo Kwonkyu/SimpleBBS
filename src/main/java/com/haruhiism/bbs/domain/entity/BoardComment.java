@@ -29,6 +29,20 @@ public class BoardComment {
     @ManyToOne
     @JoinColumn(name = "BOARD_ACCOUNT_ID")
     private BoardAccount boardAccount;
+    @Column(name = "DELETED")
+    private boolean deleted = false;
+
+    public void toggleDeletedStatus(){
+        deleted = !deleted;
+    }
+
+    public void delete(){
+        deleted = true;
+    }
+
+    public void restore(){
+        deleted = false;
+    }
 
     public void registerCommentWriter(BoardAccount boardAccount){
         this.boardAccount = boardAccount;

@@ -108,7 +108,7 @@ public class BasicArticleService implements ArticleService {
 
         result.get().forEachOrdered(boardArticle -> {
             articles.add(new BoardArticleDTO(boardArticle));
-            commentSizes.add(commentRepository.countAllByBoardArticle(boardArticle));
+            commentSizes.add(commentRepository.countAllByBoardArticleAndDeletedFalse(boardArticle));
         });
 
         return new BoardArticlesDTO(articles, commentSizes, currentPage, result.getTotalPages());

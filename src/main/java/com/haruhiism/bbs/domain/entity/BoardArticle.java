@@ -31,6 +31,7 @@ public class BoardArticle {
     @ManyToOne
     @JoinColumn(name = "BOARD_ACCOUNT_ID")
     private BoardAccount boardAccount;
+    // TODO: implement test codes for delete feature?
     @Column(name = "DELETED")
     private boolean deleted = false;
 
