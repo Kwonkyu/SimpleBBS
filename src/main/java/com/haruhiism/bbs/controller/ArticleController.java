@@ -33,36 +33,22 @@ public class ArticleController {
     private final CommentService commentService;
 
 
-    // TODO: pageSize option.
     @GetMapping("/list")
     public String listBoardArticles(Model model, @ModelAttribute("command") @Valid ArticleListCommand command){
-        BoardArticlesDTO articlesDTO = articleService.readAllByPages(command.getPageNum(), command.getPageSize());
+        BoardArticlesDTO articlesDTO = command.getKeyword().isBlank() ?
+                articleService.readAllByPages(command.getPageNum(), command.getPageSize()) :
+                articleService.searchAllByPages(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
 
         model.addAttribute("articles", articlesDTO.getBoardArticles());
         model.addAttribute("commentSizes", articlesDTO.getBoardArticleCommentSize());
-        model.addAttribute("currentPage", articlesDTO.getCurrentPage());
         model.addAttribute("totalPages", articlesDTO.getTotalPages());
-
-        return "board/list";
-    }
-
-
-    @GetMapping("/search")
-    public String searchArticles(Model model, @ModelAttribute("command") @Valid ArticleSearchCommand command) {
-        BoardArticlesDTO searchedArticles = articleService.searchAllByPages(
-                command.getMode(),
-                command.getKeyword(),
-                command.getPageNum(),
-                command.getPageSize());
-        model.addAttribute("articles", searchedArticles.getBoardArticles());
-        model.addAttribute("commentSizes", searchedArticles.getBoardArticleCommentSize());
-        model.addAttribute("currentPage", searchedArticles.getCurrentPage());
-        model.addAttribute("totalPages", searchedArticles.getTotalPages());
+        model.addAttribute("currentPage", command.getPageNum());
+        model.addAttribute("pageSize", command.getPageSize());
         model.addAttribute("searchMode", command.getMode().name());
         model.addAttribute("searchKeyword", command.getKeyword());
+
         return "board/list";
     }
-
 
     @GetMapping("/read")
     public String readBoardArticle(Model model,

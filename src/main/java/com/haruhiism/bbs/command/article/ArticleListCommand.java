@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.command.article;
 
+import com.haruhiism.bbs.domain.SearchMode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,8 @@ public class ArticleListCommand {
     @PositiveOrZero
     private int pageNum = 0;
     @Positive
-    @Max(value = 30)
+    @Max(value = 40)
     private int pageSize = 10;
+    private SearchMode mode = SearchMode.TITLE;
+    private String keyword = "";
 }
