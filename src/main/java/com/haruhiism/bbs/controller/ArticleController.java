@@ -1,13 +1,13 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.article.*;
-import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.service.article.ArticleService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -65,9 +65,14 @@ public class ArticleController {
 
 
     @GetMapping("/read")
-    public String readBoardArticle(Model model, @Valid ArticleReadCommand command) {
+    public String readBoardArticle(Model model,
+                                   @Valid ArticleReadCommand command,
+                                   HttpServletRequest request) {
         BoardArticleDTO article = articleService.readArticle(command.getId());
         BoardCommentsDTO comments = commentService.readCommentsOfArticle(article.getId(), command.getCommentPage(), 10);
+
+        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
+        if(loginSessionInfo != null) model.addAttribute("loginUsername", loginSessionInfo.getUsername());
 
         model.addAttribute("article", article);
         model.addAttribute("comments", comments.getBoardComments());
@@ -117,7 +122,7 @@ public class ArticleController {
                 .title(command.getTitle())
                 .content(command.getContent()).build();
 
-        BoardArticleAuthDTO authDTO = BoardArticleAuthDTO.builder()
+        AuthDTO authDTO = AuthDTO.builder()
                 .loginSessionInfo(loginSessionInfo).build();
 
         articleService.createArticle(articleDTO, authDTO);
@@ -141,7 +146,7 @@ public class ArticleController {
             }
 
             BoardArticleDTO accessArticleDTO = articleService.authArticleEdit(
-                    command.getId(), BoardArticleAuthDTO.builder().loginSessionInfo(loginSessionInfo).build())
+                    command.getId(), AuthDTO.builder().loginSessionInfo(loginSessionInfo).build())
                     .orElseThrow(AuthenticationFailedException::new);
 
             model.addAttribute("article", accessArticleDTO);
@@ -156,7 +161,7 @@ public class ArticleController {
     public String authEditArticle(Model model,
                                   @ModelAttribute("command") @Valid ArticleEditAuthCommand command){
         BoardArticleDTO boardArticleDTO = articleService.authArticleEdit(
-                command.getId(), BoardArticleAuthDTO.builder().rawPassword(command.getPassword()).build())
+                command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build())
                 .orElseThrow(AuthenticationFailedException::new);
 
         model.addAttribute("article", boardArticleDTO);
@@ -174,7 +179,7 @@ public class ArticleController {
                 .title(command.getTitle())
                 .content(command.getContent()).build();
 
-        BoardArticleAuthDTO authDTO = BoardArticleAuthDTO.builder()
+        AuthDTO authDTO = AuthDTO.builder()
                 .rawPassword(command.getPassword())
                 .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build();
 
@@ -192,7 +197,7 @@ public class ArticleController {
         if (isArticleWrittenByLoggedInAccount(command.getId())) {
             articleService.deleteArticle(
                     command.getId(),
-                    BoardArticleAuthDTO.builder()
+                    AuthDTO.builder()
                             .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false)))
                             .build());
             return "redirect:/board/list";
@@ -207,7 +212,7 @@ public class ArticleController {
 
         articleService.deleteArticle(
                 command.getId(),
-                BoardArticleAuthDTO.builder()
+                AuthDTO.builder()
                         .rawPassword(command.getPassword())
                         .build());
 
@@ -216,7 +221,7 @@ public class ArticleController {
 
     private LoginSessionInfo getLoginSessionInfoFromHttpSession(HttpSession session) {
         if(session == null) return null;
-        String sessionAuthAttribute = "loginAuthInfo";
+        String sessionAuthAttribute = "loginSessionInfo";
         return (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
     }
 }

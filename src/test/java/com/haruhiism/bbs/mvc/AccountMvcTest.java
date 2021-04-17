@@ -4,9 +4,8 @@ package com.haruhiism.bbs.mvc;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.service.account.AccountService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -146,7 +144,7 @@ public class AccountMvcTest {
 
         LoginSessionInfo loginSessionInfo = accountService.loginAccount(testUserId, testPassword);
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginAuthInfo", loginSessionInfo);
+        session.setAttribute("loginSessionInfo", loginSessionInfo);
 
         HttpHeaders params = new HttpHeaders();
         params.set("password", normalPassword);
@@ -208,7 +206,7 @@ public class AccountMvcTest {
                 AccountLevel.NORMAL);
 
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginAuthInfo", accountService.loginAccount(testUserId, testPassword));
+        session.setAttribute("loginSessionInfo", accountService.loginAccount(testUserId, testPassword));
 
         HttpHeaders params = new HttpHeaders();
         params.set("mode", "");

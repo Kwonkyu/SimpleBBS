@@ -30,11 +30,19 @@
         <table>
             <caption>WRITE YOUR COMMENT...</caption>
             <tr>
-                <th>WRITER</th><th>PASSWORD</th><th>CONTENT</th>
+                <th>WRITER</th><th th:if="${loginUsername == null}">PASSWORD</th><th>CONTENT</th>
             </tr>
             <tr>
-                <td><input type="text" name="writer" maxlength="64" required></td>
-                <td><input type="password" name="password" minlength="4" required></td>
+                <td>
+                    <input th:if="${loginUsername == null}" type="text" name="writer" maxlength="64" required>
+
+                    <span th:unless="${loginUsername == null}" th:text="${loginUsername}"></span>
+                    <input th:unless="${loginUsername == null}" type="hidden" name="writer" th:value="${loginUsername}">
+                </td>
+                <td>
+                    <input th:if="${loginUsername == null}" type="password" name="password" minlength="4" required>
+                    <input th:unless="${loginUsername == null}" type="hidden" name="password" value="THIS_IS_DUMMY_PASSWORD">
+                </td>
                 <td><input type="text" name="content" maxlength="255" required></td>
             </tr>
             <tr><td colspan="3"><input type="submit" value="Submit"></td></tr>
@@ -45,12 +53,12 @@
         <caption>COMMENTS</caption>
         <tr><th>NO</th><th>WRITER</th><th>COMMENT</th></tr>
         <tr th:each="comment: ${comments}">
-            <td th:text="${comment.getCommentId()}">-</td>
+            <td th:text="${comment.getId()}">-</td>
             <td th:text="${comment.getWriter()}">WRITER HERE</td>
             <td th:text="${comment.getContent()}">COMMENT HERE</td>
             <td>
                 <form action="/comment/remove" method="get">
-                    <input type="hidden" name="id" th:value="${comment.getCommentId()}">
+                    <input type="hidden" name="id" th:value="${comment.getId()}">
                     <input type="submit" value="DELETE">
                 </form>
             </td>

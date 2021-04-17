@@ -1,16 +1,15 @@
 package com.haruhiism.bbs.service.article;
 
 import com.haruhiism.bbs.domain.SearchMode;
-import com.haruhiism.bbs.domain.dto.BoardArticleAuthDTO;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
 
 import java.util.Optional;
 
 public interface ArticleService {
 
-    void createArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO);
+    void createArticle(BoardArticleDTO article, AuthDTO authDTO);
 
     BoardArticleDTO readArticle(Long articleId);
 
@@ -18,9 +17,9 @@ public interface ArticleService {
 
     BoardArticlesDTO searchAllByPages(SearchMode searchMode, String keyword, int pageNum, int pageSize);
 
-    void updateArticle(BoardArticleDTO article, BoardArticleAuthDTO authDTO);
+    void updateArticle(BoardArticleDTO article, AuthDTO authDTO);
 
-    void deleteArticle(Long articleId, BoardArticleAuthDTO authDTO);
+    void deleteArticle(Long articleId, AuthDTO authDTO);
 
-    Optional<BoardArticleDTO> authArticleEdit(Long articleId, BoardArticleAuthDTO articleAuthDTO);
+    Optional<BoardArticleDTO> authArticleEdit(Long articleId, AuthDTO articleAuthDTO);
 }

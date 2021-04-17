@@ -5,7 +5,7 @@ import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 
 
 public interface AccountService {
@@ -18,6 +18,7 @@ public interface AccountService {
 
     public BoardArticlesDTO readArticlesOfAccount(String userID, int page);
 
+    // TODO: fix this shit.
     public BoardAccount authenticateAccount(String id, String password);
 
     public LoginSessionInfo loginAccount(String id, String password);

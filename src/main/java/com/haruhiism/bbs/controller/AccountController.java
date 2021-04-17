@@ -8,7 +8,7 @@ import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.service.account.AccountService;
-import com.haruhiism.bbs.service.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -29,7 +29,7 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    private final String sessionAuthAttribute = "loginAuthInfo";
+    private final String sessionAuthAttribute = "loginSessionInfo";
 
     @GetMapping("/register")
     public String requestRegister(@ModelAttribute("command") RegisterRequestCommand command) {
