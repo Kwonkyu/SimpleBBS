@@ -1,15 +1,17 @@
 package com.haruhiism.bbs.domain.entity;
 
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
 @Getter
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "id", callSuper = false)
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Entity
-public class BoardAccount {
+@EntityListeners(AuditingEntityListener.class)
+public class BoardAccount extends MACDate {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOARD_ACCOUNT_ID")

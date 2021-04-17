@@ -14,6 +14,12 @@
         <h3 th:if="${article.isWrittenByAccount}" th:text="${'- [' + article.getWriter() + ']'}">Writer</h3>
         <h3 th:unless="${article.isWrittenByAccount}" th:text="${'-' + article.getWriter()}">Writer</h3>
     </div>
+    <div>
+        <h4 th:text="${'Written: ' + article.getCreatedDate()}">CREATED DATE</h4>
+        <h4 th:text="${'Modified: ' + article.getModifiedDate()}">CREATED DATE</h4>
+    </div>
+
+    <hr>
 
     <div>
         <p th:text="${article.getContent()}">Content</p>
@@ -51,11 +57,12 @@
 
     <table>
         <caption>COMMENTS</caption>
-        <tr><th>NO</th><th>WRITER</th><th>COMMENT</th></tr>
+        <tr><th>NO</th><th>WRITER</th><th>COMMENT</th><th>DATE</th></tr>
         <tr th:each="comment: ${comments}">
             <td th:text="${comment.getId()}">-</td>
             <td th:text="${comment.getWriter()}">WRITER HERE</td>
             <td th:text="${comment.getContent()}">COMMENT HERE</td>
+            <td th:text="${comment.getCreatedDate()}"></td>
             <td>
                 <form action="/comment/remove" method="get">
                     <input type="hidden" name="id" th:value="${comment.getId()}">

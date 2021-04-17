@@ -28,7 +28,7 @@
 
     <table>
         <tr class="row">
-            <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th>
+            <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th><th>DATE</th>
         </tr>
         <tr class="row" th:each="article, state: ${articles}" th:classappend="${state.odd} == true ? 'odd' : 'even'">
         	<td th:text="${article.getId()}">-</td>
@@ -36,6 +36,7 @@
             <td><a th:text="${article.getTitle()}" th:href="@{/board/read(id=${article.getId()})}">TITLE HERE</a></td>
             <td th:text="${article.getWriter()}">WRITER HERE</td>
             <td th:text="${commentSizes.get(state.index)}">COMMENT SIZE HERE</td>
+            <td th:text="${article.getCreatedDate()}">CREATED DATE HERE</td>
         </tr>
     </table>
 
