@@ -9,7 +9,6 @@ import javax.validation.constraints.Positive;
 @Getter
 @Setter
 public class ArticleRemoveRequestCommand {
-    @NonNull
     @Positive
     private Long id;
 }
