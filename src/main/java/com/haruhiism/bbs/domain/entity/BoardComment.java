@@ -30,7 +30,7 @@ public class BoardComment {
     @JoinColumn(name = "BOARD_ACCOUNT_ID")
     private BoardAccount boardAccount;
 
-    public void setCommentWriter(BoardAccount boardAccount){
+    public void registerCommentWriter(BoardAccount boardAccount){
         this.boardAccount = boardAccount;
         this.writer = boardAccount.getUsername();
     }

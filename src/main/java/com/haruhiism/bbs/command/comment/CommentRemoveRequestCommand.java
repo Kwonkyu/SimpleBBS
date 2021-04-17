@@ -13,7 +13,7 @@ public class CommentRemoveRequestCommand {
 
     @NotNull
     @Positive
-    private Long commentID;
+    private Long id;
     @NotBlank
     private String password;
 }

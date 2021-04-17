@@ -54,7 +54,7 @@ public class BasicCommentService implements CommentService {
             BoardAccount boardAccount = accountRepository.findById(loginSessionInfo.getAccountID())
                     .orElseThrow(NoAccountFoundException::new);
 
-            boardComment.setCommentWriter(boardAccount);
+            boardComment.registerCommentWriter(boardAccount);
         }
 
         commentRepository.save(boardComment);

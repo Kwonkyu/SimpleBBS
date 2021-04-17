@@ -1,9 +1,13 @@
 package com.haruhiism.bbs.mvc;
 
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
+import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
+import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.comment.CommentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +28,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("test")
+
 @AutoConfigureMockMvc
 @Transactional
 public class CommentMvcTest {
 
+    @Autowired
+    AccountRepository accountRepository;
     @Autowired
     ArticleRepository articleRepository;
     @Autowired
@@ -37,8 +45,11 @@ public class CommentMvcTest {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    DataEncoder dataEncoder;
+
     @Test
-    @DisplayName("부적절한 댓글 작성")
+    @DisplayName("부적절한 댓글(파라미터 누락) 작성")
     void createInvalidCommentTest() throws Exception {
         // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
@@ -86,67 +97,69 @@ public class CommentMvcTest {
     }
 
     @Test
-    @DisplayName("부적절한 댓글 삭제 요청")
+    @DisplayName("부적절한 댓글 삭제")
     void requestInvalidDeleteCommentTest() throws Exception {
-        // given
         BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
         articleRepository.save(boardArticle);
-        BoardComment boardComment = new BoardComment("commenter", "password", "comment", boardArticle);
-        commentRepository.save(boardComment);
 
+        BoardAccount boardAccount = new BoardAccount("userid", "username", "userpassword", "email@domain.com");
+        accountRepository.save(boardAccount);
+
+        BoardComment boardCommentWithoutAccount = new BoardComment("commenter", dataEncoder.encode("password"), "comment", boardArticle);
+        BoardComment boardCommentWithAccount = new BoardComment("commenter", dataEncoder.encode("password"), "comment", boardArticle);
+        boardCommentWithAccount.registerCommentWriter(boardAccount);
+
+        commentRepository.save(boardCommentWithoutAccount);
+        commentRepository.save(boardCommentWithAccount);
+
+        // given
         MultiValueMap<String, String> params = new HttpHeaders();
-        params.set("commentID", String.valueOf(boardComment.getId()));
+        params.set("id", String.valueOf(boardCommentWithoutAccount.getId()));
         params.set("password", "THIS_IS_NOT_YOUR_PASSWORD");
+
+        MockHttpSession mockHttpSession = new MockHttpSession();
 
         // when
         mockMvc.perform(post("/comment/remove")
                 .params(params))
                 // then
                 .andExpect(status().isUnauthorized());
-        assertDoesNotThrow(() -> commentService.readComment(boardComment.getId()));
-    }
+
+        params.set("password", "password");
+
+        // when
+        mockMvc.perform(post("/comment/remove")
+                .params(params))
+                // then
+                .andExpect(status().is3xxRedirection());
 
 
-    @Test
-    @DisplayName("부적절한 댓글 삭제")
-    void deleteInvalidCommentTest() throws Exception {
         // given
-        BoardArticle boardArticle = new BoardArticle("writer", "password", "title", "content");
-        articleRepository.save(boardArticle);
-        BoardComment boardComment = new BoardComment("commenter", "password", "comment", boardArticle);
-        commentRepository.save(boardComment);
-
-        MultiValueMap<String, String> params = new HttpHeaders();
-        params.set("commentID", "");
-        params.set("password", "password");
+        params.set("id", String.valueOf(boardCommentWithAccount.getId()));
+        params.remove("password");
 
         // when
-        mockMvc.perform(post("/comment/remove")
+        mockMvc.perform(get("/comment/remove")
                 .params(params))
                 // then
-                .andExpect(status().isUnprocessableEntity());
-        assertDoesNotThrow(() -> commentService.readComment(boardComment.getId()));
-
-
-        params.set("commentID", "0");
-        params.set("password", "password");
+                .andExpect(status().isUnauthorized());
 
         // when
-        mockMvc.perform(post("/comment/remove")
-                .params(params))
+        mockMvc.perform(get("/comment/remove")
+                .params(params)
+                .session(mockHttpSession))
                 // then
-                .andExpect(status().isUnprocessableEntity());
-        assertDoesNotThrow(() -> commentService.readComment(boardComment.getId()));
+                .andExpect(status().isUnauthorized());
 
 
-        params.set("commentID", "-1");
-        params.set("password", "password");
+        mockHttpSession.setAttribute("loginSessionInfo", new LoginSessionInfo(boardAccount));
 
         // when
-        mockMvc.perform(post("/comment/remove")
-                .params(params))
+        // when
+        mockMvc.perform(get("/comment/remove")
+                .params(params)
+                .session(mockHttpSession))
                 // then
-                .andExpect(status().isUnprocessableEntity());
-        assertDoesNotThrow(() -> commentService.readComment(boardComment.getId()));
+                .andExpect(status().is3xxRedirection());
     }
 }

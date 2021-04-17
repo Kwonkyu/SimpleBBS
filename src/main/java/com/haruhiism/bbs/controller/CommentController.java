@@ -5,7 +5,6 @@ import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
-import com.haruhiism.bbs.exception.CommentAuthFailedException;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/comment")
@@ -66,8 +64,8 @@ public class CommentController {
 
     @PostMapping("/remove")
     public String submitRemoveComment(@Valid CommentRemoveRequestCommand command) {
-        BoardCommentDTO commentDTO = commentService.readComment(command.getCommentID());
-        commentService.deleteComment(command.getCommentID(), AuthDTO.builder().rawPassword(command.getPassword()).build());
+        BoardCommentDTO commentDTO = commentService.readComment(command.getId());
+        commentService.deleteComment(command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build());
         return String.format("redirect:/board/read?id=%d", commentDTO.getArticleID());
     }
 
