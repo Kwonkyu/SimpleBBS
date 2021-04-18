@@ -4,9 +4,7 @@ import com.haruhiism.bbs.domain.SearchMode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.*;
 
 @Getter
 @Setter
@@ -17,6 +15,7 @@ public class ArticleListCommand {
     @Positive
     @Max(value = 40)
     private int pageSize = 10;
+    @NotNull
     private SearchMode mode = SearchMode.TITLE;
     private String keyword = "";
 }
