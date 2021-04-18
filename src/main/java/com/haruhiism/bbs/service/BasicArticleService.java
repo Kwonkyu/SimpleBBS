@@ -58,12 +58,13 @@ public class BasicArticleService implements ArticleService {
 
 
     @Override
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public BoardArticleDTO readArticle(Long articleID) {
         BoardArticle readArticle = articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new);
         if(readArticle.isDeleted()){
             throw new NoArticleFoundException();
         } else {
+            readArticle.getHit().increaseHit();
             return new BoardArticleDTO(readArticle);
         }
     }

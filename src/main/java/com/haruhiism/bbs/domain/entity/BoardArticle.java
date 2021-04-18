@@ -13,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "BOARD_ARTICLE")
 public class BoardArticle extends MACDate{
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +37,13 @@ public class BoardArticle extends MACDate{
     // TODO: implement test codes for delete feature?
     @Column(name = "DELETED")
     private boolean deleted = false;
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "HIT_ID")
+    private ReadHit hit = new ReadHit();
+
+    public void increaseHit(){
+        hit.increaseHit();
+    }
 
     public void toggleDeletedStatus(){
         deleted = !deleted;

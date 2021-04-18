@@ -15,8 +15,8 @@
         <h3 th:unless="${article.isWrittenByAccount}" th:text="${'-' + article.getWriter()}">Writer</h3>
     </div>
     <div>
-        <h4 th:text="${'Written: ' + article.getCreatedDate()}">CREATED DATE</h4>
-        <h4 th:text="${'Modified: ' + article.getModifiedDate()}">CREATED DATE</h4>
+        <h4 th:text="${'Written: ' + article.getCreatedDate() + ' / Modified: ' + article.getModifiedDate()}">CREATED/MODIFIED DATE</h4>
+        <h4 th:text="${'Hit: ' + article.getHit()}">HIT VALUE</h4>
     </div>
 
     <hr>
