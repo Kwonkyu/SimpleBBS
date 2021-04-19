@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.service;
+package com.haruhiism.bbs.service.article;
 
 import com.haruhiism.bbs.domain.SearchMode;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -13,7 +13,6 @@ import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,7 +38,7 @@ public class BasicArticleService implements ArticleService {
 
 
     @Override
-    public void createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
+    public Long createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
         BoardArticle boardArticle = new BoardArticle(
                 article.getWriter(),
                 dataEncoder.encode(article.getPassword()),
@@ -54,24 +53,26 @@ public class BasicArticleService implements ArticleService {
         }
 
         articleRepository.save(boardArticle);
+        return boardArticle.getId();
     }
 
 
     @Override
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public BoardArticleDTO readArticle(Long articleID) {
-        Optional<BoardArticle> readArticle = articleRepository.findById(articleID);
-        if(readArticle.isEmpty()){
+        BoardArticle readArticle = articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new);
+        if(readArticle.isDeleted()){
             throw new NoArticleFoundException();
         } else {
-            return new BoardArticleDTO(readArticle.get());
+            readArticle.getHit().increaseHit();
+            return new BoardArticleDTO(readArticle);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
     public BoardArticlesDTO readAllByPages(int pageNum, int pageSize){
-        Page<BoardArticle> boardArticles = articleRepository.findAllByOrderByIdDesc(PageRequest.of(pageNum, pageSize));
+        Page<BoardArticle> boardArticles = articleRepository.findAllByDeletedFalseOrderByIdDesc(PageRequest.of(pageNum, pageSize));
         return convertPageResultToBoardArticlesDTO(boardArticles, pageNum);
     }
 
@@ -82,15 +83,15 @@ public class BasicArticleService implements ArticleService {
 
         switch(searchMode){
             case TITLE:
-                result = articleRepository.findAllByTitleContainingOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByTitleContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
                 break;
 
             case WRITER:
-                result = articleRepository.findAllByWriterContainingOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByWriterContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
                 break;
 
             case CONTENT:
-                result = articleRepository.findAllByContentContainingOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByContentContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
                 break;
 
             case TITLE_CONTENT:
@@ -108,7 +109,7 @@ public class BasicArticleService implements ArticleService {
 
         result.get().forEachOrdered(boardArticle -> {
             articles.add(new BoardArticleDTO(boardArticle));
-            commentSizes.add(commentRepository.countAllByBoardArticle(boardArticle));
+            commentSizes.add(commentRepository.countAllByBoardArticleAndDeletedFalse(boardArticle));
         });
 
         return new BoardArticlesDTO(articles, commentSizes, currentPage, result.getTotalPages());
@@ -116,6 +117,10 @@ public class BasicArticleService implements ArticleService {
 
 
     private boolean verifyArticleAndAccount(BoardArticle boardArticle, String authValue, LoginSessionInfo loginSessionInfo){
+        if (boardArticle.isDeleted()) {
+            return false;
+        }
+
         Optional<Long> articleWriterId = getArticleWriterId(boardArticle);
         return articleWriterId.map(id ->
                 loginSessionInfo != null && id.equals(loginSessionInfo.getAccountID()))
@@ -127,6 +132,10 @@ public class BasicArticleService implements ArticleService {
     public void updateArticle(BoardArticleDTO article, AuthDTO authDTO) {
         BoardArticle updatedArticle = articleRepository.findById(article.getId())
                 .orElseThrow(UpdateDeletedArticleException::new);
+
+        if (updatedArticle.isDeleted()) {
+            throw new UpdateDeletedArticleException();
+        }
 
         if(verifyArticleAndAccount(updatedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
             updatedArticle.changeTitle(article.getTitle());
@@ -143,8 +152,8 @@ public class BasicArticleService implements ArticleService {
                 .orElseThrow(NoArticleFoundException::new);
 
         if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
-            commentRepository.deleteAllByBoardArticle(deletedArticle);
-            articleRepository.delete(deletedArticle);
+            deletedArticle.delete();
+            // TODO: 댓글에 직접 접근하는 것도 막아야 할까?
         } else {
             throw new AuthenticationFailedException();
         }

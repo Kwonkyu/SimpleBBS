@@ -1,6 +1,6 @@
 <!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
@@ -28,7 +28,7 @@
 
     <table>
         <tr class="row">
-            <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th>
+            <th>NO</th><th>TITLE</th><th>WRITER</th><th>COMMENTS</th><th>DATE</th><th>HIT</th>
         </tr>
         <tr class="row" th:each="article, state: ${articles}" th:classappend="${state.odd} == true ? 'odd' : 'even'">
         	<td th:text="${article.getId()}">-</td>
@@ -36,17 +36,34 @@
             <td><a th:text="${article.getTitle()}" th:href="@{/board/read(id=${article.getId()})}">TITLE HERE</a></td>
             <td th:text="${article.getWriter()}">WRITER HERE</td>
             <td th:text="${commentSizes.get(state.index)}">COMMENT SIZE HERE</td>
+            <td th:text="${article.getCreatedDate()}">CREATED DATE HERE</td>
+            <td th:text="${article.getHit()}">HIT VALUE HERE</td>
         </tr>
     </table>
 
-    <form action="/board/search" method="get">
+    <div>
+        <form action="/board/list" method="get">
+            <label for="article-size">HOW MANY ARTICLES?</label>
+            <select name="pageSize">
+                <option th:selected="${10.equals(pageSize)}">10</option>
+                <option th:selected="${20.equals(pageSize)}">20</option>
+                <option th:selected="${30.equals(pageSize)}">30</option>
+                <option th:selected="${40.equals(pageSize)}">40</option>
+            </select>
+            <input id="article-size" type="submit" value="CHANGE">
+        </form>
+    </div>
+
+    <form action="/board/list" method="get">
+        <input type="hidden" th:value="${currentPage}" name="pageNum">
+        <input type="hidden" th:value="${pageSize}" name="pageSize">
         <table>
             <tr>
                 <td>
                     <select name="mode">
                         <option value="WRITER" th:selected="${'WRITER'.equals(searchMode)}">Writer</option>
                         <option value="TITLE" th:selected="${'TITLE'.equals(searchMode)}">Title</option>
-                        <option value="CONTENT" th:selected="${'CONTENT'.equals(searchMode) || searchMode == null}">Content</option>
+                        <option value="CONTENT" th:selected="${'CONTENT'.equals(searchMode)}">Content</option>
                         <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT'.equals(searchMode)}">Title & Content</option>
                     </select>
                 </td>
@@ -54,7 +71,7 @@
                     <input type="text" name="keyword" th:value="${searchKeyword}" required>
                 </td>
                 <td>
-                    <input type="submit" value="Submit">
+                    <input type="submit" value="Search">
                 </td>
             </tr>
         </table>
@@ -71,9 +88,10 @@
     </div>
 
     <div th:if="${totalPages > 0}">
-        <span th:each="i: ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} == true ? 'current' : ''">
-            <a th:href="@{/board/list(pageNum=${i - 1}, pageSize=${command.pageSize})}" th:text="${i}">-</a>
+        <span th:each="i: ${#numbers.sequence(1, totalPages)}" th:classappend="${i-1 == currentPage} == true ? 'current' : ''">
+            <a th:href="@{/board/list(pageNum=${i - 1}, pageSize=${command.pageSize}, keyword=${searchKeyword}, mode=${searchMode})}" th:text="${i}">-</a>
         </span>
     </div>
+
 </body>
 </html>

@@ -3,19 +3,24 @@ package com.haruhiism.bbs.domain.dto;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 public class BoardCommentDTO {
 
+    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private Long id;
     private Long articleID;
     private String writer;
     private String password;
     private String content;
-    // TODO: 나중에 상속 관계로 분리?
     private boolean isWrittenByAccount;
+    private String createdDate;
 
     public BoardCommentDTO(BoardComment boardComment) {
         this.id = boardComment.getId();
@@ -24,6 +29,11 @@ public class BoardCommentDTO {
         this.password = boardComment.getPassword();
         this.content = boardComment.getContent();
         isWrittenByAccount = boardComment.getBoardAccount() != null;
+
+        LocalDateTime createdDateTime = boardComment.getCreatedDateTime();
+        if(createdDateTime != null){
+            this.createdDate = formatter.format(createdDateTime);
+        }
     }
 
     @Override

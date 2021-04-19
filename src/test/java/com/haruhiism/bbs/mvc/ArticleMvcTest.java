@@ -250,7 +250,7 @@ public class ArticleMvcTest {
         headers.set("keyword", "normal_keyword");
 
         // when
-        mockMvc.perform(get("/board/search")
+        mockMvc.perform(get("/board/list")
                 .params(headers))
                 // then
                 .andExpect(status().isOk());
@@ -260,7 +260,7 @@ public class ArticleMvcTest {
         headers.set("mode", "TITLE");
 
         // when
-        mockMvc.perform(get("/board/search")
+        mockMvc.perform(get("/board/list")
                 .params(headers))
                 // then
                 .andExpect(status().isOk());
@@ -270,7 +270,7 @@ public class ArticleMvcTest {
         headers.set("mode", "CONTENT");
 
         // when
-        mockMvc.perform(get("/board/search")
+        mockMvc.perform(get("/board/list")
                 .params(headers))
                 // then
                 .andExpect(status().isOk());
@@ -280,7 +280,7 @@ public class ArticleMvcTest {
         headers.set("mode", "TITLE_CONTENT");
 
         // when
-        mockMvc.perform(get("/board/search")
+        mockMvc.perform(get("/board/list")
                 .params(headers))
                 // then
                 .andExpect(status().isOk());
@@ -295,7 +295,7 @@ public class ArticleMvcTest {
         headers.set("keyword", "normal_keyword");
 
         // when
-        mockMvc.perform(get("/board/search")
+        mockMvc.perform(get("/board/list")
                 .params(headers))
                 // then
                 .andExpect(status().isUnprocessableEntity());
@@ -305,18 +305,7 @@ public class ArticleMvcTest {
         headers.set("mode", "");
 
         // when
-        mockMvc.perform(get("/board/search")
-                .params(headers))
-                // then
-                .andExpect(status().isUnprocessableEntity());
-
-
-        // given
-        headers.set("mode", "CONTENT");
-        headers.set("keyword", "");
-
-        // when
-        mockMvc.perform(get("/board/search")
+        mockMvc.perform(get("/board/list")
                 .params(headers))
                 // then
                 .andExpect(status().isUnprocessableEntity());

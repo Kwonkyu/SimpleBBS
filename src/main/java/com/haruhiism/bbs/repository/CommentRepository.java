@@ -13,11 +13,11 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends CrudRepository<BoardComment, Long> {
 
-    public List<BoardComment> findAllByBoardAccount(BoardAccount boardAccount);
-
     public Page<BoardComment> findAllByBoardArticleOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
+    public Page<BoardComment> findAllByBoardArticleAndDeletedFalseOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
 
     public void deleteAllByBoardArticle(BoardArticle boardArticle);
 
     public int countAllByBoardArticle(BoardArticle boardArticle);
+    public int countAllByBoardArticleAndDeletedFalse(BoardArticle boardArticle);
 }

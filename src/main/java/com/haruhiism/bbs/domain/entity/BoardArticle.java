@@ -1,15 +1,20 @@
 package com.haruhiism.bbs.domain.entity;
 
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "id", callSuper = false)
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Entity
-public class BoardArticle {
+@EntityListeners(AuditingEntityListener.class)
+@Table(name = "BOARD_ARTICLE")
+public class BoardArticle extends MACDate{
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOARD_ARTICLE_ID")
@@ -29,6 +34,28 @@ public class BoardArticle {
     @ManyToOne
     @JoinColumn(name = "BOARD_ACCOUNT_ID")
     private BoardAccount boardAccount;
+    // TODO: implement test codes for delete feature?
+    @Column(name = "DELETED")
+    private boolean deleted = false;
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "HIT_ID")
+    private ReadHit hit = new ReadHit();
+
+    public void increaseHit(){
+        hit.increaseHit();
+    }
+
+    public void toggleDeletedStatus(){
+        deleted = !deleted;
+    }
+
+    public void delete(){
+        deleted = true;
+    }
+
+    public void restore(){
+        deleted = false;
+    }
 
     public void changePassword(String password){
         this.password = password;
@@ -49,6 +76,7 @@ public class BoardArticle {
 
     @Override
     public String toString() {
-        return String.format("[#%d] '%s' written by '%s'.\nContents: %10s...\n", id, title, writer, content);
+        return String.format("[#%d] '%s' written by '%s'.\nContents: %10s... [ DELETED = %s ]\n",
+                id, title, writer, content, deleted);
     }
 }
