@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.service.article;
 
 import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
@@ -13,7 +14,6 @@ import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

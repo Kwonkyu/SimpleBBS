@@ -1,13 +1,13 @@
 package com.haruhiism.bbs.service;
 
-import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.UpdatableInformation;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.exception.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.account.AccountService;
-import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
