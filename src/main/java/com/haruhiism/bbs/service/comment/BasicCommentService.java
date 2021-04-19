@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.service;
+package com.haruhiism.bbs.service.comment;
 
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;

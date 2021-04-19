@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.service;
+package com.haruhiism.bbs.service.account;
 
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.SearchMode;

@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.domain.dto;
 
+import com.haruhiism.bbs.command.article.ArticleSubmitCommand;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import lombok.*;
@@ -37,6 +38,13 @@ public class BoardArticleDTO {
         this.createdDate = formatter.format(article.getCreatedDateTime());
         this.modifiedDate = formatter.format(article.getModifiedDateTime());
         this.hit = article.getHit().getHit();
+    }
+
+    public BoardArticleDTO(ArticleSubmitCommand command){
+        this.writer = command.getWriter();
+        this.password = command.getPassword();
+        this.title = command.getTitle();
+        this.content = command.getContent();
     }
 
     @Override

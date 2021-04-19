@@ -1,14 +1,12 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.article.*;
-import com.haruhiism.bbs.domain.dto.AuthDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
+import com.haruhiism.bbs.domain.dto.*;
 import com.haruhiism.bbs.exception.AuthenticationFailedException;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.service.comment.CommentService;
+import com.haruhiism.bbs.service.file.FileHandlerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -23,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,6 +30,7 @@ public class ArticleController {
 
     private final ArticleService articleService;
     private final CommentService commentService;
+    private final FileHandlerService fileHandlerService;
 
 
     @GetMapping("/list")
@@ -56,6 +56,7 @@ public class ArticleController {
                                    HttpServletRequest request) {
         BoardArticleDTO article = articleService.readArticle(command.getId());
         BoardCommentsDTO comments = commentService.readCommentsOfArticle(article.getId(), command.getCommentPage(), 10);
+        List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
 
         LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
         if(loginSessionInfo != null) model.addAttribute("loginUsername", loginSessionInfo.getUsername());
@@ -64,6 +65,7 @@ public class ArticleController {
         model.addAttribute("comments", comments.getBoardComments());
         model.addAttribute("currentCommentPage", comments.getCurrentPage());
         model.addAttribute("totalCommentPages", comments.getTotalPages());
+        model.addAttribute("resources", resources);
 
         return "board/read";
     }
@@ -102,16 +104,11 @@ public class ArticleController {
             return "/board/write";
         }
 
-        BoardArticleDTO articleDTO = BoardArticleDTO.builder()
-                .writer(command.getWriter())
-                .password(command.getPassword())
-                .title(command.getTitle())
-                .content(command.getContent()).build();
+        BoardArticleDTO articleDTO = new BoardArticleDTO(command);
+        AuthDTO authDTO = AuthDTO.builder().loginSessionInfo(loginSessionInfo).build();
+        Long createdArticleId = articleService.createArticle(articleDTO, authDTO);
+        fileHandlerService.store(command.getUploadedFiles(), createdArticleId);
 
-        AuthDTO authDTO = AuthDTO.builder()
-                .loginSessionInfo(loginSessionInfo).build();
-
-        articleService.createArticle(articleDTO, authDTO);
         return "redirect:/board/list";
     }
 

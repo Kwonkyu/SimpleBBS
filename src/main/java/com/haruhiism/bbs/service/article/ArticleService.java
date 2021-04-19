@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface ArticleService {
 
-    void createArticle(BoardArticleDTO article, AuthDTO authDTO);
+    Long createArticle(BoardArticleDTO article, AuthDTO authDTO);
 
     BoardArticleDTO readArticle(Long articleId);
 

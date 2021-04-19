@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.service;
+package com.haruhiism.bbs.service.article;
 
 import com.haruhiism.bbs.domain.SearchMode;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -13,7 +13,6 @@ import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,7 +38,7 @@ public class BasicArticleService implements ArticleService {
 
 
     @Override
-    public void createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
+    public Long createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
         BoardArticle boardArticle = new BoardArticle(
                 article.getWriter(),
                 dataEncoder.encode(article.getPassword()),
@@ -54,6 +53,7 @@ public class BasicArticleService implements ArticleService {
         }
 
         articleRepository.save(boardArticle);
+        return boardArticle.getId();
     }
 
 
