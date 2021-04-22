@@ -29,10 +29,13 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-test'
 
 	compileOnly 'org.projectlombok:lombok'
-	compile 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.mariadb.jdbc:mariadb-java-client'
+	implementation 'mysql:mysql-connector-java'
+	implementation 'com.cloudinary:cloudinary'
+	implementation 'com.cloudinary:cloudinary-taglib:1.29.0'
 
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
