@@ -24,7 +24,15 @@ public class UploadedFile extends MACDate{
     @NonNull @Column(name = "FILENAME_HASH")
     private String hashedFilename;
 
+    @Column(name = "REMOTE_URL")
+    private String remoteUrl;
+
     @NonNull
     @ManyToOne @JoinColumn(name = "BOARD_ARTICLE_ID")
     private BoardArticle boardArticle;
+
+
+    public void registerRemoteUrl(String remoteUrl){
+        this.remoteUrl = remoteUrl;
+    }
 }
