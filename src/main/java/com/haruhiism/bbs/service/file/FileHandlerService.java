@@ -15,5 +15,7 @@ public interface FileHandlerService {
 
     public ResourceDTO load(String hashedFilename);
 
+    public void delete(List<String> deletedHashedFilenames, Long articleId);
+
     public List<ResourceDTO> listResourcesOfArticle(Long articleId);
 }

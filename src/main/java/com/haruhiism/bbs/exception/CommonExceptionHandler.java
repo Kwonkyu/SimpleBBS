@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.exception;
 
+import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -17,6 +18,14 @@ public class CommonExceptionHandler {
     public String methodArgumentNotValid(Model model){
         model.addAttribute("errorTitle", "Transmitted Request Can Not Be Processed.");
         model.addAttribute("errorDescription", "Request has incompatible parameter or something is wrong.");
-        return "board/error/request-failed";
+        return "error/request-failed";
+    }
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String articleEditAuthFailed(Model model, AuthenticationFailedException exception) {
+        model.addAttribute("errorTitle", exception.errorTitle);
+        model.addAttribute("errorDescription", exception.errorDescription);
+        return "error/request-failed";
     }
 }

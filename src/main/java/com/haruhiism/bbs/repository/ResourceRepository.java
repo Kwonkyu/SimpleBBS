@@ -12,4 +12,6 @@ public interface ResourceRepository extends CrudRepository<UploadedFile, Long> {
     List<UploadedFile> findAllByBoardArticleOrderByIdAsc(BoardArticle boardArticle);
 
     Optional<UploadedFile> findByHashedFilename(String hashedFilename);
+
+    void deleteByHashedFilename(String hashedFilename);
 }

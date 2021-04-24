@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.exception;
+package com.haruhiism.bbs.exception.auth;
 
 public class AuthenticationFailedException extends RuntimeException {
     public String errorTitle = "Requested Operation Not Permitted.";

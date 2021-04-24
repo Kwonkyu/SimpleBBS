@@ -6,8 +6,8 @@ import com.cloudinary.utils.ObjectUtils;
 import com.haruhiism.bbs.domain.dto.ResourceDTO;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.UploadedFile;
-import com.haruhiism.bbs.exception.InvalidFileException;
-import com.haruhiism.bbs.exception.NoArticleFoundException;
+import com.haruhiism.bbs.exception.article.NoArticleFoundException;
+import com.haruhiism.bbs.exception.resource.InvalidFileException;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.ResourceRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,8 +30,9 @@ import java.util.stream.Collectors;
 @Transactional
 @Slf4j
 @Primary
-public class CloudinaryFileHandlerService implements  FileHandlerService{
+public class CloudinaryFileHandlerService implements FileHandlerService{
 
+    private final Path temporaryFilePath = Paths.get("C:\\Temp\\SimpleBBS\\temps");
     private final FileValidator fileValidator;
     private final ResourceRepository resourceRepository;
     private final ArticleRepository articleRepository;
@@ -54,24 +57,25 @@ public class CloudinaryFileHandlerService implements  FileHandlerService{
         cloudinary = Singleton.getCloudinary();
     }
 
-    @PostConstruct
-    public void init(){
-
-    }
-
     private void store(MultipartFile file, BoardArticle article) {
         // TODO: exception handler for file is null, empty, exceeded size.
         try {
             fileValidator.validate(file).orElseThrow(InvalidFileException::new);
             log.info("validated file {}", file.getOriginalFilename());
 
-            Map result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+            Path validFile = Paths.get(temporaryFilePath.toString(), file.getOriginalFilename());
+            file.transferTo(validFile);
+
+            // directly upload to cloudinary doesn't have filename.
+            Map result = cloudinary.uploader().upload(
+                    validFile.toAbsolutePath().toString(), ObjectUtils.asMap(
                     "folder", String.format("%s/", article.getId()),
-                    "resource_type", "auto"));
-            log.info("uploaded file to cloudinary");
+                    "resource_type", "raw", // set resource type raw to bypass pdf filtering.
+                    "use_filename", true));
+            Files.delete(validFile);
 
             String cloudinaryPublicId = (String) result.get("public_id");
-            log.info("uploaded file has {} public id", cloudinaryPublicId);
+            log.info("uploaded file to cloudinary(public_id: {})", cloudinaryPublicId);
             UploadedFile uploadedFile = new UploadedFile(Objects.requireNonNull(file.getOriginalFilename()), cloudinaryPublicId, article);
             uploadedFile.registerRemoteUrl((String) result.get("url")); // TODO: secure_url for https
 
@@ -87,7 +91,34 @@ public class CloudinaryFileHandlerService implements  FileHandlerService{
         log.debug("uploading files to article #{}", articleId);
         BoardArticle article = articleRepository.findById(articleId).orElseThrow(NoArticleFoundException::new);
         for (MultipartFile file : files) {
-            store(file, article);
+            if(!file.isEmpty()) store(file, article);
+        }
+    }
+
+    @Override
+    public void delete(List<String> deletedHashedFilenames, Long articleId) {
+        BoardArticle article = articleRepository.findById(articleId).orElseThrow(NoArticleFoundException::new);
+        List<String> hashedFilenames = resourceRepository.findAllByBoardArticleOrderByIdAsc(article)
+                .stream().map(UploadedFile::getHashedFilename).collect(Collectors.toList());
+
+        for (String deletedHashedFilename : deletedHashedFilenames) {
+            if (!hashedFilenames.contains(deletedHashedFilename)) {
+                throw new InvalidFileException();
+            }
+
+            // TODO: transactional 확인.
+            resourceRepository.deleteByHashedFilename(deletedHashedFilename);
+            try {
+                cloudinary.uploader().rename(
+                        deletedHashedFilename,
+                        String.format("deleted/%s", deletedHashedFilename),
+                        ObjectUtils.asMap(
+                                "invalidate", true
+                        ));
+                log.info("removed file {}", deletedHashedFilename);
+            } catch (IOException e){
+                log.error("deleting file failed({})", e.getLocalizedMessage());
+            }
         }
     }
 

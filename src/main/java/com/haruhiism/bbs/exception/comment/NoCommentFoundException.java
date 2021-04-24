@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.exception;
+package com.haruhiism.bbs.exception.comment;
 
 public class NoCommentFoundException extends RuntimeException {
     public String errorTitle = "Request Comment Not Found.";
