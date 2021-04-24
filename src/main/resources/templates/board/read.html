@@ -30,7 +30,13 @@
             <tr><th>FILES</th></tr>
             <tr th:each="resource : ${resources}">
                 <td>
-                    <a th:href="@{/resource/load(hash=${resource.hashedFilename})}" th:text="${resource.filename}" target="_blank"></a>
+<!--                    th:object 활용? -->
+                    <a th:if="${resource.getRemoteUrl() == null}"
+                       th:href="@{/resource/load(hash=${resource.hashedFilename})}"
+                       th:text="${resource.filename}" target="_blank"></a>
+                    <a th:unless="${resource.getRemoteUrl() == null}"
+                       th:href="${resource.getRemoteUrl()}"
+                       th:text="${resource.filename}" target="_blank"></a>
                 </td>
             </tr>
         </table>

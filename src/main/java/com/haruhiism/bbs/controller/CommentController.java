@@ -5,7 +5,7 @@ import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
-import com.haruhiism.bbs.exception.AuthenticationFailedException;
+import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

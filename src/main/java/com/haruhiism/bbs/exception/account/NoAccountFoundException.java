@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.exception;
+package com.haruhiism.bbs.exception.account;
 
 public class NoAccountFoundException extends RuntimeException{
     public String errorTitle = "No Account Found";

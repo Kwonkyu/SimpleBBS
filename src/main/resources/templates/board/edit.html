@@ -6,7 +6,7 @@
 </head>
 <body>
 <div>
-    <form method="post" action="/board/edit/submit" th:object="${article}">
+    <form method="post" action="/board/edit/submit" enctype="multipart/form-data" th:object="${article}">
         <input type="hidden" name="articleID" th:value="${article.id}">
         <table>
             <tr>
@@ -52,6 +52,25 @@
                     <textarea id="form-content" name="content" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
                 </td>
                 <td th:if="${#fields.hasErrors('content')}" th:errors="${article.content}">Content is not valid.</td>
+            </tr>
+
+            <tr th:each="resource: ${resources}">
+                <td>
+                    <label th:for="${'file-'+resource.filename}" th:text="${resource.filename}"></label>
+                    <input th:id="${'file-'+resource.filename}"
+                           th:name="delete"
+                           th:value="${resource.hashedFilename}"
+                           type="checkbox" >
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="form-files">FILES</label>
+                </td>
+                <td>
+                    <input id="form-files" type="file" name="uploadedFiles" multiple>
+                </td>
             </tr>
 
             <tr>

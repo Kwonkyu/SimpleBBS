@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.exception;
+package com.haruhiism.bbs.exception.article;
 
 public class NoArticleFoundException extends RuntimeException {
     public String errorTitle = "Requested Article Not Found.";

@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.exception;
+package com.haruhiism.bbs.exception.resource;
 
 public class InvalidFileException extends RuntimeException{
     public String errorTitle = "No Resource or File Found";

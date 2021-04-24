@@ -15,10 +15,12 @@ import java.nio.file.Path;
 public class ResourceDTO {
     private String filename;
     private String hashedFilename;
+    private String remoteUrl;
     private Path file;
 
     public ResourceDTO(UploadedFile uploadedFile) {
         this.filename = uploadedFile.getFilename();
         this.hashedFilename = uploadedFile.getHashedFilename();
+        this.remoteUrl = uploadedFile.getRemoteUrl();
     }
 }

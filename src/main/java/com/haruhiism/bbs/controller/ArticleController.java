@@ -3,11 +3,12 @@ package com.haruhiism.bbs.controller;
 import com.haruhiism.bbs.command.article.*;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
-import com.haruhiism.bbs.exception.AuthenticationFailedException;
+import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import com.haruhiism.bbs.service.file.FileHandlerService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +27,7 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/board")
+@Slf4j
 public class ArticleController {
 
     private final ArticleService articleService;
@@ -132,7 +134,10 @@ public class ArticleController {
                     command.getId(), AuthDTO.builder().loginSessionInfo(loginSessionInfo).build())
                     .orElseThrow(AuthenticationFailedException::new);
 
+            // TODO: checkbox to delete existing files or not.
+            List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
             model.addAttribute("article", accessArticleDTO);
+            model.addAttribute("resources", resources);
             return "board/edit";
         } else {
             model.addAttribute("id", command.getId());
@@ -147,7 +152,9 @@ public class ArticleController {
                 command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build())
                 .orElseThrow(AuthenticationFailedException::new);
 
+        List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
         model.addAttribute("article", boardArticleDTO);
+        model.addAttribute("resources", resources);
         return "board/edit";
     }
 
@@ -166,7 +173,10 @@ public class ArticleController {
                 .rawPassword(command.getPassword())
                 .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build();
 
+        // TODO: 별도의 인증 로직을 서비스에 구현해두고 auth logic here?
         articleService.updateArticle(editedArticleDTO, authDTO);
+        fileHandlerService.delete(command.getDelete(), command.getArticleID());
+        fileHandlerService.store(command.getUploadedFiles(), command.getArticleID());
         return "redirect:/board/list";
     }
 

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 @EnableJpaAuditing
 public class SimpleBbsApplication {
-
+	 // -Dspring.profiles.active=publish on VM option to enable property.
 	public static void main(String[] args) {
 		SpringApplication.run(SimpleBbsApplication.class, args);
 	}

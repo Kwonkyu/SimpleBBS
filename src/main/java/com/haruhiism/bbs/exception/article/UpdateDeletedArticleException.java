@@ -1,4 +1,4 @@
-package com.haruhiism.bbs.exception;
+package com.haruhiism.bbs.exception.article;
 
 public class UpdateDeletedArticleException extends RuntimeException {
     public String errorTitle = "Update Article Not Found.";
