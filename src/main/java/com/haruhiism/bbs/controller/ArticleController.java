@@ -134,7 +134,6 @@ public class ArticleController {
                     command.getId(), AuthDTO.builder().loginSessionInfo(loginSessionInfo).build())
                     .orElseThrow(AuthenticationFailedException::new);
 
-            // TODO: checkbox to delete existing files or not.
             List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
             model.addAttribute("article", accessArticleDTO);
             model.addAttribute("resources", resources);

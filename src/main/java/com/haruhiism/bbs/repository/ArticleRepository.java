@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.repository;
 
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +24,7 @@ public interface ArticleRepository extends CrudRepository<BoardArticle, Long> {
 
     public Page<BoardArticle> findAllByTitleContainingOrContentContainingOrderByIdDesc(String title, String content, Pageable pageable);
     public Page<BoardArticle> findAllByTitleContainingAndDeletedFalseOrContentContainingAndDeletedFalseOrderByIdDesc(String title, String content, Pageable pageable);
+
+    public Page<BoardArticle> findAllByBoardAccount(BoardAccount boardAccount, Pageable pageable);
+    public Page<BoardArticle> findAllByBoardAccountAndDeletedFalse(BoardAccount boardAccount, Pageable pageable);
 }

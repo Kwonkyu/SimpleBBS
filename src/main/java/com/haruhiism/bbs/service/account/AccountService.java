@@ -3,25 +3,24 @@ package com.haruhiism.bbs.service.account;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
+
+import java.util.Optional;
 
 
 public interface AccountService {
 
     public void registerAccount(BoardAccountDTO boardAccountDTO, AccountLevel level);
 
-    public void withdrawAccount(BoardAccount boardAccount);
+    public void withdrawAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;
 
-    public boolean isDuplicatedAccountByID(String userID);
+    public boolean isDuplicatedUserID(String userId);
 
-    public BoardArticlesDTO readArticlesOfAccount(String userID, int page);
+    public LoginSessionInfo loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;
 
-    // TODO: fix this shit.
-    public BoardAccount authenticateAccount(String id, String password);
-
-    public LoginSessionInfo loginAccount(String id, String password);
-
-    public LoginSessionInfo updateAccount(String id, String password, UpdatableInformation updatedField, String updatedValue);
+    public LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) throws AuthenticationFailedException;
 }

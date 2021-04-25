@@ -5,6 +5,7 @@ import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.exception.article.NoArticleFoundException;
@@ -74,6 +75,13 @@ public class BasicArticleService implements ArticleService {
     public BoardArticlesDTO readAllByPages(int pageNum, int pageSize){
         Page<BoardArticle> boardArticles = articleRepository.findAllByDeletedFalseOrderByIdDesc(PageRequest.of(pageNum, pageSize));
         return convertPageResultToBoardArticlesDTO(boardArticles, pageNum);
+    }
+
+    @Override
+    public BoardArticlesDTO readArticlesOfAccount(String userId, int pageNum, int pageSize) {
+        BoardAccount boardAccount = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+        Page<BoardArticle> articles = articleRepository.findAllByBoardAccountAndDeletedFalse(boardAccount, PageRequest.of(pageNum, pageSize));
+        return convertPageResultToBoardArticlesDTO(articles, pageNum);
     }
 
     @Override
