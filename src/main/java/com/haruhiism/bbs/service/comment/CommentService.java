@@ -10,6 +10,8 @@ public interface CommentService {
 
     public BoardCommentsDTO readCommentsOfArticle(Long articleID, int pageNum, int pageSize);
 
+    public BoardCommentsDTO readCommentsOfAccount(String userId, int pageNum, int pageSize);
+
     public BoardCommentDTO readComment(Long commentID);
 
     public void deleteComment(Long commentID, AuthDTO authDTO);

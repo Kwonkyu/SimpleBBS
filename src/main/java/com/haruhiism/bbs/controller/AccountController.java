@@ -6,11 +6,12 @@ import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-import com.haruhiism.bbs.domain.entity.BoardAccount;
-import com.haruhiism.bbs.exception.account.NoAccountFoundException;
+import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
+import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
+import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -23,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/account")
@@ -32,6 +32,7 @@ public class AccountController {
 
     private final ArticleService articleService;
     private final AccountService accountService;
+    private final CommentService commentService;
 
     private final String sessionAuthAttribute = "loginSessionInfo";
 
@@ -117,20 +118,21 @@ public class AccountController {
 
 
     @GetMapping("/manage")
-    public String manage(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+    public String manage(@RequestParam(name = "articlePage", required = false, defaultValue = "0") int articlePage,
+                         @RequestParam(name = "commentPage", required = false, defaultValue = "0") int commentPage,
                          Model model,
                          @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo) {
 
-        BoardArticlesDTO boardArticles = articleService.readArticlesOfAccount(loginSessionInfo.getUserID(), page, 10);
+        BoardArticlesDTO boardArticles = articleService.readArticlesOfAccount(loginSessionInfo.getUserID(), articlePage, 10);
+        BoardCommentsDTO boardComments = commentService.readCommentsOfAccount(loginSessionInfo.getUserID(), commentPage, 10);
         model.addAttribute("userInfo", loginSessionInfo);
         model.addAttribute("articles", boardArticles.getBoardArticles());
+        model.addAttribute("comments", boardComments.getBoardComments());
 
-        int[] pages = new int[boardArticles.getTotalPages()];
-        for(int i=0;i<pages.length;i++){
-            pages[i] = i;
-        }
-        model.addAttribute("currentPage", page);
-        model.addAttribute("pages", pages);
+        model.addAttribute("currentArticlePage", articlePage);
+        model.addAttribute("articlePages", boardArticles.getTotalPages());
+        model.addAttribute("currentCommentPage", commentPage);
+        model.addAttribute("commentPages", boardComments.getTotalPages());
 
         return "account/info";
     }

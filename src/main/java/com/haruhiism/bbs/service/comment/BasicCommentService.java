@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,6 +63,14 @@ public class BasicCommentService implements CommentService {
         commentRepository.save(boardComment);
     }
 
+    private BoardCommentsDTO convertPageResultToBoardCommentsDTO(Page<BoardComment> result, int pageNum){
+        List<BoardCommentDTO> comments = result.get().map(BoardCommentDTO::new).collect(Collectors.toList());
+        return BoardCommentsDTO.builder()
+                .boardComments(comments)
+                .currentPage(pageNum)
+                .totalPages(result.getTotalPages()).build();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public BoardCommentsDTO readCommentsOfArticle(Long articleID, int pageNum, int pageSize){
@@ -69,10 +78,15 @@ public class BasicCommentService implements CommentService {
                 articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new),
                 PageRequest.of(pageNum, pageSize));
 
-        List<BoardCommentDTO> comments = boardComments.get()
-                .map(BoardCommentDTO::new).collect(Collectors.toList());
+        return convertPageResultToBoardCommentsDTO(boardComments, pageNum);
+    }
 
-        return new BoardCommentsDTO(comments, pageNum, boardComments.getTotalPages());
+    @Override
+    public BoardCommentsDTO readCommentsOfAccount(String userId, int pageNum, int pageSize) {
+        BoardAccount account = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+        Page<BoardComment> comments = commentRepository.findAllByBoardAccountAndDeletedFalse(account, PageRequest.of(pageNum, pageSize));
+
+        return convertPageResultToBoardCommentsDTO(comments, pageNum);
     }
 
     @Override

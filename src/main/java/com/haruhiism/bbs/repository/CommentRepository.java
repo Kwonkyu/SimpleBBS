@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.repository;
 
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import org.springframework.data.domain.Page;
@@ -17,4 +18,7 @@ public interface CommentRepository extends CrudRepository<BoardComment, Long> {
 
     public int countAllByBoardArticle(BoardArticle boardArticle);
     public int countAllByBoardArticleAndDeletedFalse(BoardArticle boardArticle);
+
+    public Page<BoardComment> findAllByBoardAccount(BoardAccount account, Pageable pageable);
+    public Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
 }
