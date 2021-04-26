@@ -1,21 +1,37 @@
 package com.haruhiism.bbs.domain.dto;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import com.haruhiism.bbs.command.account.RegisterRequestCommand;
+import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
+import lombok.*;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@Builder
+@AllArgsConstructor
 public class BoardAccountDTO {
 
-    @NonNull
     private String userId;
-    @NonNull
     private String username;
-    @NonNull
     private String rawPassword;
-    @NonNull
     private String email;
+
+    public BoardAccountDTO(BoardAccount boardAccount){
+        this.userId = boardAccount.getUserId();
+        this.username = boardAccount.getUsername();
+        this.email = boardAccount.getEmail();
+    }
+
+    public BoardAccountDTO(RegisterRequestCommand command) {
+        this.userId = command.getUserid();
+        this.username = command.getUsername();
+        this.rawPassword = command.getPassword();
+        this.email = command.getEmail();
+    }
+
+    public BoardAccountDTO(LoginSessionInfo loginSessionInfo){
+        this.userId = loginSessionInfo.getUserID();
+        this.username = loginSessionInfo.getUsername();
+        this.email = loginSessionInfo.getEmail();
+    }
 }

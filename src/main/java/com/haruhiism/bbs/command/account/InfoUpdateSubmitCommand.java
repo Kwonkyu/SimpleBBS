@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.command.account;
 
 import com.haruhiism.bbs.domain.UpdatableInformation;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class InfoUpdateSubmitCommand {
     @NotNull
     private final UpdatableInformation mode;

@@ -12,4 +12,6 @@ public interface AccountRepository extends CrudRepository<BoardAccount, Long> {
     public Optional<BoardAccount> findByUserId(String userid);
 
     public boolean existsByUserId(String userid);
+
+    public void deleteByUserId(String userId);
 }

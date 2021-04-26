@@ -15,6 +15,5 @@ public class ArticleEditSubmitCommand extends ArticleSubmitCommand{
     @Positive
     private Long articleID;
 
-    // TODO: 추가, 삭제된 파일 필드 포함.
     private List<String> delete = new ArrayList<>();
 }
