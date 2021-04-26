@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
-//@Primary
+@Primary
 public class CloudinaryFileHandlerService implements FileHandlerService{
 
     private final Path temporaryFilePath = Paths.get("C:\\Temp\\SimpleBBS\\temps");

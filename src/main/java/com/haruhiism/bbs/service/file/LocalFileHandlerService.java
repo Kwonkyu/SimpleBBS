@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
-@Primary
+//@Primary
 public class LocalFileHandlerService implements FileHandlerService {
 
     private final Path uploadedFilePath = Paths.get("C:\\Temp\\SimpleBBS\\uploads");
