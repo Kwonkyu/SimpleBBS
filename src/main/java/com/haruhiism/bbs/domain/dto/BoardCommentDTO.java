@@ -1,5 +1,6 @@
 package com.haruhiism.bbs.domain.dto;
 
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,12 +27,14 @@ public class BoardCommentDTO {
     private String createdDate;
 
     public BoardCommentDTO(BoardComment boardComment) {
+        BoardAccount writerAccount = boardComment.getBoardAccount();
+
         this.id = boardComment.getId();
         this.articleID = boardComment.getBoardArticle().getId();
-        this.writer = boardComment.getWriter();
+        this.writer = writerAccount == null ? boardComment.getWriter() : writerAccount.getUsername();
         this.password = boardComment.getPassword();
         this.content = boardComment.getContent();
-        isWrittenByAccount = boardComment.getBoardAccount() != null;
+        isWrittenByAccount = writerAccount != null;
 
         LocalDateTime createdDateTime = boardComment.getCreatedDateTime();
         if(createdDateTime != null){
