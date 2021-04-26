@@ -43,7 +43,8 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public String submitRegister(HttpServletResponse response,
+    public String submitRegister(HttpServletRequest request,
+                                 HttpServletResponse response,
                                  @ModelAttribute("command") @Valid RegisterRequestCommand command,
                                  BindingResult bindingResult){
         if(bindingResult.hasErrors()) {
@@ -57,6 +58,10 @@ public class AccountController {
         }
 
         accountService.registerAccount(new BoardAccountDTO(command), AccountLevel.NORMAL);
+        HttpSession session = request.getSession();
+        session.setAttribute(sessionAuthAttribute, accountService.loginAccount(
+                BoardAccountDTO.builder().userId(command.getUserid()).build(),
+                AuthDTO.builder().rawPassword(command.getPassword()).build()));
         return "redirect:/board/list";
     }
 
