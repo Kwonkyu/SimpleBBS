@@ -58,7 +58,7 @@ public class BasicAccountService implements AccountService {
     }
 
     @Transactional(readOnly = true)
-    public BoardAccount authenticateAccount(String userId, String rawPassword) {
+    public BoardAccount authenticateAccount(String userId, String rawPassword) throws NoAccountFoundException, AuthenticationFailedException {
         BoardAccount account = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
 
         if(dataEncoder.compare(rawPassword, account.getPassword())){

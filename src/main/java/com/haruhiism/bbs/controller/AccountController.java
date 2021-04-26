@@ -161,6 +161,7 @@ public class AccountController {
 
     @PostMapping("/manage/change")
     public String submitChangePersonalInformation(HttpSession session,
+                                                  HttpServletResponse response,
                                                   @Valid InfoUpdateSubmitCommand command,
                                                   @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo){
         try {
@@ -173,6 +174,7 @@ public class AccountController {
             session.setAttribute(sessionAuthAttribute, updateResult);
         } catch (AuthenticationFailedException exception) {
             // TODO: send to password input view with selected update field and value when auth failed.
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return "account/change";
         }
         return "redirect:/account/manage";

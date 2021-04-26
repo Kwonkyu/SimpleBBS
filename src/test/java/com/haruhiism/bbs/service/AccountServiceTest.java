@@ -3,7 +3,9 @@ package com.haruhiism.bbs.service;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.repository.AccountRepository;
@@ -14,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,28 +46,37 @@ class AccountServiceTest {
     void registerAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
+        // when
         accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        // then
+        assertFalse(accountRepository.findByUserId(testUserId).isEmpty());
+
 
         // when
         assertThrows(NoAccountFoundException.class, () -> {
             // then
-            accountService.authenticateAccount(normalUserId, normalPassword);
+            accountService.loginAccount(
+                    BoardAccountDTO.builder().userId(normalUserId).build(),
+                    AuthDTO.builder().rawPassword(normalPassword).build());
         });
+
 
         // when
         assertThrows(AuthenticationFailedException.class, () -> {
             // then
-            accountService.authenticateAccount(testUserId, normalPassword);
+            accountService.loginAccount(
+                    BoardAccountDTO.builder().userId(testUserId).build(),
+                    AuthDTO.builder().rawPassword(normalPassword).build());
         });
+
 
         // when
         assertDoesNotThrow(() -> {
             // then
-            accountService.authenticateAccount(testUserId, testPassword);
+            accountService.loginAccount(
+                    BoardAccountDTO.builder().userId(testUserId).build(),
+                    AuthDTO.builder().rawPassword(testPassword).build());
         });
-
-        // then
-        assertFalse(accountRepository.findByUserId(testUserId).isEmpty());
     }
 
     @Test
@@ -74,10 +87,15 @@ class AccountServiceTest {
         accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.withdrawAccount(accountService.authenticateAccount(testUserId, testPassword));
+        accountService.withdrawAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build());
+
         assertThrows(NoAccountFoundException.class, () -> {
             // then
-            accountService.authenticateAccount(testUserId, testPassword);
+            accountService.loginAccount(
+                    BoardAccountDTO.builder().userId(testUserId).build(),
+                    AuthDTO.builder().rawPassword(testPassword).build());
         });
 
         //then
@@ -94,17 +112,23 @@ class AccountServiceTest {
         // when
         assertThrows(AuthenticationFailedException.class, () -> {
             // then
-            accountService.loginAccount(testUserId, normalPassword);
+            accountService.loginAccount(
+                    BoardAccountDTO.builder().userId(testUserId).build(),
+                    AuthDTO.builder().rawPassword(normalPassword).build());
         });
 
         // when
         assertThrows(NoAccountFoundException.class, () -> {
             // then
-            accountService.loginAccount(normalUserId, testPassword);
+            accountService.loginAccount(
+                    BoardAccountDTO.builder().userId(normalUserId).build(),
+                    AuthDTO.builder().rawPassword(testPassword).build());
         });
 
         // when
-        LoginSessionInfo loginSessionInfo = accountService.loginAccount(testUserId, testPassword);
+        LoginSessionInfo loginSessionInfo = accountService.loginAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build());
 
         // then
         assertEquals(testUserId, loginSessionInfo.getUserID());
@@ -121,10 +145,16 @@ class AccountServiceTest {
         accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.updateAccount(testUserId, testPassword, UpdatableInformation.username, "updatedusername");
+        accountService.updateAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build(),
+                UpdatableInformation.username,
+                "updatedusername");
 
         // then
-        assertEquals("updatedusername", accountService.authenticateAccount(testUserId, testPassword).getUsername());
+        Optional<BoardAccount> updateResult = accountRepository.findByUserId(testUserId);
+        assertFalse(updateResult.isEmpty());
+        assertEquals("updatedusername", updateResult.get().getUsername());
     }
 
     @Test
@@ -135,10 +165,16 @@ class AccountServiceTest {
         accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.updateAccount(testUserId, testPassword, UpdatableInformation.email, "updateduseremail@domain.com");
+        accountService.updateAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build(),
+                UpdatableInformation.email,
+                "updateduseremail@domain.com");
 
         // then
-        assertEquals("updateduseremail@domain.com", accountService.authenticateAccount(testUserId, testPassword).getEmail());
+        Optional<BoardAccount> updateResult = accountRepository.findByUserId(testUserId);
+        assertFalse(updateResult.isEmpty());
+        assertEquals("updateduseremail@domain.com", updateResult.get().getEmail());
     }
 
     @Test
@@ -149,12 +185,19 @@ class AccountServiceTest {
         accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
 
         // when
-        accountService.updateAccount(testUserId, testPassword, UpdatableInformation.password, "updatedpassword");
+        accountService.updateAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build(),
+                UpdatableInformation.password,
+                "updatedpassword");
 
         // then
-        assertThrows(AuthenticationFailedException.class, () -> accountService.authenticateAccount(testUserId, testPassword));
-        assertDoesNotThrow(() -> {
-            accountService.authenticateAccount(testUserId, "updatedpassword");
-        });
+        assertThrows(AuthenticationFailedException.class, () -> accountService.loginAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build()));
+
+        assertDoesNotThrow(() -> accountService.loginAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword("updatedpassword").build()));
     }
 }

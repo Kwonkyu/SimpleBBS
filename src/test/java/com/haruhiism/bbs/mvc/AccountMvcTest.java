@@ -4,6 +4,7 @@ package com.haruhiism.bbs.mvc;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
+import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.service.account.AccountService;
 import org.junit.jupiter.api.DisplayName;
@@ -142,7 +143,9 @@ public class AccountMvcTest {
                 new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
                 AccountLevel.NORMAL);
 
-        LoginSessionInfo loginSessionInfo = accountService.loginAccount(testUserId, testPassword);
+        LoginSessionInfo loginSessionInfo = accountService.loginAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build());
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("loginSessionInfo", loginSessionInfo);
 
@@ -206,7 +209,9 @@ public class AccountMvcTest {
                 AccountLevel.NORMAL);
 
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("loginSessionInfo", accountService.loginAccount(testUserId, testPassword));
+        session.setAttribute("loginSessionInfo", accountService.loginAccount(
+                BoardAccountDTO.builder().userId(testUserId).build(),
+                AuthDTO.builder().rawPassword(testPassword).build()));
 
         HttpHeaders params = new HttpHeaders();
         params.set("mode", "");
