@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Write your article.</title>
+</head>
+<body>
+<div>
+    <form method="post" action="#" enctype="multipart/form-data" th:object="${command}">
+        <table>
+            <tr>
+                <td>
+                    <label for="form-writer">WRITER</label>
+                </td>
+
+                <td th:if="${loginUsername == null}">
+                    <input id="form-writer" name="writer" type="text"
+                           th:value="${#fields.hasErrors('writer') == false ? command.writer : ''}"
+                           maxlength="64" required>
+                </td>
+                <td th:if="${#fields.hasErrors('writer')}" th:errors="*{writer}">Writer is not valid.</td>
+
+                <td th:unless="${loginUsername == null}">
+                    <span th:text="${loginUsername}"></span>
+                    <input name="writer" th:value="${loginUsername}" hidden>
+                </td>
+
+            </tr>
+
+            <tr>
+                <td th:if="${loginUsername == null}">
+                    <label for="form-password">PASSWORD</label>
+                </td>
+                <td th:if="${loginUsername == null}">
+                    <input id="form-password" name="password" type="password" minlength="4" required>
+                </td>
+                <td th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is not valid.</td>
+
+                <td th:unless="${loginUsername == null}">
+                    <input name="password" type="password" value="THIS_IS_USELESS_PASSWORD" hidden>
+                </td>
+
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="form-title">TITLE</label>
+                </td>
+                <td>
+                    <input id="form-title" name="title" type="text"
+                           th:value="${#fields.hasErrors('title') == false ? command.title : ''}"
+                           maxlength="255" required>
+                </td>
+                <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title is not valid.</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="form-content">CONTENT</label>
+                </td>
+                <td>
+                    <textarea id="form-content" name="content"
+                              th:text="${#fields.hasErrors('content') == false ? command.content : ''}"
+                              maxlength="65535" required></textarea>
+                </td>
+                <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content is not valid.</td>
+            </tr>
+
+            <tr>
+                <td>
+                    <label for="form-files">FILES</label>
+                </td>
+                <td>
+                    <input id="form-files" type="file" name="uploadedFiles" multiple>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <input type="submit" value="Submit">
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>

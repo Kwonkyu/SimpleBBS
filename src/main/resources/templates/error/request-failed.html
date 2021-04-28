@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${errorTitle}">Error</title>
+</head>
+<body>
+<p th:text="${errorDescription}">Unknown error occured.</p>
+<p>You'll be redirected to board list soon.</p>
+</body>
+<script>
+    setInterval(() => {
+        document.location="/board/list";
+    }, 3000);
+</script>
+</html>
