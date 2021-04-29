@@ -15,6 +15,6 @@ public class AccountExceptionHandler {
     public String noAccountFound(Model model, NoAccountFoundException exception){
         model.addAttribute("errorTitle", exception.errorTitle);
         model.addAttribute("errorDescription", exception.errorDescription);
-        return "board/error/request-failed";
+        return "error/request-failed";
     }
 }

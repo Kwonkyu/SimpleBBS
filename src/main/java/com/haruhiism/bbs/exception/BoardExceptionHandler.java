@@ -17,7 +17,7 @@ public class BoardExceptionHandler {
     public String noArticleFound(Model model, NoArticleFoundException exception){
         model.addAttribute("errorTitle", exception.errorTitle);
         model.addAttribute("errorDescription", exception.errorDescription);
-        return "board/error/request-failed";
+        return "error/request-failed";
     }
 
 
@@ -26,7 +26,7 @@ public class BoardExceptionHandler {
     public String updateDeletedArticle(Model model, UpdateDeletedArticleException exception){
         model.addAttribute("errorTitle", exception.errorTitle);
         model.addAttribute("errorDescription", exception.errorDescription);
-        return "board/error/request-failed";
+        return "error/request-failed";
     }
 
     @ExceptionHandler(NoCommentFoundException.class)
@@ -34,6 +34,6 @@ public class BoardExceptionHandler {
     public String noCommentFound(Model model, NoCommentFoundException exception) {
         model.addAttribute("errorTitle", exception.errorTitle);
         model.addAttribute("errorDescription", exception.errorDescription);
-        return "board/error/request-failed";
+        return "error/request-failed";
     }
 }
