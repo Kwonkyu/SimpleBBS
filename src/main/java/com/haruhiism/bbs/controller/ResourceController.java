@@ -3,6 +3,7 @@ package com.haruhiism.bbs.controller;
 import com.haruhiism.bbs.domain.dto.ResourceDTO;
 import com.haruhiism.bbs.service.file.FileHandlerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,18 +28,12 @@ public class ResourceController {
 
     @GetMapping("/load")
     @ResponseBody
-    public void downloadResource(@RequestParam String hash,
-                                 HttpServletResponse response) throws IOException {
+    public FileSystemResource downloadResource(@RequestParam String hash,
+                                               HttpServletResponse response) throws IOException {
         ResourceDTO resourceDTO = fileHandlerService.load(hash);
         Path file = resourceDTO.getFile();
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.setContentLength((int)Files.size(file));
-        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                .filename(resourceDTO.getFilename(), StandardCharsets.UTF_8).build();
-//        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=\"%s\"", resourceDTO.getFilename()));
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-        Files.copy(file, response.getOutputStream());
-        response.flushBuffer();
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.builder("attachment")
+                .filename(resourceDTO.getFilename(), StandardCharsets.UTF_8).build().toString());
+        return new FileSystemResource(file);
     }
 }
