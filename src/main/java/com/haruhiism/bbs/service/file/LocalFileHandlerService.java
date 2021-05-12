@@ -9,7 +9,6 @@ import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.ResourceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
-@Profile("!publish")
+//@Primary
 public class LocalFileHandlerService implements FileHandlerService {
 
     private final Path uploadedFilePath = Paths.get("C:\\Temp\\SimpleBBS\\uploads");
