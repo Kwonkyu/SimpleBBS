@@ -34,6 +34,15 @@ public class PageUtility {
                 .totalPages(result.getTotalPages()).build();
     }
 
+    public BoardArticlesDTO generateEmptyBoardArticles(){
+        return BoardArticlesDTO.builder()
+                .boardArticles(new ArrayList<>())
+                .boardArticleCommentSize(new ArrayList<>())
+                .currentPage(0)
+                .totalPages(0).build();
+    }
+
+
     public BoardCommentsDTO convertBoardComments(Page<BoardComment> result){
         return BoardCommentsDTO.builder()
                 .boardComments(result.map(BoardCommentDTO::new).toList())
@@ -41,10 +50,25 @@ public class PageUtility {
                 .currentPage(result.getNumber()).build();
     }
 
+    public BoardCommentsDTO generateEmptyBoardComments(){
+        return BoardCommentsDTO.builder()
+                .boardComments(new ArrayList<>())
+                .currentPage(0)
+                .totalPages(0).build();
+    }
+
+
     public BoardAccountsDTO convertBoardAccounts(Page<BoardAccount> result){
         return BoardAccountsDTO.builder()
                 .accounts(result.map(BoardAccountDTO::new).toList())
                 .totalPage(result.getTotalPages())
                 .currentPage(result.getNumber()).build();
+    }
+
+    public BoardAccountsDTO generateEmptyBoardAccounts(){
+        return BoardAccountsDTO.builder()
+                .accounts(new ArrayList<>())
+                .currentPage(0)
+                .totalPage(0).build();
     }
 }

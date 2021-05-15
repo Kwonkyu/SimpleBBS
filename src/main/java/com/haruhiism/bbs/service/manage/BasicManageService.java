@@ -111,7 +111,14 @@ public class BasicManageService implements AccountManagerService, ArticleManager
                         keyword, from, to, keyword, from, to, page);
                 break;
 
-                // TODO: need to implement search by userid
+            case ACCOUNT:
+                Optional<BoardAccount> account = accountRepository.findByUserId(keyword);
+                if(account.isPresent()){
+                    return pageUtility.convertBoardArticles(
+                            articleRepository.findAllByBoardAccount(account.get(), page));
+                } else {
+                    return pageUtility.generateEmptyBoardArticles();
+                }
 
             default:
                 throw new UnsupportedOperationException();
@@ -169,11 +176,6 @@ public class BasicManageService implements AccountManagerService, ArticleManager
     @Transactional(readOnly = true)
     public BoardCommentsDTO searchComments(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
 
-        // TODO: 사용자 이름이 변경되었을 때 로그인한 사용자가 작성한 데이터에는 변경 전 이름이 남아있지만 실제로 출력되는 것은 변경 후 이름.
-        // TODO: SQL에서 이름을 검색할 때 변경 전 이름이 남아서 문제가 발생. 로그인한 사용자가 작성한 댓글이라면 해당 사용자의 username으로 검색할 것.
-        // TODO: 혹은 임시방편으로 관리자 페이지에서는 변경된 이름이 아니라 원래 이름을 보여준다던가
-        // TODO: 아니면 로직을 바꿔서 사용자명이 변경됐을 때 기존에 작성된 게시글은 작성자 이름을 그대로 유지하도록?
-
         switch(commentSearchMode){
             case WRITER:
                 return pageUtility.convertBoardComments(
@@ -184,15 +186,22 @@ public class BasicManageService implements AccountManagerService, ArticleManager
                         commentRepository.findAllByContentContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
 
             case ARTICLE:
-                BoardArticle article = articleRepository.findById(Long.parseLong(keyword)).orElse(new BoardArticle());
-                return pageUtility.convertBoardComments(
-                        commentRepository.findAllByBoardArticleAndCreatedDateTimeBetween(article, from, to, PageRequest.of(pageNum, pageSize)));
+                Optional<BoardArticle> article = articleRepository.findById(Long.parseLong(keyword));
+                if(article.isPresent()){
+                    return pageUtility.convertBoardComments(
+                            commentRepository.findAllByBoardArticleAndCreatedDateTimeBetween(article.get(), from, to, PageRequest.of(pageNum, pageSize)));
+                } else {
+                    return pageUtility.generateEmptyBoardComments();
+                }
 
             case ACCOUNT:
-                // TODO: not working.
-                BoardAccount account = accountRepository.findByUserId(keyword).orElse(new BoardAccount());
-                return pageUtility.convertBoardComments(
-                        commentRepository.findAllByBoardAccountAndCreatedDateTimeBetween(account, from, to, PageRequest.of(pageNum, pageSize)));
+                Optional<BoardAccount> account = accountRepository.findByUserId(keyword);
+                if(account.isPresent()) {
+                    return pageUtility.convertBoardComments(
+                            commentRepository.findAllByBoardAccountAndCreatedDateTimeBetween(account.get(), from, to, PageRequest.of(pageNum, pageSize)));
+                } else {
+                    return pageUtility.generateEmptyBoardComments();
+                }
 
             default:
                 throw new UnsupportedOperationException();

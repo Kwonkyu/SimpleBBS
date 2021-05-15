@@ -25,10 +25,6 @@ public interface CommentRepository extends CrudRepository<BoardComment, Long> {
     Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
 
     Page<BoardComment> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
-    // https://stackoverflow.com/a/56161777/10242688
-    // TODO: performance issue?
-    @Query("SELECT comment FROM BoardComment comment WHERE comment.writer LIKE %?1% and comment.createdDateTime>=?2 and comment.createdDateTime<=?3 " +
-           "OR comment.boardAccount.username LIKE %?1% and comment.createdDateTime>=?2 and comment.createdDateTime<=?3")
     Page<BoardComment> findAllByWriterContainingAndCreatedDateTimeBetween(String writer, LocalDateTime from, LocalDateTime to, Pageable pageable);
     Page<BoardComment> findAllByContentContainingAndCreatedDateTimeBetween(String content, LocalDateTime from, LocalDateTime to, Pageable pageable);
     Page<BoardComment> findAllByBoardArticleAndCreatedDateTimeBetween(BoardArticle boardArticle, LocalDateTime from, LocalDateTime to, Pageable pageable);
