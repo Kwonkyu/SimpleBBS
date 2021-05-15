@@ -14,16 +14,23 @@ import com.haruhiism.bbs.service.manage.AccountManagerService;
 import com.haruhiism.bbs.service.manage.ArticleManagerService;
 import com.haruhiism.bbs.service.manage.CommentManagerService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Controller
 @RequestMapping("/manage")
 @RequiredArgsConstructor
+@Slf4j
 public class ManageController {
 
     private final ArticleManagerService articleManagerService;
@@ -131,13 +138,19 @@ public class ManageController {
 
 
     @GetMapping("/console/account")
-    public String accountManagementPage(@Valid AccountListCommand command, Model model){
+    public String accountManagementPage(@Valid AccountListCommand command, BindingResult bindingResult, Model model){
+
         BoardAccountsDTO accounts;
         if(command.getKeyword().isBlank()){
-            accounts = accountManagerService.readAccounts(command.getPageNum(), command.getPageSize());
+            accounts = accountManagerService.readAccounts(
+                    command.getPageNum(), command.getPageSize(),
+                    command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0,0)) : LocalDateTime.MIN,
+                    command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         } else {
-            // TODO: implement search by date feature.
-            accounts = accountManagerService.searchAccounts(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
+            accounts = accountManagerService.searchAccounts(
+                    command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize(),
+                    command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0,0)) : LocalDateTime.MIN,
+                    command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0,0)) : LocalDateTime.now());
         }
 
         model.addAttribute("accounts", accounts.getAccounts());
@@ -145,8 +158,13 @@ public class ManageController {
         model.addAttribute("totalPage", accounts.getTotalPage());
         model.addAttribute("pageSize", command.getPageSize());
         model.addAttribute("keyword", command.getKeyword());
-        model.addAttribute("mode", command.getMode());
-        model.addAttribute("date", command.getDate());
+        model.addAttribute("mode", command.getMode().name());
+
+        LocalDate from = command.getFrom();
+        LocalDate to = command.getTo();
+        model.addAttribute("from", from == null ? "1970-01-01" : from);
+        model.addAttribute("to", to == null ? LocalDate.now() : to);
+        model.addAttribute("betweenDates", command.isBetweenDates());
 
         return "admin/account-console";
     }

@@ -18,10 +18,10 @@ public interface AccountRepository extends CrudRepository<BoardAccount, Long> {
     Optional<BoardAccount> findByUserId(String userId);
     Optional<BoardAccount> findByUserIdAndAvailableTrue(String userid);
 
-    Page<BoardAccount> findAllByUserIdContaining(String userId, Pageable pageable);
-    Page<BoardAccount> findAllByUsernameContaining(String username, Pageable pageable);
-    Page<BoardAccount> findAllByEmailContaining(String email, Pageable pageable);
-    Page<BoardAccount> findAllByCreatedDateTimeAfter(LocalDateTime date, Pageable pageable);
+    Page<BoardAccount> findAllByUserIdContainingAndCreatedDateTimeBetween(String userId, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardAccount> findAllByUsernameContainingAndCreatedDateTimeBetween(String username, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardAccount> findAllByEmailContainingAndCreatedDateTimeBetween(String email, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardAccount> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
 
     boolean existsByUserId(String userid);
 

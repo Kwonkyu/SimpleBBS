@@ -239,28 +239,26 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardAccountsDTO readAccounts(int pageNum, int pageSize) {
-        return pageUtility.convertBoardAccounts(accountRepository.findAll(PageRequest.of(pageNum, pageSize)));
+    public BoardAccountsDTO readAccounts(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        return pageUtility.convertBoardAccounts(accountRepository.findAllByCreatedDateTimeBetween(from, to, PageRequest.of(pageNum, pageSize)));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardAccountsDTO searchAccounts(AccountSearchMode mode, String keyword, int pageNum, int pageSize) {
+    public BoardAccountsDTO searchAccounts(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
         switch(mode){
             case EMAIL:
                 return pageUtility.convertBoardAccounts(
-                        accountRepository.findAllByEmailContaining(keyword, PageRequest.of(pageNum, pageSize)));
+                        accountRepository.findAllByEmailContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
 
             case USERID:
                 return pageUtility.convertBoardAccounts(
-                        accountRepository.findAllByUserIdContaining(keyword, PageRequest.of(pageNum, pageSize)));
+                        accountRepository.findAllByUserIdContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
 
             case USERNAME:
                 return pageUtility.convertBoardAccounts(
-                        accountRepository.findAllByUsernameContaining(keyword, PageRequest.of(pageNum, pageSize)));
+                        accountRepository.findAllByUsernameContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
 
-            case DATE_AFTER:
-                // TODO: implement here.
             default:
                 throw new UnsupportedOperationException();
 

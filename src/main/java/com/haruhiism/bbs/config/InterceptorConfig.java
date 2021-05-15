@@ -35,7 +35,6 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         "/account/withdraw",
                         "/manage/**");
 
-        // TODO: manager interceptor.
         registry.addInterceptor(managerInterceptor)
                 .addPathPatterns(
                         "/manage/**");

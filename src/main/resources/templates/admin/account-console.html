@@ -94,30 +94,45 @@
   <br>
 
   <div>
-    <table>
-      <tr>
-        <td>
-          <select name="mode">
-            <option value="USERID" th:selected="${'USERID' == mode}">UserID</option>
-            <option value="USERNAME" th:selected="${'USERNAME' == mode}">Username</option>
-            <option value="EMAIL" th:selected="${'EMAIL' == mode}">Email</option>
-            <option value="DATE_AFTER" th:selected="${'DATE_AFTER' == mode}">Date After</option>
-          </select>
-        </td>
-        <td>
-          <input type="text" name="keyword" th:value="${keyword}" required>
-        </td>
-        <td>
-          <input type="date" name="date" th:value="${date}">
-        </td>
-        <td>
-          <input type="submit" value="SEARCH">
-        </td>
-        <td>
-          <a href="/manage/console/account">CLEAR</a>
-        </td>
-      </tr>
-    </table>
+    <form action="#" method="get">
+      <table>
+        <tr>
+          <td>
+            <label for="searchMode">SEARCH MODE</label>
+            <select id="searchMode" name="mode">
+              <option value="USERID" th:selected="${'USERID' eq mode}">UserID</option>
+              <option value="USERNAME" th:selected="${'USERNAME' eq mode}">Username</option>
+              <option value="EMAIL" th:selected="${'EMAIL' eq mode}">Email</option>
+            </select>
+          </td>
+          <td colspan="2">
+            <input id="keyword" type="text" name="keyword" th:value="${keyword}">
+          </td>
+          <td>
+            <a href="/manage/console/account">CLEAR</a>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="search-date-checkbox">SEARCH BETWEEN DATES?</label>
+            <input id="search-date-checkbox" type="checkbox" name="betweenDates" th:checked="${betweenDates}">
+          </td>
+          <td>
+            <label for="from">FROM</label>
+            <input id="from" type="date" name="from" th:value="${from}">
+          </td>
+          <td>
+            <label for="to">TO</label>
+            <input id="to" type="date" name="to" th:value="${to}">
+          </td>
+          <td>
+            <input type="submit" value="SEARCH">
+          </td>
+        </tr>
+
+      </table>
+    </form>
   </div>
 </div>
 
