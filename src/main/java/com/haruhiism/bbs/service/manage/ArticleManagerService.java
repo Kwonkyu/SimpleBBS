@@ -12,11 +12,10 @@ public interface ArticleManagerService {
     Long countAllDeletedArticles();
     Long countAllNotDeletedArticles();
 
-    BoardArticlesDTO readArticles(int pageNum, int pageSize);
+    BoardArticlesDTO readArticles(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    BoardArticlesDTO searchArticles(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     void deleteArticles(List<Long> articleIds);
     void restoreArticles(List<Long> articleIds);
 
-    BoardArticlesDTO searchArticlesByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize);
-    BoardArticlesDTO searchArticlesBetweenDateByPages(ArticleSearchMode articleSearchMode, String keyword, LocalDateTime from, LocalDateTime to, int pageNum, int pageSize);
 }

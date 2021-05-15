@@ -31,7 +31,13 @@ public interface ArticleRepository extends CrudRepository<BoardArticle, Long> {
     public Page<BoardArticle> findAllByBoardAccount(BoardAccount boardAccount, Pageable pageable);
     public Page<BoardArticle> findAllByBoardAccountAndDeletedFalse(BoardAccount boardAccount, Pageable pageable);
 
-    Page<BoardArticle> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
-
     public Long countAllByDeletedTrue();
+
+
+    public Page<BoardArticle> findAllByCreatedDateTimeBetweenOrderByIdDesc(LocalDateTime from, LocalDateTime to, Pageable pageable);
+    public Page<BoardArticle> findAllByWriterContainingAndCreatedDateTimeBetweenOrderByIdDesc(String writer, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    public Page<BoardArticle> findAllByTitleContainingAndCreatedDateTimeBetweenOrderByIdDesc(String title, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    public Page<BoardArticle> findAllByContentContainingAndCreatedDateTimeBetweenOrderByIdDesc(String content, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    public Page<BoardArticle> findAllByTitleContainingAndCreatedDateTimeBetweenOrContentContainingAndCreatedDateTimeBetweenOrderByIdDesc(String title, LocalDateTime from1, LocalDateTime to1, String content, LocalDateTime from2, LocalDateTime to2, Pageable pageable);
+
 }

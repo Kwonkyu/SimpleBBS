@@ -62,9 +62,15 @@ public class ManageController {
     public String articleManagementPage(@Valid ArticleListCommand command, Model model){
         BoardArticlesDTO result;
         if(command.getKeyword().isBlank()) {
-            result = articleManagerService.readArticles(command.getPageNum(), command.getPageSize());
+            result = articleManagerService.readArticles(
+                    command.getPageNum(), command.getPageSize(),
+                    command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0, 0)) : LocalDateTime.MIN,
+                    command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         } else {
-            result = articleManagerService.searchArticlesByPages(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
+            result = articleManagerService.searchArticles(
+                    command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize(),
+                    command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0, 0)) : LocalDateTime.MIN,
+                    command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         }
 
         model.addAttribute("currentPage", result.getCurrentPage());
@@ -75,7 +81,12 @@ public class ManageController {
         model.addAttribute("commentSizes", result.getBoardArticleCommentSize());
 
         model.addAttribute("keyword", command.getKeyword());
-        model.addAttribute("mode", command.getMode());
+        model.addAttribute("mode", command.getMode().name());
+        LocalDate from = command.getFrom();
+        LocalDate to = command.getTo();
+        model.addAttribute("from", from == null ? "1970-01-01" : from);
+        model.addAttribute("to", to == null ? LocalDate.now() : to);
+        model.addAttribute("betweenDates", command.isBetweenDates());
 
         return "admin/article-console";
     }

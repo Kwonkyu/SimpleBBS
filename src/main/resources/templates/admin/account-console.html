@@ -87,7 +87,15 @@
 
   <div th:if="${totalPage > 1}">
         <span th:each="index: ${#numbers.sequence(1, totalPage)}" th:classappend="${index - 1 == currentPage} == true ? 'current' : ''">
-          <a th:href="@{/manage/console/account(pageNum=${index - 1},pageSize=${pageSize},keyword=${keyword},mode=${mode})}" th:text="${index}">0</a>
+          <a
+                  th:href="@{/manage/console/account(
+                  pageNum=${index - 1},
+                  pageSize=${pageSize},
+                  keyword=${keyword},
+                  mode=${mode},
+                  betweenDates=${betweenDates},
+                  from=${from},
+                  to=${to})}" th:text="${index}">0</a>
         </span>
   </div>
 

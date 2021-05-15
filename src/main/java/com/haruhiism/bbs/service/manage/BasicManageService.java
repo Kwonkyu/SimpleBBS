@@ -67,8 +67,8 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO readArticles(int pageNum, int pageSize) {
-        Page<BoardArticle> articles = articleRepository.findAllByOrderByIdDesc(PageRequest.of(pageNum, pageSize));
+    public BoardArticlesDTO readArticles(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        Page<BoardArticle> articles = articleRepository.findAllByCreatedDateTimeBetweenOrderByIdDesc(from, to, PageRequest.of(pageNum, pageSize));
         return pageUtility.convertBoardArticles(articles);
     }
 
@@ -90,24 +90,25 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO searchArticlesByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize) {
+    public BoardArticlesDTO searchArticles(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
         Page<BoardArticle> result;
         PageRequest page = PageRequest.of(pageNum, pageSize);
         switch (articleSearchMode) {
             case TITLE:
-                result = articleRepository.findAllByTitleContainingOrderByIdDesc(keyword, page);
+                result = articleRepository.findAllByTitleContainingAndCreatedDateTimeBetweenOrderByIdDesc(keyword, from, to, page);
                 break;
 
             case WRITER:
-                result = articleRepository.findAllByWriterContainingOrderByIdDesc(keyword, page);
+                result = articleRepository.findAllByWriterContainingAndCreatedDateTimeBetweenOrderByIdDesc(keyword, from, to, page);
                 break;
 
             case CONTENT:
-                result = articleRepository.findAllByContentContainingOrderByIdDesc(keyword, page);
+                result = articleRepository.findAllByContentContainingAndCreatedDateTimeBetweenOrderByIdDesc(keyword, from, to, page);
                 break;
 
             case TITLE_CONTENT:
-                result = articleRepository.findAllByTitleContainingOrContentContainingOrderByIdDesc(keyword, keyword, page);
+                result = articleRepository.findAllByTitleContainingAndCreatedDateTimeBetweenOrContentContainingAndCreatedDateTimeBetweenOrderByIdDesc(
+                        keyword, from, to, keyword, from, to, page);
                 break;
 
             default:
@@ -117,12 +118,6 @@ public class BasicManageService implements AccountManagerService, ArticleManager
         return pageUtility.convertBoardArticles(result);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public BoardArticlesDTO searchArticlesBetweenDateByPages(ArticleSearchMode articleSearchMode, String keyword, LocalDateTime from, LocalDateTime to, int pageNum, int pageSize) {
-        // TODO: implement here.
-        throw new UnsupportedOperationException();
-    }
 
 
     // Comment Services.
