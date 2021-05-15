@@ -1,6 +1,6 @@
 package com.haruhiism.bbs.service.article;
 
-import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
@@ -13,8 +13,8 @@ import com.haruhiism.bbs.exception.article.UpdateDeletedArticleException;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
-import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
+import com.haruhiism.bbs.service.PageUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,9 +22,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -32,11 +31,10 @@ import java.util.Optional;
 public class BasicArticleService implements ArticleService {
 
     private final ArticleRepository articleRepository;
-    private final CommentRepository commentRepository;
     private final AccountRepository accountRepository;
 
     private final DataEncoder dataEncoder;
-
+    private final PageUtility pageUtility;
 
     @Override
     public Long createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
@@ -74,22 +72,22 @@ public class BasicArticleService implements ArticleService {
     @Transactional(readOnly = true)
     public BoardArticlesDTO readAllByPages(int pageNum, int pageSize){
         Page<BoardArticle> boardArticles = articleRepository.findAllByDeletedFalseOrderByIdDesc(PageRequest.of(pageNum, pageSize));
-        return convertPageResultToBoardArticlesDTO(boardArticles, pageNum);
+        return pageUtility.convertBoardArticles(boardArticles);
     }
 
     @Override
     public BoardArticlesDTO readArticlesOfAccount(String userId, int pageNum, int pageSize) {
-        BoardAccount boardAccount = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(userId).orElseThrow(NoAccountFoundException::new);
         Page<BoardArticle> articles = articleRepository.findAllByBoardAccountAndDeletedFalse(boardAccount, PageRequest.of(pageNum, pageSize));
-        return convertPageResultToBoardArticlesDTO(articles, pageNum);
+        return pageUtility.convertBoardArticles(articles);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO searchAllByPages(SearchMode searchMode, String keyword, int pageNum, int pageSize) {
+    public BoardArticlesDTO searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize) {
         Page<BoardArticle> result = null;
 
-        switch(searchMode){
+        switch(articleSearchMode){
             case TITLE:
                 result = articleRepository.findAllByTitleContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
                 break;
@@ -107,20 +105,7 @@ public class BasicArticleService implements ArticleService {
                 break;
         }
 
-        return convertPageResultToBoardArticlesDTO(result, pageNum);
-    }
-
-
-    private BoardArticlesDTO convertPageResultToBoardArticlesDTO(Page<BoardArticle> result, int currentPage){
-        List<BoardArticleDTO> articles = new ArrayList<>();
-        List<Integer> commentSizes = new ArrayList<>();
-
-        result.get().forEachOrdered(boardArticle -> {
-            articles.add(new BoardArticleDTO(boardArticle));
-            commentSizes.add(commentRepository.countAllByBoardArticleAndDeletedFalse(boardArticle));
-        });
-
-        return new BoardArticlesDTO(articles, commentSizes, currentPage, result.getTotalPages());
+        return pageUtility.convertBoardArticles(result);
     }
 
 

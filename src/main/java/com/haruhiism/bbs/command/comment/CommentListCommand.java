@@ -1,6 +1,6 @@
-package com.haruhiism.bbs.command.article;
+package com.haruhiism.bbs.command.comment;
 
-import com.haruhiism.bbs.domain.ArticleSearchMode;
+import com.haruhiism.bbs.domain.CommentSearchMode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,13 +11,13 @@ import javax.validation.constraints.PositiveOrZero;
 
 @Getter
 @Setter
-public class ArticleListCommand {
+public class CommentListCommand {
 
     @PositiveOrZero
     private int pageNum = 0;
     @Positive
-    @Max(value = 40)
+    @Max(40)
     private int pageSize = 10;
-    private ArticleSearchMode mode = ArticleSearchMode.TITLE;
+    CommentSearchMode mode = CommentSearchMode.CONTENT;
     private String keyword = "";
 }

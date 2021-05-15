@@ -1,5 +1,5 @@
 package com.haruhiism.bbs.domain;
 
-public enum SearchMode {
+public enum ArticleSearchMode {
     WRITER, TITLE, CONTENT, TITLE_CONTENT
 }

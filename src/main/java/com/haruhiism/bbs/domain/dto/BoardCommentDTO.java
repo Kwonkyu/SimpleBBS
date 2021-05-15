@@ -25,6 +25,7 @@ public class BoardCommentDTO {
     private String content;
     private boolean isWrittenByAccount;
     private String createdDate;
+    private boolean deleted;
 
     public BoardCommentDTO(BoardComment boardComment) {
         BoardAccount writerAccount = boardComment.getBoardAccount();
@@ -35,6 +36,7 @@ public class BoardCommentDTO {
         this.password = boardComment.getPassword();
         this.content = boardComment.getContent();
         isWrittenByAccount = writerAccount != null;
+        this.deleted = boardComment.isDeleted();
 
         LocalDateTime createdDateTime = boardComment.getCreatedDateTime();
         if(createdDateTime != null){

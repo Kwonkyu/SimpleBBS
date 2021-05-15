@@ -5,8 +5,10 @@ import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
+import com.haruhiism.bbs.domain.dto.BoardAccountLevelDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 
 import java.util.Optional;
@@ -23,4 +25,6 @@ public interface AccountService {
     public LoginSessionInfo loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;
 
     public LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) throws AuthenticationFailedException;
+
+    public BoardAccountLevelDTO getAccountLevels(BoardAccountDTO boardAccountDTO) throws NoAccountFoundException;
 }

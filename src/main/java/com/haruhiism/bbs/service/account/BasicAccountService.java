@@ -1,12 +1,11 @@
 package com.haruhiism.bbs.service.account;
 
 import com.haruhiism.bbs.domain.AccountLevel;
-import com.haruhiism.bbs.domain.SearchMode;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
+import com.haruhiism.bbs.domain.dto.BoardAccountLevelDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
@@ -19,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -38,7 +38,8 @@ public class BasicAccountService implements AccountService {
                 boardAccountDTO.getUserId(),
                 boardAccountDTO.getUsername(),
                 dataEncoder.encode(boardAccountDTO.getRawPassword()),
-                boardAccountDTO.getEmail());
+                boardAccountDTO.getEmail(),
+                true);
         accountRepository.save(boardAccount);
 
         accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
@@ -46,9 +47,7 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public void withdrawAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws NoAccountFoundException {
-        BoardAccount boardAccount = authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword());
-        accountLevelRepository.deleteAllByBoardAccount(boardAccount);
-        accountRepository.delete(boardAccount);
+        authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword()).invalidate();
     }
 
     @Override
@@ -59,7 +58,7 @@ public class BasicAccountService implements AccountService {
 
     @Transactional(readOnly = true)
     public BoardAccount authenticateAccount(String userId, String rawPassword) throws NoAccountFoundException, AuthenticationFailedException {
-        BoardAccount account = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+        BoardAccount account = accountRepository.findByUserIdAndAvailableTrue(userId).orElseThrow(NoAccountFoundException::new);
 
         if(dataEncoder.compare(rawPassword, account.getPassword())){
             return account;
@@ -93,5 +92,14 @@ public class BasicAccountService implements AccountService {
         }
 
         return new LoginSessionInfo(account);
+    }
+
+    @Override
+    public BoardAccountLevelDTO getAccountLevels(BoardAccountDTO boardAccountDTO) throws NoAccountFoundException {
+        List<AccountLevel> userLevels = accountLevelRepository.findAllByBoardAccount(
+                accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new))
+                .stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toList());
+
+        return BoardAccountLevelDTO.builder().levels(userLevels).build();
     }
 }

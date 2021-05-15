@@ -8,17 +8,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface CommentRepository extends CrudRepository<BoardComment, Long> {
 
-    public Page<BoardComment> findAllByBoardArticleOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
-    public Page<BoardComment> findAllByBoardArticleAndDeletedFalseOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
+    Page<BoardComment> findAll(Pageable pageable);
 
-    public void deleteAllByBoardArticle(BoardArticle boardArticle);
+    Page<BoardComment> findAllByBoardArticleOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
+    Page<BoardComment> findAllByBoardArticleAndDeletedFalseOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
 
-    public int countAllByBoardArticle(BoardArticle boardArticle);
-    public int countAllByBoardArticleAndDeletedFalse(BoardArticle boardArticle);
+    Page<BoardComment> findAllByWriterContaining(String writer, Pageable pageable);
+    Page<BoardComment> findAllByContentContaining(String content, Pageable pageable);
 
-    public Page<BoardComment> findAllByBoardAccount(BoardAccount account, Pageable pageable);
-    public Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
+    void deleteAllByBoardArticle(BoardArticle boardArticle);
+
+    int countAllByBoardArticle(BoardArticle boardArticle);
+    int countAllByBoardArticleAndDeletedFalse(BoardArticle boardArticle);
+
+    Page<BoardComment> findAllByBoardAccount(BoardAccount account, Pageable pageable);
+    Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
+
+    Page<BoardComment> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+    Long countAllByDeletedTrue();
 }

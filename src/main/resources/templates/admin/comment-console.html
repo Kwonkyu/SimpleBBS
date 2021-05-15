@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Management Console - Comment</title>
+  <style>
+    table {
+      border: 1px solid black;
+    }
+
+    td {
+      border: 1px solid black;
+    }
+
+    th {
+      border: 1px solid black;
+    }
+
+    ul {
+      display: inline;
+    }
+
+    span.current {
+      font-weight:800;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>COMMENT MANAGEMENT CONSOLE</h1>
+  </div>
+
+  <div>
+    <table>
+      <tr>
+        <th><a href="/manage/console">CONSOLE</a></th>
+        <th><a href="/manage/console/article">ARTICLES</a></th>
+        <th>COMMENTS</th>
+        <th><a href="/manage/console/account">ACCOUNTS</a></th>
+      </tr>
+    </table>
+  </div>
+
+  <br>
+
+  <div id="comments">
+    <div>
+      <form action="#" method="post">
+        <table>
+        <tr>
+          <th>ID</th>
+          <th>WRITER</th>
+          <th>CONTENT</th>
+          <th>ARTICLE</th>
+          <th>CREATED DATE</th>
+          <th>DELETED</th>
+          <th>CHECK</th>
+        </tr>
+
+          <tr th:each="comment: ${comments}">
+            <td th:text="${comment.id}">0</td>
+            <td th:text="${comment.writer}">Writer</td>
+            <td><a th:href="@{/board/read(id=${comment.articleID})}" th:text="${comment.content}">Content</a></td>
+            <td th:text="${comment.articleID}">Article Id</td>
+            <td th:text="${comment.createdDate}">1970-01-01</td>
+            <td th:text="${comment.deleted}">True</td>
+            <td><input type="checkbox" name="target" th:value="${comment.id}"></td>
+          </tr>
+        </table>
+
+
+        <div>
+          <label for="comment-operation">MODE</label>
+          <select id="comment-operation" name="operation">
+            <option value="DELETE">DELETE</option>
+            <option value="RESTORE">RESTORE</option>
+          </select>
+          <input type="submit" value="OPERATE">
+        </div>
+      </form>
+
+      <div th:if="${totalPage > 0}">
+        <span th:each="index: ${#numbers.sequence(1, totalPage)}" th:classappend="${index - 1 == currentPage} ? 'current' : ''">
+          <a th:href="@{/manage/console/comment(pageNum=${index - 1},pageSize=${pageSize},keyword=${keyword},mode=${mode})}" th:text="${index}">0</a>
+        </span>
+      </div>
+
+      <br>
+
+      <div>
+        <table>
+          <tr>
+            <td>
+              <select name="mode">
+                <option value="WRITER" th:selected="'ARTICLE' == ${mode}">Writer</option>
+                <option value="TITLE" th:selected="'WRITER' == ${mode}">Title</option>
+                <option value="CONTENT" th:selected="'CONTENT' == ${mode}">Content</option>
+              </select>
+            </td>
+            <td>
+              <input name="keyword" type="text" th:value="${keyword}" required>
+            </td>
+            <td>
+              <input type="submit" value="SEARCH">
+            </td>
+            <td>
+              <a href="/manage/console/comment">CLEAR</a>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

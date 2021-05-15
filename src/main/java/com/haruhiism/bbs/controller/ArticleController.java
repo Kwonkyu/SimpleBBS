@@ -49,6 +49,7 @@ public class ArticleController {
         model.addAttribute("searchMode", command.getMode().name());
         model.addAttribute("searchKeyword", command.getKeyword());
 
+        // TODO: 접근 가능한 링크를 컨트롤러에서 제공하는 방식으로 변경
         return "board/list";
     }
 

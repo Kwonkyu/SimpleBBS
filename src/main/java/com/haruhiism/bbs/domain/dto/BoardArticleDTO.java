@@ -27,6 +27,7 @@ public class BoardArticleDTO {
     private String createdDate;
     private String modifiedDate;
     private int hit;
+    private boolean deleted;
 
     public BoardArticleDTO(BoardArticle article){
         BoardAccount writerAccount = article.getBoardAccount();
@@ -40,6 +41,7 @@ public class BoardArticleDTO {
         this.createdDate = formatter.format(article.getCreatedDateTime());
         this.modifiedDate = formatter.format(article.getModifiedDateTime());
         this.hit = article.getHit().getHit();
+        this.deleted = article.isDeleted();
     }
 
     public BoardArticleDTO(ArticleSubmitCommand command){

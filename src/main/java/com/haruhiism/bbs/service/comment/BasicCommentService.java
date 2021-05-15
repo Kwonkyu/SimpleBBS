@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,7 +82,7 @@ public class BasicCommentService implements CommentService {
 
     @Override
     public BoardCommentsDTO readCommentsOfAccount(String userId, int pageNum, int pageSize) {
-        BoardAccount account = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+        BoardAccount account = accountRepository.findByUserIdAndAvailableTrue(userId).orElseThrow(NoAccountFoundException::new);
         Page<BoardComment> comments = commentRepository.findAllByBoardAccountAndDeletedFalse(account, PageRequest.of(pageNum, pageSize));
 
         return convertPageResultToBoardCommentsDTO(comments, pageNum);
@@ -124,4 +123,5 @@ public class BasicCommentService implements CommentService {
             throw new AuthenticationFailedException();
         }
     }
+
 }

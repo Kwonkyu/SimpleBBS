@@ -2,10 +2,13 @@ package com.haruhiism.bbs.repository;
 
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
+import com.haruhiism.bbs.domain.entity.BoardComment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
 
 @Repository
 public interface ArticleRepository extends CrudRepository<BoardArticle, Long> {
@@ -27,4 +30,8 @@ public interface ArticleRepository extends CrudRepository<BoardArticle, Long> {
 
     public Page<BoardArticle> findAllByBoardAccount(BoardAccount boardAccount, Pageable pageable);
     public Page<BoardArticle> findAllByBoardAccountAndDeletedFalse(BoardAccount boardAccount, Pageable pageable);
+
+    Page<BoardArticle> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+    public Long countAllByDeletedTrue();
 }

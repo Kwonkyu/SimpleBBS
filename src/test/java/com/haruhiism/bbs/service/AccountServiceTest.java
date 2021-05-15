@@ -49,7 +49,7 @@ class AccountServiceTest {
         // when
         accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
         // then
-        assertFalse(accountRepository.findByUserId(testUserId).isEmpty());
+        assertFalse(accountRepository.findByUserIdAndAvailableTrue(testUserId).isEmpty());
 
 
         // when
@@ -99,7 +99,7 @@ class AccountServiceTest {
         });
 
         //then
-        assertTrue(accountRepository.findByUserId(testUserId).isEmpty());
+        assertTrue(accountRepository.findByUserIdAndAvailableTrue(testUserId).isEmpty());
     }
 
     @Test
@@ -152,7 +152,7 @@ class AccountServiceTest {
                 "updatedusername");
 
         // then
-        Optional<BoardAccount> updateResult = accountRepository.findByUserId(testUserId);
+        Optional<BoardAccount> updateResult = accountRepository.findByUserIdAndAvailableTrue(testUserId);
         assertFalse(updateResult.isEmpty());
         assertEquals("updatedusername", updateResult.get().getUsername());
     }
@@ -172,7 +172,7 @@ class AccountServiceTest {
                 "updateduseremail@domain.com");
 
         // then
-        Optional<BoardAccount> updateResult = accountRepository.findByUserId(testUserId);
+        Optional<BoardAccount> updateResult = accountRepository.findByUserIdAndAvailableTrue(testUserId);
         assertFalse(updateResult.isEmpty());
         assertEquals("updateduseremail@domain.com", updateResult.get().getEmail());
     }
