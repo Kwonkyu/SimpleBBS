@@ -1,8 +1,6 @@
 package com.haruhiism.bbs.service.manage;
 
-import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.CommentSearchMode;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 
 import java.time.LocalDateTime;
@@ -14,11 +12,10 @@ public interface CommentManagerService {
     Long countAllDeletedComments();
     Long countAllNotDeletedComments();
 
-    BoardCommentsDTO readComments(int pageNum, int pageSize);
+    BoardCommentsDTO readComments(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    BoardCommentsDTO searchComments(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     void deleteComments(List<Long> commentIds);
     void restoreComments(List<Long> commentIds);
 
-    BoardCommentsDTO searchCommentsByPages(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize);
-    BoardCommentsDTO searchCommentsBetweenDateByPages(CommentSearchMode commentSearchMode, String keyword, LocalDateTime from, LocalDateTime to, int pageNum, int pageSize);
 }

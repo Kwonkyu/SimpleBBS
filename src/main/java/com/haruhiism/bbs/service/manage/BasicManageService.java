@@ -143,8 +143,8 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentsDTO readComments(int pageNum, int pageSize) {
-        Page<BoardComment> comments = commentRepository.findAll(PageRequest.of(pageNum, pageSize));
+    public BoardCommentsDTO readComments(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        Page<BoardComment> comments = commentRepository.findAllByCreatedDateTimeBetween(from, to, PageRequest.of(pageNum, pageSize));
         return pageUtility.convertBoardComments(comments);
     }
 
@@ -165,51 +165,35 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentsDTO searchCommentsByPages(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize) {
+    public BoardCommentsDTO searchComments(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+
+        // TODO: 사용자 이름이 변경되었을 때 로그인한 사용자가 작성한 데이터에는 변경 전 이름이 남아있지만 실제로 출력되는 것은 변경 후 이름.
+        // TODO: SQL에서 이름을 검색할 때 변경 전 이름이 남아서 문제가 발생. 로그인한 사용자가 작성한 댓글이라면 해당 사용자의 username으로 검색할 것.
+        // TODO: 혹은 임시방편으로 관리자 페이지에서는 변경된 이름이 아니라 원래 이름을 보여준다던가
+        // TODO: 아니면 로직을 바꿔서 사용자명이 변경됐을 때 기존에 작성된 게시글은 작성자 이름을 그대로 유지하도록?
+
         switch(commentSearchMode){
             case WRITER:
                 return pageUtility.convertBoardComments(
-                        commentRepository.findAllByWriterContaining(keyword, PageRequest.of(pageNum, pageSize)));
+                        commentRepository.findAllByWriterContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
 
             case CONTENT:
                 return pageUtility.convertBoardComments(
-                        commentRepository.findAllByContentContaining(keyword, PageRequest.of(pageNum, pageSize)));
+                        commentRepository.findAllByContentContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
 
             case ARTICLE:
-                Optional<BoardArticle> article = articleRepository.findById(Long.parseLong(keyword));
-                if(article.isEmpty()){
-                    // TODO: bad code?
-                    return BoardCommentsDTO.builder()
-                            .boardComments(new ArrayList<>())
-                            .totalPages(0)
-                            .currentPage(0).build();
-                } else {
-                    return pageUtility.convertBoardComments(
-                            commentRepository.findAllByBoardArticleOrderByIdAsc(article.get(), PageRequest.of(pageNum, pageSize)));
-                }
+                BoardArticle article = articleRepository.findById(Long.parseLong(keyword)).orElse(new BoardArticle());
+                return pageUtility.convertBoardComments(
+                        commentRepository.findAllByBoardArticleAndCreatedDateTimeBetween(article, from, to, PageRequest.of(pageNum, pageSize)));
 
             case ACCOUNT:
-                Optional<BoardAccount> account = accountRepository.findByUserId(keyword);
-                if(account.isEmpty()){
-                    return BoardCommentsDTO.builder()
-                            .boardComments(new ArrayList<>())
-                            .totalPages(0)
-                            .currentPage(0).build();
-                } else {
-                    return pageUtility.convertBoardComments(
-                            commentRepository.findAllByBoardAccount(account.get(), PageRequest.of(pageNum, pageSize)));
-                }
+                BoardAccount account = accountRepository.findByUserId(keyword).orElse(new BoardAccount());
+                return pageUtility.convertBoardComments(
+                        commentRepository.findAllByBoardAccountAndCreatedDateTimeBetween(account, from, to, PageRequest.of(pageNum, pageSize)));
 
             default:
                 throw new UnsupportedOperationException();
         }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public BoardCommentsDTO searchCommentsBetweenDateByPages(CommentSearchMode commentSearchMode, String keyword, LocalDateTime from, LocalDateTime to, int pageNum, int pageSize) {
-        // TODO: implement here.
-        throw new UnsupportedOperationException();
     }
 
 

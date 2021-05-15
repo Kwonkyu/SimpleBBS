@@ -17,8 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -113,19 +111,30 @@ public class ManageController {
                                         Model model){
         BoardCommentsDTO result;
         if(command.getKeyword().isBlank()){
-            result = commentManagerService.searchCommentsByPages(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
+            result = commentManagerService.readComments(
+                    command.getPageNum(), command.getPageSize(),
+                    command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0, 0)) : LocalDateTime.MIN,
+                    command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         } else {
-            result = commentManagerService.readComments(command.getPageNum(), command.getPageSize());
+            result = commentManagerService.searchComments(
+                    command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize(),
+                    command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0, 0)) : LocalDateTime.MIN,
+                    command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         }
-
-        model.addAttribute("comments", result.getBoardComments());
-
-        model.addAttribute("mode", command.getMode());
-        model.addAttribute("keyword", command.getKeyword());
 
         model.addAttribute("currentPage", result.getCurrentPage());
         model.addAttribute("totalPage", result.getTotalPages());
         model.addAttribute("pageSize", command.getPageSize());
+
+        model.addAttribute("comments", result.getBoardComments());
+
+        model.addAttribute("keyword", command.getKeyword());
+        model.addAttribute("mode", command.getMode().name());
+        LocalDate from = command.getFrom();
+        LocalDate to = command.getTo();
+        model.addAttribute("from", from == null ? "1970-01-01" : from);
+        model.addAttribute("to", to == null ? LocalDate.now() : to);
+        model.addAttribute("betweenDates", command.isBetweenDates());
 
         return "admin/comment-console";
     }
@@ -149,7 +158,7 @@ public class ManageController {
 
 
     @GetMapping("/console/account")
-    public String accountManagementPage(@Valid AccountListCommand command, BindingResult bindingResult, Model model){
+    public String accountManagementPage(@Valid AccountListCommand command, Model model){
 
         BoardAccountsDTO accounts;
         if(command.getKeyword().isBlank()){
