@@ -80,10 +80,9 @@ public class ManageController {
 
         model.addAttribute("keyword", command.getKeyword());
         model.addAttribute("mode", command.getMode().name());
-        LocalDate from = command.getFrom();
-        LocalDate to = command.getTo();
-        model.addAttribute("from", from == null ? "1970-01-01" : from);
-        model.addAttribute("to", to == null ? LocalDate.now() : to);
+
+        model.addAttribute("from", command.getFrom());
+        model.addAttribute("to", command.getTo());
         model.addAttribute("betweenDates", command.isBetweenDates());
 
         return "admin/article-console";
@@ -130,10 +129,9 @@ public class ManageController {
 
         model.addAttribute("keyword", command.getKeyword());
         model.addAttribute("mode", command.getMode().name());
-        LocalDate from = command.getFrom();
-        LocalDate to = command.getTo();
-        model.addAttribute("from", from == null ? "1970-01-01" : from);
-        model.addAttribute("to", to == null ? LocalDate.now() : to);
+
+        model.addAttribute("from", command.getFrom());
+        model.addAttribute("to", command.getTo());
         model.addAttribute("betweenDates", command.isBetweenDates());
 
         return "admin/comment-console";
@@ -174,16 +172,16 @@ public class ManageController {
         }
 
         model.addAttribute("accounts", accounts.getAccounts());
+
         model.addAttribute("currentPage", accounts.getCurrentPage());
         model.addAttribute("totalPage", accounts.getTotalPage());
         model.addAttribute("pageSize", command.getPageSize());
+
         model.addAttribute("keyword", command.getKeyword());
         model.addAttribute("mode", command.getMode().name());
 
-        LocalDate from = command.getFrom();
-        LocalDate to = command.getTo();
-        model.addAttribute("from", from == null ? "1970-01-01" : from);
-        model.addAttribute("to", to == null ? LocalDate.now() : to);
+        model.addAttribute("from", command.getFrom());
+        model.addAttribute("to", command.getTo());
         model.addAttribute("betweenDates", command.isBetweenDates());
 
         return "admin/account-console";

@@ -111,6 +111,8 @@ public class BasicManageService implements AccountManagerService, ArticleManager
                         keyword, from, to, keyword, from, to, page);
                 break;
 
+                // TODO: need to implement search by userid
+
             default:
                 throw new UnsupportedOperationException();
         }
@@ -187,6 +189,7 @@ public class BasicManageService implements AccountManagerService, ArticleManager
                         commentRepository.findAllByBoardArticleAndCreatedDateTimeBetween(article, from, to, PageRequest.of(pageNum, pageSize)));
 
             case ACCOUNT:
+                // TODO: not working.
                 BoardAccount account = accountRepository.findByUserId(keyword).orElse(new BoardAccount());
                 return pageUtility.convertBoardComments(
                         commentRepository.findAllByBoardAccountAndCreatedDateTimeBetween(account, from, to, PageRequest.of(pageNum, pageSize)));

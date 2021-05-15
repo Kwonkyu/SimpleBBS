@@ -90,7 +90,7 @@
 
     <div th:if="${totalPages > 0}">
         <span th:each="i: ${#numbers.sequence(1, totalPages)}" th:classappend="${i - 1 == currentPage} == true ? 'current' : ''">
-            <a th:href="@{/board/list(pageNum=${i - 1}, pageSize=${command.pageSize}, keyword=${searchKeyword}, mode=${articleSearchMode})}" th:text="${i}">-</a>
+            <a th:href="@{/board/list(pageNum=${i - 1}, pageSize=${command.pageSize}, keyword=${searchKeyword}, mode=${searchMode})}" th:text="${i}">-</a>
         </span>
     </div>
 

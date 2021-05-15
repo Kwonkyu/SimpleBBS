@@ -23,8 +23,8 @@ public class CommentListCommand {
     CommentSearchMode mode = CommentSearchMode.CONTENT;
     private String keyword = "";
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate from;
+    private LocalDate from = LocalDate.of(1970,1,1);
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate to;
+    private LocalDate to = LocalDate.now();
     private boolean betweenDates = false;
 }

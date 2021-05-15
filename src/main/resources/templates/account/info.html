@@ -80,10 +80,10 @@
             </tr>
             <tr th:each="comment: ${comments}">
                 <td>
-                    <span th:text="${comment.articleID}">0</span>
+                    <span th:text="${comment.getArticleId}">0</span>
                 </td>
                 <td>
-                    <a th:href="@{/board/read(id=${comment.articleID})}" th:text="${comment.content}"></a>
+                    <a th:href="@{/board/read(id=${comment.getArticleId})}" th:text="${comment.content}"></a>
                 </td>
             </tr>
         </table>

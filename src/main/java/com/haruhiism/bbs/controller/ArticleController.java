@@ -117,13 +117,14 @@ public class ArticleController {
 
 
     private boolean isArticleWrittenByLoggedInAccount(Long articleId){
-        return articleService.readArticle(articleId).isWrittenByAccount();
+        return !articleService.readArticle(articleId).getUserId().isBlank();
     }
 
     @GetMapping("/edit")
     public String requestEditArticle(Model model,
                                      @Valid ArticleEditRequestCommand command,
                                      HttpServletRequest request){
+
 
         if (isArticleWrittenByLoggedInAccount(command.getId())) {
             LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));

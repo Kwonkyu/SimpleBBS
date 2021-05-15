@@ -23,7 +23,7 @@ public class BoardArticleDTO {
     private String password;
     private String title;
     private String content;
-    private boolean isWrittenByAccount;
+    private String userId;
     private String createdDate;
     private String modifiedDate;
     private int hit;
@@ -32,27 +32,27 @@ public class BoardArticleDTO {
     public BoardArticleDTO(BoardArticle article){
         BoardAccount writerAccount = article.getBoardAccount();
 
-        this.id = article.getId();
-        this.writer = writerAccount == null ? article.getWriter() : writerAccount.getUsername();
-        this.password = article.getPassword();
-        this.title = article.getTitle();
-        this.content = article.getContent();
-        this.isWrittenByAccount = writerAccount != null;
-        this.createdDate = formatter.format(article.getCreatedDateTime());
-        this.modifiedDate = formatter.format(article.getModifiedDateTime());
-        this.hit = article.getHit().getHit();
-        this.deleted = article.isDeleted();
+        id = article.getId();
+        writer = article.getWriter();
+        password = article.getPassword();
+        title = article.getTitle();
+        content = article.getContent();
+        userId = writerAccount == null ? "" : writerAccount.getUserId();
+        createdDate = formatter.format(article.getCreatedDateTime());
+        modifiedDate = formatter.format(article.getModifiedDateTime());
+        hit = article.getHit().getHit();
+        deleted = article.isDeleted();
     }
 
     public BoardArticleDTO(ArticleSubmitCommand command){
-        this.writer = command.getWriter();
-        this.password = command.getPassword();
-        this.title = command.getTitle();
-        this.content = command.getContent();
+        writer = command.getWriter();
+        password = command.getPassword();
+        title = command.getTitle();
+        content = command.getContent();
     }
 
     @Override
     public String toString() {
-        return String.format("[#%d] '%s' written by '%s'(account=%s).\nContents: %10s...\n", id, title, writer, isWrittenByAccount, content);
+        return String.format("[#%d] '%s' written by '%s'(account=%s).\nContents: %10s...\n", id, title, writer, userId, content);
     }
 }

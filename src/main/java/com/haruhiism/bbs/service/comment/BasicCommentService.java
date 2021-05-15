@@ -38,7 +38,7 @@ public class BasicCommentService implements CommentService {
     @Override
     public void createComment(BoardCommentDTO commentDTO, AuthDTO authDTO) {
         BoardArticle commentedArticle = articleRepository
-                .findById(commentDTO.getArticleID())
+                .findById(commentDTO.getArticleId())
                 .orElseThrow(NoArticleFoundException::new);
 
         if (commentedArticle.isDeleted()) {
