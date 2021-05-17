@@ -4,6 +4,7 @@ import com.haruhiism.bbs.command.article.*;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
+import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import com.haruhiism.bbs.service.file.FileHandlerService;
@@ -31,12 +32,15 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final AccountService accountService;
     private final CommentService commentService;
     private final FileHandlerService fileHandlerService;
 
 
     @GetMapping("/list")
-    public String listBoardArticles(Model model, @ModelAttribute("command") @Valid ArticleListCommand command){
+    public String listBoardArticles(Model model,
+                                    @ModelAttribute("command") @Valid ArticleListCommand command,
+                                    HttpServletRequest request){
         BoardArticlesDTO articlesDTO = command.getKeyword().isBlank() ?
                 articleService.readAllByPages(command.getPageNum(), command.getPageSize()) :
                 articleService.searchAllByPages(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
@@ -49,7 +53,12 @@ public class ArticleController {
         model.addAttribute("searchMode", command.getMode().name());
         model.addAttribute("searchKeyword", command.getKeyword());
 
-        // TODO: 접근 가능한 링크를 컨트롤러에서 제공하는 방식으로 변경
+        HttpSession session = request.getSession(false);
+        model.addAttribute("loginText", session == null ? "LOGIN" : "LOGOUT");
+        model.addAttribute("registerText", session == null ? "REGISTER" : "WITHDRAW");
+        model.addAttribute("loginLink", session == null ? "/account/login" : "/account/logout");
+        model.addAttribute("registerLink", session == null ? "/account/register" : "/account/withdraw");
+
         return "board/list";
     }
 

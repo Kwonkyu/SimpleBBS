@@ -17,6 +17,9 @@
     <div id="account-info" th:object="${userInfo}">
         <div>
             <h1 th:text="|Hello, *{username}|">Hello, USERNAME</h1>
+            <ul th:if="${levels}">
+                <li th:each="level: ${levels}" th:text="${level}">ACCOUNT LEVEL HERE</li>
+            </ul>
         </div>
         <div>
             <table>

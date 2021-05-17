@@ -61,10 +61,10 @@
             <tr>
                 <td>
                     <select name="mode">
-                        <option value="WRITER" th:selected="'WRITER' == ${searchMode}">Writer</option>
-                        <option value="TITLE" th:selected="'TITLE' == ${searchMode}">Title</option>
-                        <option value="CONTENT" th:selected="'CONTENT' == ${searchMode}">Content</option>
-                        <option value="TITLE_CONTENT" th:selected="'TITLE_CONTENT' == ${searchMode}">Title & Content</option>
+                        <option value="WRITER" th:selected="${'WRITER' eq searchMode}">Writer</option>
+                        <option value="TITLE" th:selected="${'TITLE' eq searchMode}">Title</option>
+                        <option value="CONTENT" th:selected="${'CONTENT' eq searchMode}">Content</option>
+                        <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT' eq searchMode}">Title & Content</option>
                     </select>
                 </td>
                 <td>

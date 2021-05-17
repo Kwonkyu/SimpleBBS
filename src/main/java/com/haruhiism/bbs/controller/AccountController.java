@@ -3,10 +3,7 @@ package com.haruhiism.bbs.controller;
 import com.haruhiism.bbs.command.account.*;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.AuthDTO;
-import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
+import com.haruhiism.bbs.domain.dto.*;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
@@ -129,16 +126,19 @@ public class AccountController {
 
         BoardArticlesDTO boardArticles = articleService.readArticlesOfAccount(loginSessionInfo.getUserID(), articlePage, 10);
         BoardCommentsDTO boardComments = commentService.readCommentsOfAccount(loginSessionInfo.getUserID(), commentPage, 10);
+        BoardAccountLevelDTO accountLevels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+
         model.addAttribute("userInfo", loginSessionInfo);
         model.addAttribute("articles", boardArticles.getBoardArticles());
         model.addAttribute("comments", boardComments.getBoardComments());
 
-        model.addAttribute("currentArticlePage", articlePage);
+        model.addAttribute("currentArticlePage", boardArticles.getCurrentPage());
         model.addAttribute("articlePages", boardArticles.getTotalPages());
-        model.addAttribute("currentCommentPage", commentPage);
+        model.addAttribute("currentCommentPage", boardComments.getCurrentPage());
         model.addAttribute("commentPages", boardComments.getTotalPages());
 
-        // TODO: 회원 등급 출력.
+        model.addAttribute("levels", accountLevels.getLevels());
+
         return "account/info";
     }
 

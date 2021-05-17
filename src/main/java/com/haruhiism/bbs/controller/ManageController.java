@@ -50,7 +50,7 @@ public class ManageController {
 
         model.addAttribute("signedAccounts", accountManagerService.countAllAccounts());
 
-        model.addAttribute("loginSessionInfo", loginSessionInfo);
+        model.addAttribute("userInfo", loginSessionInfo);
         model.addAttribute("levels", accountManagerService.getLevelOfAccount(
                 BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()));
 
