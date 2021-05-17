@@ -19,6 +19,7 @@ import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.PageUtility;
+import com.haruhiism.bbs.service.account.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +42,8 @@ public class BasicManageService implements AccountManagerService, ArticleManager
     private final CommentRepository commentRepository;
     private final AccountRepository accountRepository;
     private final AccountLevelRepository accountLevelRepository;
+
+    private final AccountService accountService;
 
     private final PageUtility pageUtility;
 
@@ -220,19 +223,9 @@ public class BasicManageService implements AccountManagerService, ArticleManager
         return accountRepository.count();
     }
 
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<AccountLevel> getLevelOfAccount(BoardAccountDTO boardAccountDTO) {
-        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId())
-                .orElseThrow(NoAccountFoundException::new);
-        return accountLevelRepository.findAllByBoardAccount(boardAccount)
-                .stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toList());
-    }
-
     @Override
     public boolean authManagerAccess(String userId) {
-        List<AccountLevel> levelOfAccount = getLevelOfAccount(BoardAccountDTO.builder().userId(userId).build());
+        List<AccountLevel> levelOfAccount = accountService.getAccountLevels(BoardAccountDTO.builder().userId(userId).build()).getLevels();
         return levelOfAccount.contains(AccountLevel.BOARD_MANAGER) || levelOfAccount.contains(AccountLevel.ACCOUNT_MANAGER);
     }
 

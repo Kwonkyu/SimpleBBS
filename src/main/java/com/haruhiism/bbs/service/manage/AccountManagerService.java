@@ -12,8 +12,6 @@ public interface AccountManagerService {
 
     Long countAllAccounts();
 
-    List<AccountLevel> getLevelOfAccount(BoardAccountDTO boardAccountDTO);
-
     boolean authManagerAccess(String userId);
 
     BoardAccountsDTO readAccounts(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);

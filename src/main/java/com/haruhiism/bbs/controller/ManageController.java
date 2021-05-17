@@ -9,6 +9,7 @@ import com.haruhiism.bbs.command.manage.BoardManagementCommand;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
+import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.manage.AccountManagerService;
 import com.haruhiism.bbs.service.manage.ArticleManagerService;
 import com.haruhiism.bbs.service.manage.CommentManagerService;
@@ -37,6 +38,8 @@ public class ManageController {
     private final ArticleManagerService articleManagerService;
     private final CommentManagerService commentManagerService;
     private final AccountManagerService accountManagerService;
+
+    private final AccountService accountService;
 
     private final String sessionAuthAttribute = "loginSessionInfo";
 
@@ -86,7 +89,7 @@ public class ManageController {
         model.addAttribute("signedAccounts", accountManagerService.countAllAccounts());
 
         model.addAttribute("userInfo", loginSessionInfo);
-        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/management-console";
@@ -117,7 +120,7 @@ public class ManageController {
         model.addAttribute("commentSizes", result.getBoardArticleCommentSize());
         model.addAttribute("mode", command.getMode().name());
 
-        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/article-console";
@@ -162,7 +165,7 @@ public class ManageController {
         model.addAttribute("comments", result.getBoardComments());
         model.addAttribute("mode", command.getMode().name());
 
-        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/comment-console";
@@ -210,7 +213,7 @@ public class ManageController {
         model.addAttribute("accounts", accounts.getAccounts());
         model.addAttribute("mode", command.getMode().name());
 
-        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/account-console";
