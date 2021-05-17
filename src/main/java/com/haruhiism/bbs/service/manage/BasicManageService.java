@@ -4,7 +4,10 @@ import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.AccountSearchMode;
 import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.CommentSearchMode;
-import com.haruhiism.bbs.domain.dto.*;
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
+import com.haruhiism.bbs.domain.dto.BoardAccountsDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
+import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
@@ -23,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -270,7 +272,6 @@ public class BasicManageService implements AccountManagerService, ArticleManager
         }
     }
 
-    // TODO: 이렇게 일괄로 변경시키는 방식이 옳은 것인지?
     @Override
     public void changePassword(List<Long> accountIds, String newPassword) {
         for (Long accountId : accountIds) {

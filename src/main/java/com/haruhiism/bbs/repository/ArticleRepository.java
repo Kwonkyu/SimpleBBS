@@ -2,7 +2,6 @@ package com.haruhiism.bbs.repository;
 
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
-import com.haruhiism.bbs.domain.entity.BoardComment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;

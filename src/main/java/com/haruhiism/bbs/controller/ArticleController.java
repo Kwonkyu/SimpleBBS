@@ -174,7 +174,6 @@ public class ArticleController {
                 .rawPassword(command.getPassword())
                 .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build();
 
-        // TODO: 별도의 인증 로직을 서비스에 구현해두고 auth logic here?
         articleService.updateArticle(editedArticleDTO, authDTO);
         fileHandlerService.delete(command.getDelete(), command.getArticleID());
         fileHandlerService.store(command.getUploadedFiles(), command.getArticleID());

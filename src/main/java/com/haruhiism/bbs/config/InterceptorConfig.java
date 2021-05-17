@@ -1,9 +1,7 @@
 package com.haruhiism.bbs.config;
 
 import com.haruhiism.bbs.interceptor.*;
-import com.haruhiism.bbs.service.account.AccountService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

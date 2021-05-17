@@ -75,7 +75,6 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) {
-        // TODO: use session too?
         BoardAccount account = authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword());
         switch(updatedField){
             case username:

@@ -4,7 +4,6 @@ import com.haruhiism.bbs.domain.entity.BoardAccount;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Getter
