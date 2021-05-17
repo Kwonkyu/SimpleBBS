@@ -1,15 +1,14 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.account.AccountListCommand;
+import com.haruhiism.bbs.command.DateBasedListCommand;
+import com.haruhiism.bbs.command.manage.AccountListCommand;
 import com.haruhiism.bbs.command.article.ArticleListCommand;
-import com.haruhiism.bbs.command.comment.CommentListCommand;
+import com.haruhiism.bbs.command.manage.CommentListCommand;
 import com.haruhiism.bbs.command.manage.AccountManagementCommand;
 import com.haruhiism.bbs.command.manage.BoardManagementCommand;
+import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.domain.dto.BoardAccountsDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
+import com.haruhiism.bbs.domain.dto.*;
 import com.haruhiism.bbs.service.manage.AccountManagerService;
 import com.haruhiism.bbs.service.manage.ArticleManagerService;
 import com.haruhiism.bbs.service.manage.CommentManagerService;
@@ -25,7 +24,9 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/manage")
@@ -39,6 +40,40 @@ public class ManageController {
 
     private final String sessionAuthAttribute = "loginSessionInfo";
 
+
+    private Map<String, String> generateConsoleLinksByAccountLevel(List<AccountLevel> levels){
+        Map<String, String> links = new LinkedHashMap<>();
+        links.put("BOARD", "/board/list");
+        links.put("CONSOLE", "/manage/console");
+        for (AccountLevel level : levels) {
+            switch(level){
+                case ACCOUNT_MANAGER:
+                    links.put("ACCOUNTS", "/manage/console/account");
+                    break;
+
+                case BOARD_MANAGER:
+                    links.put("ARTICLES", "/manage/console/article");
+                    links.put("COMMENTS", "/manage/console/comment");
+                    break;
+            }
+        }
+
+        return links;
+    }
+
+    private void addPaginationToModel(Model model, DTOContainer result){
+        model.addAttribute("currentPage", result.getCurrentPage());
+        model.addAttribute("totalPages", result.getTotalPages());
+    }
+
+    private void addDateCommandToModel(Model model, DateBasedListCommand command){
+        model.addAttribute("pageSize", command.getPageSize());
+        model.addAttribute("keyword", command.getKeyword());
+        model.addAttribute("from", command.getFrom());
+        model.addAttribute("to", command.getTo());
+        model.addAttribute("betweenDates", command.isBetweenDates());
+    }
+
     @GetMapping("/console")
     public String showManagementPage(Model model,
                                      @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
@@ -51,15 +86,17 @@ public class ManageController {
         model.addAttribute("signedAccounts", accountManagerService.countAllAccounts());
 
         model.addAttribute("userInfo", loginSessionInfo);
-        model.addAttribute("levels", accountManagerService.getLevelOfAccount(
-                BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()));
+        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/management-console";
     }
 
 
     @GetMapping("/console/article")
-    public String articleManagementPage(@Valid ArticleListCommand command, Model model){
+    public String articleManagementPage(@Valid ArticleListCommand command,
+                                        Model model,
+                                        @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
         BoardArticlesDTO result;
         if(command.getKeyword().isBlank()) {
             result = articleManagerService.readArticles(
@@ -73,19 +110,15 @@ public class ManageController {
                     command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         }
 
-        model.addAttribute("currentPage", result.getCurrentPage());
-        model.addAttribute("pageSize", command.getPageSize());
-        model.addAttribute("totalPage", result.getTotalPages());
+        addPaginationToModel(model, result);
+        addDateCommandToModel(model, command);
 
         model.addAttribute("articles", result.getBoardArticles());
         model.addAttribute("commentSizes", result.getBoardArticleCommentSize());
-
-        model.addAttribute("keyword", command.getKeyword());
         model.addAttribute("mode", command.getMode().name());
 
-        model.addAttribute("from", command.getFrom());
-        model.addAttribute("to", command.getTo());
-        model.addAttribute("betweenDates", command.isBetweenDates());
+        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/article-console";
     }
@@ -109,7 +142,8 @@ public class ManageController {
 
     @GetMapping("/console/comment")
     public String commentManagementPage(@Valid CommentListCommand command,
-                                        Model model){
+                                        Model model,
+                                        @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
         BoardCommentsDTO result;
         if(command.getKeyword().isBlank()){
             result = commentManagerService.readComments(
@@ -123,18 +157,13 @@ public class ManageController {
                     command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0, 0)) : LocalDateTime.now());
         }
 
-        model.addAttribute("currentPage", result.getCurrentPage());
-        model.addAttribute("totalPage", result.getTotalPages());
-        model.addAttribute("pageSize", command.getPageSize());
-
+        addPaginationToModel(model, result);
+        addDateCommandToModel(model, command);
         model.addAttribute("comments", result.getBoardComments());
-
-        model.addAttribute("keyword", command.getKeyword());
         model.addAttribute("mode", command.getMode().name());
 
-        model.addAttribute("from", command.getFrom());
-        model.addAttribute("to", command.getTo());
-        model.addAttribute("betweenDates", command.isBetweenDates());
+        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/comment-console";
     }
@@ -158,7 +187,9 @@ public class ManageController {
 
 
     @GetMapping("/console/account")
-    public String accountManagementPage(@Valid AccountListCommand command, Model model){
+    public String accountManagementPage(@Valid AccountListCommand command,
+                                        Model model,
+                                        @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
 
         BoardAccountsDTO accounts;
         if(command.getKeyword().isBlank()){
@@ -173,18 +204,14 @@ public class ManageController {
                     command.isBetweenDates() ? LocalDateTime.of(command.getTo(), LocalTime.of(0,0)) : LocalDateTime.now());
         }
 
+        addPaginationToModel(model, accounts);
+        addDateCommandToModel(model, command);
+
         model.addAttribute("accounts", accounts.getAccounts());
-
-        model.addAttribute("currentPage", accounts.getCurrentPage());
-        model.addAttribute("totalPage", accounts.getTotalPage());
-        model.addAttribute("pageSize", command.getPageSize());
-
-        model.addAttribute("keyword", command.getKeyword());
         model.addAttribute("mode", command.getMode().name());
 
-        model.addAttribute("from", command.getFrom());
-        model.addAttribute("to", command.getTo());
-        model.addAttribute("betweenDates", command.isBetweenDates());
+        List<AccountLevel> levels = accountManagerService.getLevelOfAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/account-console";
     }

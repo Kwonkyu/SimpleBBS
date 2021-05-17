@@ -21,7 +21,7 @@
       display: inline;
     }
 
-    span.current {
+    .current {
       font-weight:800;
     }
   </style>
@@ -35,11 +35,10 @@
   <div>
     <table>
       <tr>
-        <th><a href="/board/list">BOARD</a></th>
-        <th><a href="/manage/console">CONSOLE</a></th>
-        <th>ARTICLES</th>
-        <th><a href="/manage/console/comment">COMMENTS</a></th>
-        <th><a href="/manage/console/account">ACCOUNTS</a></th>
+        <th th:each="link: ${links}">
+          <span th:if="${'ARTICLES' eq link.getKey()}" th:text="${link.getKey()}">destination</span>
+          <a th:unless="${'ARTICLES' eq link.getKey()}" th:text="${link.getKey()}" th:href="${link.getValue()}">/link/to/destination</a>
+        </th>
       </tr>
     </table>
   </div>
@@ -89,8 +88,8 @@
         </div>
       </form>
 
-      <div th:if="${totalPage > 1}">
-        <span th:each="index: ${#numbers.sequence(1, totalPage)}" th:classappend="${index - 1 == currentPage} == true ? 'current' : ''">
+      <div th:if="${totalPages > 1}">
+        <span th:each="index: ${#numbers.sequence(1, totalPages)}" th:classappend="${index - 1 == currentPage} == true ? 'current' : ''">
           <a
                   th:href="@{/manage/console/article(
                   pageNum=${index - 1},

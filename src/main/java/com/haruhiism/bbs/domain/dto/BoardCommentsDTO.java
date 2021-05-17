@@ -6,12 +6,13 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-@Builder
-public class BoardCommentsDTO {
+public class BoardCommentsDTO extends DTOContainer {
 
     private List<BoardCommentDTO> boardComments;
 
-    private int currentPage;
-    private int totalPages;
-
+    @Builder
+    public BoardCommentsDTO(int currentPage, int totalPages, List<BoardCommentDTO> boardComments){
+        super(currentPage, totalPages);
+        this.boardComments = boardComments;
+    }
 }

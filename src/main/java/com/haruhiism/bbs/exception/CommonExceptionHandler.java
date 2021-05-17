@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.exception;
 
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -11,14 +12,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @ControllerAdvice
+@Slf4j
 public class CommonExceptionHandler {
 
     // MethodArgumentNotValidException for @Valid, BindException for @ModelAttribute
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public String methodArgumentNotValid(Model model) {
+    public String methodArgumentNotValid(Model model, BindException ex) {
         model.addAttribute("errorTitle", "Transmitted Request Can Not Be Processed.");
         model.addAttribute("errorDescription", "Request has incompatible parameter or something is wrong.");
+        log.error(ex.getLocalizedMessage());
         return "error/request-failed";
     }
 

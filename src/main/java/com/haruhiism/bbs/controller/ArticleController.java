@@ -8,6 +8,7 @@ import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import com.haruhiism.bbs.service.file.FileHandlerService;
+import com.haruhiism.bbs.service.manage.AccountManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleService articleService;
-    private final AccountService accountService;
+    private final AccountManagerService accountManagerService;
     private final CommentService commentService;
     private final FileHandlerService fileHandlerService;
 
@@ -54,11 +57,22 @@ public class ArticleController {
         model.addAttribute("searchKeyword", command.getKeyword());
 
         HttpSession session = request.getSession(false);
-        model.addAttribute("loginText", session == null ? "LOGIN" : "LOGOUT");
-        model.addAttribute("registerText", session == null ? "REGISTER" : "WITHDRAW");
-        model.addAttribute("loginLink", session == null ? "/account/login" : "/account/logout");
-        model.addAttribute("registerLink", session == null ? "/account/register" : "/account/withdraw");
+        Map<String, String> links = new LinkedHashMap<>();
+        if(session == null){
+            links.put("LOGIN", "/account/login");
+            links.put("REGISTER", "/account/register");
+        } else {
+            links.put("LOGOUT", "/account/logout");
+            links.put("WITHDRAW", "/account/withdraw");
+            links.put("MANAGE", "/account/manage");
 
+            String userId = ((LoginSessionInfo)session.getAttribute("loginSessionInfo")).getUserID();
+            if(accountManagerService.authManagerAccess(userId)){
+                links.put("ADMIN CONSOLE", "/manage/console");
+            }
+        }
+
+        model.addAttribute("links", links);
         return "board/list";
     }
 

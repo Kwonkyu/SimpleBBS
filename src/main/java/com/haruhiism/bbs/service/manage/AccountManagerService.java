@@ -14,6 +14,8 @@ public interface AccountManagerService {
 
     List<AccountLevel> getLevelOfAccount(BoardAccountDTO boardAccountDTO);
 
+    boolean authManagerAccess(String userId);
+
     BoardAccountsDTO readAccounts(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
     BoardAccountsDTO searchAccounts(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 

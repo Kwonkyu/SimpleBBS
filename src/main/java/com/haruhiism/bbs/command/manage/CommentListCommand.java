@@ -1,8 +1,7 @@
-package com.haruhiism.bbs.command.article;
+package com.haruhiism.bbs.command.manage;
 
 import com.haruhiism.bbs.command.DateBasedListCommand;
-import com.haruhiism.bbs.command.ListCommand;
-import com.haruhiism.bbs.domain.ArticleSearchMode;
+import com.haruhiism.bbs.domain.CommentSearchMode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class ArticleListCommand extends DateBasedListCommand {
+public class CommentListCommand extends DateBasedListCommand {
 
-    private ArticleSearchMode mode = ArticleSearchMode.TITLE;
+    CommentSearchMode mode = CommentSearchMode.CONTENT;
 }

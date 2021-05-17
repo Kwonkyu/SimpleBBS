@@ -231,6 +231,12 @@ public class BasicManageService implements AccountManagerService, ArticleManager
     }
 
     @Override
+    public boolean authManagerAccess(String userId) {
+        List<AccountLevel> levelOfAccount = getLevelOfAccount(BoardAccountDTO.builder().userId(userId).build());
+        return levelOfAccount.contains(AccountLevel.BOARD_MANAGER) || levelOfAccount.contains(AccountLevel.ACCOUNT_MANAGER);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public BoardAccountsDTO readAccounts(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
         return pageUtility.convertBoardAccounts(accountRepository.findAllByCreatedDateTimeBetween(from, to, PageRequest.of(pageNum, pageSize)));
