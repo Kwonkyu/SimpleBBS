@@ -28,6 +28,9 @@ public class BoardAccount extends MACDate {
     @NonNull
     @Column(name = "EMAIL")
     private String email;
+    @NonNull
+    @Column(name = "AVAILABLE")
+    private boolean available;
 
 
     public void changeUsername(String username){
@@ -40,5 +43,13 @@ public class BoardAccount extends MACDate {
 
     public void changeEmail(String email){
         this.email = email;
+    }
+
+    public void invalidate(){
+        available = false;
+    }
+
+    public void restore(){
+        available = true;
     }
 }

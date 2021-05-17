@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 
 @Controller
 @RequestMapping("/comment")
@@ -33,7 +34,7 @@ public class CommentController {
         LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
 
         commentService.createComment(BoardCommentDTO.builder()
-                .articleID(command.getArticleID())
+                .articleId(command.getArticleID())
                 .writer(command.getWriter())
                 .password(command.getPassword())
                 .content(command.getContent()).build(),
@@ -45,17 +46,16 @@ public class CommentController {
 
     @GetMapping("/remove")
     public String requestRemoveComment(Model model,
-                                       @RequestParam("id") Long commentID,
+                                       @RequestParam("id") @Positive Long commentID,
                                        HttpServletRequest request){
 
-        // TODO: Article 쪽도 그냥 이렇게 하는걸 고려해보기.
         BoardCommentDTO commentDTO = commentService.readComment(commentID);
-        if (commentDTO.isWrittenByAccount()) {
+        if (!commentDTO.getUserId().isBlank()) {
             LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
             if(loginSessionInfo == null) throw new AuthenticationFailedException();
 
             commentService.deleteComment(commentID, AuthDTO.builder().loginSessionInfo(loginSessionInfo).build());
-            return String.format("redirect:/board/read?id=%d",commentDTO.getArticleID());
+            return String.format("redirect:/board/read?id=%d",commentDTO.getArticleId());
         } else {
             model.addAttribute("commentID", commentID);
             return "comment/removeRequest";
@@ -66,7 +66,7 @@ public class CommentController {
     public String submitRemoveComment(@Valid CommentRemoveRequestCommand command) {
         BoardCommentDTO commentDTO = commentService.readComment(command.getId());
         commentService.deleteComment(command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build());
-        return String.format("redirect:/board/read?id=%d", commentDTO.getArticleID());
+        return String.format("redirect:/board/read?id=%d", commentDTO.getArticleId());
     }
 
     private LoginSessionInfo getLoginSessionInfoFromHttpSession(HttpSession session) {

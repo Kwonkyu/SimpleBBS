@@ -1,6 +1,6 @@
 package com.haruhiism.bbs.service;
 
-import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
@@ -56,7 +56,7 @@ class ArticleServiceTest {
 
         // when
         articleService.createArticle(boardArticleDTO, AuthDTO.builder().build());
-        BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(SearchMode.WRITER, "writer01", 0, 10);
+        BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(ArticleSearchMode.WRITER, "writer01", 0, 10);
         BoardArticleDTO createdArticle1 = articlesDTO1.getBoardArticles().get(0);
 
         // then
@@ -85,8 +85,8 @@ class ArticleServiceTest {
                 boardArticleDTO,
                 AuthDTO.builder().loginSessionInfo(new LoginSessionInfo(account)).build());
 
-        BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(SearchMode.WRITER, "writer02", 0, 10);
-        BoardArticlesDTO articlesDTO2 = articleService.searchAllByPages(SearchMode.WRITER, "username", 0, 10);
+        BoardArticlesDTO articlesDTO1 = articleService.searchAllByPages(ArticleSearchMode.WRITER, "writer02", 0, 10);
+        BoardArticlesDTO articlesDTO2 = articleService.searchAllByPages(ArticleSearchMode.WRITER, "username", 0, 10);
 
         // then
         assertTrue(articlesDTO1.getBoardArticles().isEmpty()); // because logged-in user's article's writer name will be changed to username of user.
@@ -289,7 +289,7 @@ class ArticleServiceTest {
 
         writerTestValue.forEach((target, count) -> {
             // when
-            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.WRITER, target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(ArticleSearchMode.WRITER, target, 0, 10);
 
             // then
             assertThat(articles.getBoardArticles().size()).isEqualTo(count);
@@ -311,7 +311,7 @@ class ArticleServiceTest {
 
         titleTestValue.forEach((target, count) -> {
             // when
-            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.TITLE, target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(ArticleSearchMode.TITLE, target, 0, 10);
 
             // then
             assertThat(articles.getBoardArticles().size()).isEqualTo(count);
@@ -334,7 +334,7 @@ class ArticleServiceTest {
 
         contentTestValue.forEach((target, count) -> {
             // when
-            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.CONTENT, target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(ArticleSearchMode.CONTENT, target, 0, 10);
 
             // then
             assertThat(articles.getBoardArticles().size()).isEqualTo(count);
@@ -355,7 +355,7 @@ class ArticleServiceTest {
 
         titleOrContentTestValue.forEach((target, count) -> {
             // when
-            BoardArticlesDTO articles = articleService.searchAllByPages(SearchMode.TITLE_CONTENT, target, 0, 10);
+            BoardArticlesDTO articles = articleService.searchAllByPages(ArticleSearchMode.TITLE_CONTENT, target, 0, 10);
 
             // then
             assertThat(articles.getBoardArticles().size()).isEqualTo(count);

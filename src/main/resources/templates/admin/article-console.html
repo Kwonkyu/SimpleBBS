@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Management Console - Article</title>
+  <style>
+    table {
+      border: 1px solid black;
+    }
+
+    td {
+      border: 1px solid black;
+    }
+
+    th {
+      border: 1px solid black;
+    }
+
+    ul {
+      display: inline;
+    }
+
+    span.current {
+      font-weight:800;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>ARTICLE MANAGEMENT CONSOLE</h1>
+  </div>
+
+  <div>
+    <table>
+      <tr>
+        <th><a href="/board/list">BOARD</a></th>
+        <th><a href="/manage/console">CONSOLE</a></th>
+        <th>ARTICLES</th>
+        <th><a href="/manage/console/comment">COMMENTS</a></th>
+        <th><a href="/manage/console/account">ACCOUNTS</a></th>
+      </tr>
+    </table>
+  </div>
+
+  <br>
+
+  <div id="articles">
+    <div>
+      <form action="#" method="post">
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>WRITER</th>
+            <th>ACCOUNT</th>
+            <th>TITLE</th>
+            <th>CONTENT</th>
+            <th>COMMENTS</th>
+            <th>CREATED DATE</th>
+            <th>MODIFIED DATE</th>
+            <th>HIT</th>
+            <th>DELETED</th>
+            <th>CHECK</th>
+          </tr>
+
+          <tr th:each="article, state: ${articles}" th:object="${article}">
+            <td th:text="*{id}">0</td>
+            <td th:text="*{writer}">WRITER</td>
+            <td th:text="*{userId}">ACCOUNT</td>
+            <td><a th:text="*{title}" th:href="@{/board/read(id=${article.id})}">TITLE</a></td>
+            <td th:text="*{content}">CONTENT</td>
+            <td th:text="${commentSizes.get(state.index)}">0</td>
+            <td th:text="*{createdDate}">1970-01-01</td>
+            <td th:text="*{modifiedDate}">1970-01-01</td>
+            <td th:text="*{hit}">0</td>
+            <td th:text="*{deleted}">True</td>
+            <td><input type="checkbox" name="target" th:value="${article.id}"></td>
+          </tr>
+        </table>
+
+        <div>
+          <label for="article-operation">MODE</label>
+          <select id="article-operation" name="operation">
+            <option value="DELETE">DELETE</option>
+            <option value="RESTORE">RESTORE</option>
+          </select>
+          <input type="submit" value="OPERATE">
+        </div>
+      </form>
+
+      <div th:if="${totalPage > 1}">
+        <span th:each="index: ${#numbers.sequence(1, totalPage)}" th:classappend="${index - 1 == currentPage} == true ? 'current' : ''">
+          <a
+                  th:href="@{/manage/console/article(
+                  pageNum=${index - 1},
+                  pageSize=${pageSize},
+                  keyword=${keyword},
+                  mode=${mode},
+                  betweenDates=${betweenDates},
+                  from=${from},
+                  to=${to})}"
+                  th:text="${index}">0</a>
+        </span>
+      </div>
+    </div>
+
+    <br>
+
+    <div>
+      <form action="#" method="get">
+        <table>
+          <tr>
+            <td>
+              <label for="searchMode">SEARCH MODE</label>
+              <select id="searchMode" name="mode">
+  <!--              https://springhow.com/thymeleaf-comparators-and-equality/-->
+                <option value="WRITER" th:selected="${'WRITER' eq mode}">Writer</option>
+                <option value="ACCOUNT" th:selected="${'ACCOUNT' eq mode}">User ID</option>
+                <option value="TITLE" th:selected="${'TITLE' eq mode}">Title</option>
+                <option value="CONTENT" th:selected="${'CONTENT' eq mode}">Content</option>
+                <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT' eq mode}">Title & Content</option>
+              </select>
+            </td>
+            <td colspan="2">
+              <input name="keyword" type="text" th:value="${keyword}" required>
+            </td>
+            <td>
+              <a href="/manage/console/article">CLEAR</a>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="search-date-checkbox">SEARCH BETWEEN DATES?</label>
+              <input id="search-date-checkbox" type="checkbox" name="betweenDates" th:checked="${betweenDates}">
+            </td>
+            <td>
+              <label for="from">FROM</label>
+              <input id="from" type="date" name="from" th:value="${from}">
+            </td>
+            <td>
+              <label for="to">TO</label>
+              <input id="to" type="date" name="to" th:value="${to}">
+            </td>
+            <td>
+              <input type="submit" value="SEARCH">
+            </td>
+          </tr>
+
+        </table>
+      </form>
+    </div>
+  </div>
+
+
+</body>
+</html>

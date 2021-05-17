@@ -49,6 +49,7 @@ public class ArticleController {
         model.addAttribute("searchMode", command.getMode().name());
         model.addAttribute("searchKeyword", command.getKeyword());
 
+        // TODO: 접근 가능한 링크를 컨트롤러에서 제공하는 방식으로 변경
         return "board/list";
     }
 
@@ -116,13 +117,14 @@ public class ArticleController {
 
 
     private boolean isArticleWrittenByLoggedInAccount(Long articleId){
-        return articleService.readArticle(articleId).isWrittenByAccount();
+        return !articleService.readArticle(articleId).getUserId().isBlank();
     }
 
     @GetMapping("/edit")
     public String requestEditArticle(Model model,
                                      @Valid ArticleEditRequestCommand command,
                                      HttpServletRequest request){
+
 
         if (isArticleWrittenByLoggedInAccount(command.getId())) {
             LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
@@ -172,7 +174,6 @@ public class ArticleController {
                 .rawPassword(command.getPassword())
                 .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build();
 
-        // TODO: 별도의 인증 로직을 서비스에 구현해두고 auth logic here?
         articleService.updateArticle(editedArticleDTO, authDTO);
         fileHandlerService.delete(command.getDelete(), command.getArticleID());
         fileHandlerService.store(command.getUploadedFiles(), command.getArticleID());

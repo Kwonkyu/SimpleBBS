@@ -7,11 +7,11 @@ import java.util.List;
 
 @Getter
 @Builder
-public class BoardCommentsDTO {
-
-    private List<BoardCommentDTO> boardComments;
+public class BoardAccountsDTO {
 
     private int currentPage;
-    private int totalPages;
+    private int totalPage;
+
+    private List<BoardAccountDTO> accounts;
 
 }

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Management Console - Account</title>
+
+
+  <style>
+    table {
+      border: 1px solid black;
+    }
+
+    td {
+      border: 1px solid black;
+    }
+
+    th {
+      border: 1px solid black;
+    }
+
+    ul {
+      display: inline;
+    }
+
+    span.current {
+      font-weight:800;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>ACCOUNT MANAGEMENT CONSOLE</h1>
+  </div>
+
+  <div>
+    <table>
+      <tr>
+        <th><a href="/board/list">BOARD</a></th>
+        <th><a href="/manage/console">CONSOLE</a></th>
+        <th><a href="/manage/console/article">ARTICLES</a></th>
+        <th><a href="/manage/console/comment">COMMENTS</a></th>
+        <th>ACCOUNTS</th>
+      </tr>
+    </table>
+  </div>
+
+  <br>
+
+<div id="accounts">
+  <form action="#" method="post">
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>USERID</th>
+        <th>USERNAME</th>
+        <th>EMAIL</th>
+        <th>REGISTERED DATE</th>
+        <th>AVAILABLE</th>
+        <th>CHECK</th>
+      </tr>
+
+      <tr th:each="account: ${accounts}">
+        <td th:text="${account.id}">0</td>
+        <td th:text="${account.userId}">UserID</td>
+        <td th:text="${account.username}">Username</td>
+        <td th:text="${account.email}">email@domain.com</td>
+        <td th:text="${account.registeredDate}">1970-01-01</td>
+        <td th:text="${account.available}">True</td>
+        <td><input name="target" type="checkbox" th:value="${account.id}"></td>
+      </tr>
+    </table>
+
+    <div>
+      <label for="account-operation">MODE</label>
+      <select id="account-operation" name="operation">
+        <option value="CHANGE_PASSWORD">Change Password</option>
+        <option value="CHANGE_USERNAME">Change Username</option>
+        <option value="INVALIDATE">Invalidate</option>
+        <option value="RESTORE">Restore</option>
+      </select>
+      <input type="text" name="keyword" placeholder="Type value to change">
+      <input type="submit" value="OPERATE">
+    </div>
+
+  </form>
+
+  <div th:if="${totalPage > 1}">
+        <span th:each="index: ${#numbers.sequence(1, totalPage)}" th:classappend="${index - 1 == currentPage} == true ? 'current' : ''">
+          <a
+                  th:href="@{/manage/console/account(
+                  pageNum=${index - 1},
+                  pageSize=${pageSize},
+                  keyword=${keyword},
+                  mode=${mode},
+                  betweenDates=${betweenDates},
+                  from=${from},
+                  to=${to})}" th:text="${index}">0</a>
+        </span>
+  </div>
+
+  <br>
+
+  <div>
+    <form action="#" method="get">
+      <table>
+        <tr>
+          <td>
+            <label for="searchMode">SEARCH MODE</label>
+            <select id="searchMode" name="mode">
+              <option value="USERID" th:selected="${'USERID' eq mode}">UserID</option>
+              <option value="USERNAME" th:selected="${'USERNAME' eq mode}">Username</option>
+              <option value="EMAIL" th:selected="${'EMAIL' eq mode}">Email</option>
+            </select>
+          </td>
+          <td colspan="2">
+            <input id="keyword" type="text" name="keyword" th:value="${keyword}">
+          </td>
+          <td>
+            <a href="/manage/console/account">CLEAR</a>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="search-date-checkbox">SEARCH BETWEEN DATES?</label>
+            <input id="search-date-checkbox" type="checkbox" name="betweenDates" th:checked="${betweenDates}">
+          </td>
+          <td>
+            <label for="from">FROM</label>
+            <input id="from" type="date" name="from" th:value="${from}">
+          </td>
+          <td>
+            <label for="to">TO</label>
+            <input id="to" type="date" name="to" th:value="${to}">
+          </td>
+          <td>
+            <input type="submit" value="SEARCH">
+          </td>
+        </tr>
+
+      </table>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

@@ -8,7 +8,6 @@ import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
-import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
@@ -139,6 +138,7 @@ public class AccountController {
         model.addAttribute("currentCommentPage", commentPage);
         model.addAttribute("commentPages", boardComments.getTotalPages());
 
+        // TODO: 회원 등급 출력.
         return "account/info";
     }
 

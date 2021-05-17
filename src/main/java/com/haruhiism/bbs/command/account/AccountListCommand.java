@@ -1,25 +1,23 @@
-package com.haruhiism.bbs.command.article;
+package com.haruhiism.bbs.command.account;
 
-import com.haruhiism.bbs.domain.ArticleSearchMode;
+import com.haruhiism.bbs.domain.AccountSearchMode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.validation.constraints.Max;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
 
 @Getter
 @Setter
-public class ArticleListCommand {
+public class AccountListCommand {
 
     @PositiveOrZero
     private int pageNum = 0;
     @Positive
-    @Max(value = 40)
     private int pageSize = 10;
-    private ArticleSearchMode mode = ArticleSearchMode.TITLE;
+    private AccountSearchMode mode = AccountSearchMode.USERNAME;
     private String keyword = "";
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate from = LocalDate.of(1970,1,1);

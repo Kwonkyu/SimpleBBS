@@ -45,10 +45,10 @@
         <form action="/board/list" method="get">
             <label for="article-size">HOW MANY ARTICLES?</label>
             <select name="pageSize">
-                <option th:selected="${10.equals(pageSize)}">10</option>
-                <option th:selected="${20.equals(pageSize)}">20</option>
-                <option th:selected="${30.equals(pageSize)}">30</option>
-                <option th:selected="${40.equals(pageSize)}">40</option>
+                <option th:selected="${10 eq pageSize}">10</option>
+                <option th:selected="${20 eq pageSize}">20</option>
+                <option th:selected="${30 eq pageSize}">30</option>
+                <option th:selected="${40 eq pageSize}">40</option>
             </select>
             <input id="article-size" type="submit" value="CHANGE">
         </form>
@@ -61,10 +61,10 @@
             <tr>
                 <td>
                     <select name="mode">
-                        <option value="WRITER" th:selected="${'WRITER'.equals(searchMode)}">Writer</option>
-                        <option value="TITLE" th:selected="${'TITLE'.equals(searchMode)}">Title</option>
-                        <option value="CONTENT" th:selected="${'CONTENT'.equals(searchMode)}">Content</option>
-                        <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT'.equals(searchMode)}">Title & Content</option>
+                        <option value="WRITER" th:selected="'WRITER' == ${searchMode}">Writer</option>
+                        <option value="TITLE" th:selected="'TITLE' == ${searchMode}">Title</option>
+                        <option value="CONTENT" th:selected="'CONTENT' == ${searchMode}">Content</option>
+                        <option value="TITLE_CONTENT" th:selected="'TITLE_CONTENT' == ${searchMode}">Title & Content</option>
                     </select>
                 </td>
                 <td>
@@ -85,10 +85,11 @@
         <a th:text="${#session == null ? 'REGISTER' : 'WITHDRAW'}"
            th:href="${#session == null ? '/account/register' : '/account/withdraw'}">REGISTER</a>
         <a th:if="${#session != null}" href="/account/manage">MANAGE</a>
+        <a href="/manage/console">ADMIN CONSOLE</a>
     </div>
 
     <div th:if="${totalPages > 0}">
-        <span th:each="i: ${#numbers.sequence(1, totalPages)}" th:classappend="${i-1 == currentPage} == true ? 'current' : ''">
+        <span th:each="i: ${#numbers.sequence(1, totalPages)}" th:classappend="${i - 1 == currentPage} == true ? 'current' : ''">
             <a th:href="@{/board/list(pageNum=${i - 1}, pageSize=${command.pageSize}, keyword=${searchKeyword}, mode=${searchMode})}" th:text="${i}">-</a>
         </span>
     </div>

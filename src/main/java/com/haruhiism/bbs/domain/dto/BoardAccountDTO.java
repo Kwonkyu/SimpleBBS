@@ -3,7 +3,12 @@ package com.haruhiism.bbs.domain.dto;
 import com.haruhiism.bbs.command.account.RegisterRequestCommand;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.format.DateTimeFormatter;
 
 @Getter
 @Setter
@@ -11,15 +16,23 @@ import lombok.*;
 @AllArgsConstructor
 public class BoardAccountDTO {
 
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private Long id;
     private String userId;
     private String username;
     private String rawPassword;
     private String email;
+    private String registeredDate;
+    private boolean available;
 
     public BoardAccountDTO(BoardAccount boardAccount){
+        this.id = boardAccount.getId();
         this.userId = boardAccount.getUserId();
         this.username = boardAccount.getUsername();
         this.email = boardAccount.getEmail();
+        this.registeredDate = formatter.format(boardAccount.getCreatedDateTime());
+        this.available = boardAccount.isAvailable();
     }
 
     public BoardAccountDTO(RegisterRequestCommand command) {
@@ -27,6 +40,7 @@ public class BoardAccountDTO {
         this.username = command.getUsername();
         this.rawPassword = command.getPassword();
         this.email = command.getEmail();
+        this.available = true;
     }
 
     public BoardAccountDTO(LoginSessionInfo loginSessionInfo){

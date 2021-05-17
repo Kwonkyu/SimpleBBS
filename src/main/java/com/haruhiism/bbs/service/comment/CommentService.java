@@ -6,13 +6,14 @@ import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 
 public interface CommentService {
 
-    public void createComment(BoardCommentDTO comment, AuthDTO authDTO);
+    void createComment(BoardCommentDTO comment, AuthDTO authDTO);
 
-    public BoardCommentsDTO readCommentsOfArticle(Long articleID, int pageNum, int pageSize);
+    BoardCommentsDTO readCommentsOfArticle(Long articleID, int pageNum, int pageSize);
 
-    public BoardCommentsDTO readCommentsOfAccount(String userId, int pageNum, int pageSize);
+    BoardCommentsDTO readCommentsOfAccount(String userId, int pageNum, int pageSize);
 
-    public BoardCommentDTO readComment(Long commentID);
+    BoardCommentDTO readComment(Long commentID);
 
-    public void deleteComment(Long commentID, AuthDTO authDTO);
+    void deleteComment(Long commentID, AuthDTO authDTO);
+
 }

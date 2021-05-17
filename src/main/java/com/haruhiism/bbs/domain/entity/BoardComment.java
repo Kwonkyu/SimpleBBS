@@ -51,6 +51,10 @@ public class BoardComment extends MACDate{
         this.writer = boardAccount.getUsername();
     }
 
+    public void changeWriter(String writer){
+        this.writer = writer;
+    }
+
     public boolean isWrittenByLoggedInAccount(){
         return boardAccount != null;
     }
