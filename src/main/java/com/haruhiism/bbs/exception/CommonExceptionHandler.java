@@ -15,16 +15,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @Slf4j
 public class CommonExceptionHandler {
 
-    // MethodArgumentNotValidException for @Valid, BindException for @ModelAttribute
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public String methodArgumentNotValid(Model model, BindException ex) {
-        model.addAttribute("errorTitle", "Transmitted Request Can Not Be Processed.");
-        model.addAttribute("errorDescription", "Request has incompatible parameter or something is wrong.");
-        log.error(ex.getLocalizedMessage());
-        return "error/request-failed";
-    }
-
     @ExceptionHandler(AuthenticationFailedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public String authenticationFailed(Model model, AuthenticationFailedException exception) {

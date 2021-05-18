@@ -10,14 +10,14 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 public class RegisterRequestCommand {
-    @NotBlank
+    @NotBlank(message = "ID cannot be empty.")
     private String userid;
-    @NotBlank
+    @NotBlank(message = "Name cannot be empty.")
     private String username;
-    @NotBlank
-    @Length(min = 4)
+    @NotBlank(message = "Password cannot be empty.")
+    @Length(min = 4, message = "Password should be at least 4 characters.")
     private String password;
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email cannot be empty.")
+    @Email(message = "Email format should be valid.")
     private String email;
 }

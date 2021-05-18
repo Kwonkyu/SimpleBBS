@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 @Controller
 @RequestMapping("/account")
@@ -47,6 +49,7 @@ public class AccountController {
             response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "account/register";
         }
+
         if(accountService.isDuplicatedUserID(command.getUserid())) {
             // when manually add field binding errors to binding result, use FieldError. Not ObjectError!
             bindingResult.addError(new FieldError("command", "userid", "Duplicated id."));
@@ -63,15 +66,22 @@ public class AccountController {
 
 
     @GetMapping("/withdraw")
-    public String requestWithdraw(){
+    public String requestWithdraw(@ModelAttribute("command") WithdrawRequestCommand command){
         return "account/withdraw";
     }
 
     @PostMapping("/withdraw")
     public String submitWithdraw(HttpServletResponse response,
                                  @ModelAttribute("command") @Valid WithdrawRequestCommand command,
+                                 BindingResult bindingResult,
                                  HttpSession session,
                                  @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo){
+
+        if(bindingResult.hasErrors()){
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            return "account/withdraw";
+        }
+
         try {
             accountService.withdrawAccount(
                     BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build(),
@@ -79,6 +89,7 @@ public class AccountController {
             session.invalidate();
         } catch (AuthenticationFailedException exception){
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "account/withdraw";
         }
 
@@ -87,15 +98,21 @@ public class AccountController {
 
 
     @GetMapping("/login")
-    public String requestLogin() {
+    public String requestLogin(@ModelAttribute(name = "command") LoginRequestCommand command) {
         return "account/login";
     }
 
     @PostMapping("/login")
     public String submitLogin(@ModelAttribute(name = "command") @Valid LoginRequestCommand command,
+                              BindingResult bindingResult,
                               HttpServletRequest request,
                               HttpServletResponse response){
-        // session object is always given when HttpSession parameter is set. session object is either newly generated session or existing session.
+
+        if(bindingResult.hasErrors()){
+            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            return "account/login";
+        }
+
         try {
             LoginSessionInfo loginResult = accountService.loginAccount(
                     BoardAccountDTO.builder().userId(command.getUserid()).build(),
@@ -104,6 +121,7 @@ public class AccountController {
             session.setAttribute(sessionAuthAttribute, loginResult);
         } catch (AuthenticationFailedException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            bindingResult.addError(new FieldError("command", "userid", "Id or Password is not matched."));
             return "account/login";
         }
 
@@ -119,13 +137,17 @@ public class AccountController {
 
 
     @GetMapping("/manage")
-    public String manage(@RequestParam(name = "articlePage", required = false, defaultValue = "0") int articlePage,
-                         @RequestParam(name = "commentPage", required = false, defaultValue = "0") int commentPage,
+    public String manage(@Valid AccountManageListCommand command,
+                         BindingResult bindingResult,
                          Model model,
                          @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo) {
 
-        BoardArticlesDTO boardArticles = articleService.readArticlesOfAccount(loginSessionInfo.getUserID(), articlePage, 10);
-        BoardCommentsDTO boardComments = commentService.readCommentsOfAccount(loginSessionInfo.getUserID(), commentPage, 10);
+        if (bindingResult.hasErrors()) {
+            return "redirect:/account/manage";
+        }
+
+        BoardArticlesDTO boardArticles = articleService.readArticlesOfAccount(loginSessionInfo.getUserID(), command.getArticlePage(), 10);
+        BoardCommentsDTO boardComments = commentService.readCommentsOfAccount(loginSessionInfo.getUserID(), command.getCommentPage(), 10);
         BoardAccountLevelDTO accountLevels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
 
         model.addAttribute("userInfo", loginSessionInfo);
@@ -144,22 +166,26 @@ public class AccountController {
 
 
     @GetMapping("/manage/change")
-    public String requestChangePersonalInformation(@Valid InfoUpdateRequestCommand command,
+    public String requestChangePersonalInformation(@ModelAttribute("command") InfoUpdateRequestCommand command,
+                                                   BindingResult bindingResult,
                                                    @SessionAttribute("loginSessionInfo") LoginSessionInfo loginSessionInfo,
                                                    Model model) {
-        model.addAttribute("attributeType", command.getMode().name());
+
+        if(bindingResult.hasErrors()){
+            return "redirect:/account/manage";
+        }
 
         switch(command.getMode()){
             case password:
-                model.addAttribute("attributeValue", "********");
+                model.addAttribute("previousValue", "********");
                 break;
 
             case email:
-                model.addAttribute("attributeValue", loginSessionInfo.getEmail());
+                model.addAttribute("previousValue", loginSessionInfo.getEmail());
                 break;
 
             case username:
-                model.addAttribute("attributeValue", loginSessionInfo.getUsername());
+                model.addAttribute("previousValue", loginSessionInfo.getUsername());
                 break;
         }
 
@@ -169,8 +195,16 @@ public class AccountController {
     @PostMapping("/manage/change")
     public String submitChangePersonalInformation(HttpSession session,
                                                   HttpServletResponse response,
-                                                  @Valid InfoUpdateSubmitCommand command,
+                                                  Model model,
+                                                  @ModelAttribute("command") @Valid InfoUpdateRequestCommand command,
+                                                  BindingResult bindingResult,
                                                   @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo){
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("previousValue", command.getPrevious());
+            return "account/change";
+        }
+
         try {
             LoginSessionInfo updateResult = accountService.updateAccount(
                     new BoardAccountDTO(loginSessionInfo),
@@ -180,10 +214,12 @@ public class AccountController {
 
             session.setAttribute(sessionAuthAttribute, updateResult);
         } catch (AuthenticationFailedException exception) {
-            // TODO: send to password input view with selected update field and value when auth failed.
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            model.addAttribute("previousValue", command.getPrevious());
+            bindingResult.addError(new FieldError("command", "auth", "Authentication string not matched."));
             return "account/change";
         }
+
         return "redirect:/account/manage";
     }
 }
