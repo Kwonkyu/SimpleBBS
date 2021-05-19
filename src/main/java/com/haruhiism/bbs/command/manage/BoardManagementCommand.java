@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class BoardManagementCommand {
 
-    @NotNull
+    @NotNull(message = "Board management operation should not be null.")
     BoardManagementOperation operation;
 
     List<Long> target = new ArrayList<>();

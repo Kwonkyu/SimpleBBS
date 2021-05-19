@@ -61,10 +61,10 @@
             <tr>
                 <td>
                     <select name="mode">
-                        <option value="WRITER" th:selected="'WRITER' == ${searchMode}">Writer</option>
-                        <option value="TITLE" th:selected="'TITLE' == ${searchMode}">Title</option>
-                        <option value="CONTENT" th:selected="'CONTENT' == ${searchMode}">Content</option>
-                        <option value="TITLE_CONTENT" th:selected="'TITLE_CONTENT' == ${searchMode}">Title & Content</option>
+                        <option value="WRITER" th:selected="${'WRITER' eq searchMode}">Writer</option>
+                        <option value="TITLE" th:selected="${'TITLE' eq searchMode}">Title</option>
+                        <option value="CONTENT" th:selected="${'CONTENT' eq searchMode}">Content</option>
+                        <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT' eq searchMode}">Title & Content</option>
                     </select>
                 </td>
                 <td>
@@ -78,14 +78,11 @@
     </form>
 
     <div>
-        <a href="/board/list">LIST</a>
-        <a href="/board/write">WRITE</a>
-        <a th:href="${#session == null ? '/account/login' : '/account/logout'}"
-           th:text="${#session == null ? 'LOGIN' : 'LOGOUT'}">LOGIN/LOGOUT</a>
-        <a th:text="${#session == null ? 'REGISTER' : 'WITHDRAW'}"
-           th:href="${#session == null ? '/account/register' : '/account/withdraw'}">REGISTER</a>
-        <a th:if="${#session != null}" href="/account/manage">MANAGE</a>
-        <a href="/manage/console">ADMIN CONSOLE</a>
+        <span><a href="/board/list">LIST</a></span>
+        <span><a href="/board/write">WRITE</a></span>
+        <span th:each="link: ${links}" th:object="${link}">
+            <a th:text="*{key}" th:href="*{value}">/link/to/destination</a>
+        </span>
     </div>
 
     <div th:if="${totalPages > 0}">

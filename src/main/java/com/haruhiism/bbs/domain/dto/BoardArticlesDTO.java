@@ -7,17 +7,15 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-@Builder
-public class BoardArticlesDTO {
+public class BoardArticlesDTO extends DTOContainer {
 
     private List<BoardArticleDTO> boardArticles;
     private List<Integer> boardArticleCommentSize;
 
-    private int currentPage;
-    private int totalPages;
-
-    @Override
-    public String toString() {
-        return String.format("[%d] articles with page %d of %d.\n", boardArticles.size(), currentPage, totalPages);
+    @Builder
+    public BoardArticlesDTO(int currentPage, int totalPages, List<BoardArticleDTO> boardArticles, List<Integer> boardArticleCommentSize){
+        super(currentPage, totalPages);
+        this.boardArticles = boardArticles;
+        this.boardArticleCommentSize = boardArticleCommentSize;
     }
 }

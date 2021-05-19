@@ -1,7 +1,7 @@
-package com.haruhiism.bbs.command.article;
+package com.haruhiism.bbs.command.manage;
 
 import com.haruhiism.bbs.command.DateBasedListCommand;
-import com.haruhiism.bbs.domain.ArticleSearchMode;
+import com.haruhiism.bbs.domain.CommentSearchMode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,8 +9,8 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
-public class ArticleListCommand extends DateBasedListCommand {
+public class CommentListCommand extends DateBasedListCommand {
 
     @NotNull(message = "Search mode cannot be null.")
-    private ArticleSearchMode mode = ArticleSearchMode.TITLE;
+    CommentSearchMode mode = CommentSearchMode.CONTENT;
 }

@@ -16,29 +16,20 @@
         th {
             border: 1px solid black;
         }
-
-        ul {
-            display: inline;
-        }
     </style>
 </head>
 <body>
   <div>
     <h1>MANAGEMENT CONSOLE</h1>
-    <h3 th:text="${'Welcome Back, ' + loginSessionInfo.username}"></h3>
-    <li th:each="level: ${levels}">
-        <ul th:text="${level}">ACCOUNT LEVEL HERE</ul>
-    </li>
+    <h3 th:text="|Welcome Back, ${userInfo.username}|"></h3>
   </div>
 
   <div>
       <table>
           <tr>
-              <th><a href="/board/list">BOARD</a></th>
-              <th>CONSOLE</th>
-              <th><a href="/manage/console/article">ARTICLES</a></th>
-              <th><a href="/manage/console/comment">COMMENTS</a></th>
-              <th><a href="/manage/console/account">ACCOUNTS</a></th>
+              <th th:each="link: ${links}">
+                  <a th:text="${link.getKey()}" th:href="${link.getValue()}">/link/to/destination</a>
+              </th>
           </tr>
       </table>
   </div>

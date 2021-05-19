@@ -7,41 +7,35 @@
 <body>
 <div>
     <form method="post" action="/board/edit/submit" enctype="multipart/form-data" th:object="${article}">
-        <input type="hidden" name="articleID" th:value="${article.id}">
+        <input type="hidden" name="id" th:value="*{id}">
         <table>
             <tr>
                 <td>
-                    <label for="form-writer">WRITER</label>
+                    <span>WRITER</span>
                 </td>
-
-                <td th:unless="${article.isWrittenByAccount()}">
-                    <input id="form-writer" name="writer" type="text" th:value="${article.writer}" readonly>
-                </td>
-                <td th:if="${article.isWrittenByAccount()}">
-                    <span th:text="${article.writer}"></span>
-                    <input name="writer" th:value="${article.writer}" hidden>
+                <td>
+                    <input type="hidden" name="writer" th:value="*{writer}">
+                    <span th:text="*{writer}"></span>
                 </td>
             </tr>
+
             <tr>
-                <td th:unless="${article.isWrittenByAccount()}">
-                    <label for="form-password">PASSWORD</label>
+                <td>
+                    <span>PASSWORD</span>
                 </td>
-
-                <td th:if="${article.isWrittenByAccount()}">
-                    <input name="password" value="PASSWORD" hidden>
-                </td>
-                <td th:unless="${article.isWrittenByAccount()}">
-                    <input id="form-password" name="password" type="password" th:value="${article.password}" readonly>
+                <td>
+                    <input type="hidden" name="password" th:value="${password}">
                 </td>
             </tr>
+
             <tr>
                 <td>
                     <label for="form-title">TITLE</label>
                 </td>
                 <td>
-                    <input id="form-title" name="title" type="text" th:value="${#fields.hasErrors('title') == false ? article.title : ''}" maxlength="255" required>
+                    <input id="form-title" name="title" type="text" th:value="*{title}" maxlength="255" required>
                 </td>
-                <td th:if="${#fields.hasErrors('title')}" th:errors="${article.title}">Title is not valid.</td>
+                <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error string.</td>
             </tr>
 
             <tr>
@@ -49,17 +43,17 @@
                     <label for="form-content">CONTENT</label>
                 </td>
                 <td>
-                    <textarea id="form-content" name="content" th:text="${#fields.hasErrors('content') == false ? article.content : ''}" maxlength="65535" required></textarea>
+                    <textarea id="form-content" name="content" th:text="*{content}" maxlength="65535" required></textarea>
                 </td>
-                <td th:if="${#fields.hasErrors('content')}" th:errors="${article.content}">Content is not valid.</td>
+                <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content error string.</td>
             </tr>
 
-            <tr th:each="resource: ${resources}">
+            <tr th:each="resource: ${resources}" th:object="${resource}">
                 <td>
-                    <label th:for="${'file-'+resource.filename}" th:text="${resource.filename}"></label>
-                    <input th:id="${'file-'+resource.filename}"
+                    <label th:for="|file-*{filename}|" th:text="*{filename}"></label>
+                    <input th:id="|file-*{filename}|"
                            th:name="delete"
-                           th:value="${resource.hashedFilename}"
+                           th:value="*{hashedFilename}"
                            type="checkbox" >
                 </td>
             </tr>

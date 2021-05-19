@@ -146,7 +146,6 @@ public class BasicArticleService implements ArticleService {
 
         if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
             deletedArticle.delete();
-            // TODO: 댓글에 직접 접근하는 것도 막아야 할까?
         } else {
             throw new AuthenticationFailedException();
         }

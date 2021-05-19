@@ -9,16 +9,15 @@ import com.haruhiism.bbs.domain.dto.BoardAccountsDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
-import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import com.haruhiism.bbs.service.PageUtility;
+import com.haruhiism.bbs.service.account.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 
@@ -41,6 +39,8 @@ public class BasicManageService implements AccountManagerService, ArticleManager
     private final CommentRepository commentRepository;
     private final AccountRepository accountRepository;
     private final AccountLevelRepository accountLevelRepository;
+
+    private final AccountService accountService;
 
     private final PageUtility pageUtility;
 
@@ -220,14 +220,10 @@ public class BasicManageService implements AccountManagerService, ArticleManager
         return accountRepository.count();
     }
 
-
     @Override
-    @Transactional(readOnly = true)
-    public List<AccountLevel> getLevelOfAccount(BoardAccountDTO boardAccountDTO) {
-        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId())
-                .orElseThrow(NoAccountFoundException::new);
-        return accountLevelRepository.findAllByBoardAccount(boardAccount)
-                .stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toList());
+    public boolean authManagerAccess(String userId) {
+        List<AccountLevel> levelOfAccount = accountService.getAccountLevels(BoardAccountDTO.builder().userId(userId).build()).getLevels();
+        return levelOfAccount.contains(AccountLevel.BOARD_MANAGER) || levelOfAccount.contains(AccountLevel.ACCOUNT_MANAGER);
     }
 
     @Override

@@ -7,29 +7,30 @@
 </head>
 <body>
 
+<h1>REGISTER NEW ACCOUNT</h1>
+
 <form action="/account/register" method="post" th:object="${command}">
     <table>
-        <caption>REGISTER</caption>
         <tr>
             <td><label for="id-form">ID</label></td>
             <td><input id="id-form" name="userid" type="text" th:value="*{userid}" required></td>
-            <td><span th:if="${#fields.hasErrors('userid')}" th:errors="*{userid}"></span></td>
+            <td><span th:if="${#fields.hasErrors('userid')}" th:errors="*{userid}">UserId Error Message</span></td>
             <!-- *{} for accessing fields of th:object's object. -->
         </tr>
         <tr>
             <td><label for="name-form">NAME</label></td>
             <td><input id="name-form" name="username" type="text" th:value="*{username}" required></td>
-            <td><span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span></td>
+            <td><span th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username Error Message</span></td>
         </tr>
         <tr>
             <td><label for="password-form">PASSWORD</label></td>
             <td><input id="password-form" name="password" type="password" th:value="*{password}" required></td>
-            <td><span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span></td>
+            <td><span th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password Error Message</span></td>
         </tr>
         <tr>
             <td><label for="email-form">EMAIL</label></td>
             <td><input id="email-form" name="email" type="email" th:value="*{email}" required></td>
-            <td><span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span></td>
+            <td><span th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error Message</span></td>
         </tr>
         <tr>
             <td><input type="submit" value="Register"></td>

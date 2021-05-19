@@ -155,7 +155,6 @@ public class ArticleMvcTest {
         mockMvc.perform(get("/board/read")
                 .param("id", "abcd"))
                 .andExpect(status().isUnprocessableEntity());
-        // TODO: MethodArgumentTypeMismatchException for method parameter type mismatch? or BindException? What's difference?
     }
 
     @Test

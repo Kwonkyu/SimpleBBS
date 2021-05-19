@@ -11,9 +11,9 @@ import java.util.List;
 @Getter
 @Setter
 public class ArticleEditSubmitCommand extends ArticleSubmitCommand{
-    @NotNull
-    @Positive
-    private Long articleID;
+    @NotNull(message = "Article ID cannot be null.")
+    @Positive(message = "Article ID cannot be negative or zero.")
+    private Long id;
 
     private List<String> delete = new ArrayList<>();
 }

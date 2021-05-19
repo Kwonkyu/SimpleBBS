@@ -6,12 +6,14 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-@Builder
-public class BoardAccountsDTO {
-
-    private int currentPage;
-    private int totalPage;
+public class BoardAccountsDTO extends DTOContainer{
 
     private List<BoardAccountDTO> accounts;
 
+    @Builder
+    // https://www.baeldung.com/lombok-builder-inheritance
+    public BoardAccountsDTO(int currentPage, int totalPages, List<BoardAccountDTO> accounts){
+        super(currentPage, totalPages);
+        this.accounts = accounts;
+    }
 }

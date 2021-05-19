@@ -61,7 +61,7 @@ public class PageUtility {
     public BoardAccountsDTO convertBoardAccounts(Page<BoardAccount> result){
         return BoardAccountsDTO.builder()
                 .accounts(result.map(BoardAccountDTO::new).toList())
-                .totalPage(result.getTotalPages())
+                .totalPages(result.getTotalPages())
                 .currentPage(result.getNumber()).build();
     }
 
@@ -69,6 +69,6 @@ public class PageUtility {
         return BoardAccountsDTO.builder()
                 .accounts(new ArrayList<>())
                 .currentPage(0)
-                .totalPage(0).build();
+                .totalPages(0).build();
     }
 }

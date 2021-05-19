@@ -99,6 +99,8 @@ public class BasicAccountService implements AccountService {
                 accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new))
                 .stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toList());
 
-        return BoardAccountLevelDTO.builder().levels(userLevels).build();
+        return BoardAccountLevelDTO.builder()
+                .userId(boardAccountDTO.getUserId())
+                .levels(userLevels).build();
     }
 }
