@@ -9,10 +9,8 @@ import com.haruhiism.bbs.domain.dto.BoardAccountsDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
-import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
@@ -29,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 

@@ -1,9 +1,6 @@
 package com.haruhiism.bbs.interceptor;
 
-import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.manage.AccountManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,7 +9,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

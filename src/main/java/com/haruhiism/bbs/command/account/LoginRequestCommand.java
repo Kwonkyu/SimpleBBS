@@ -1,7 +1,6 @@
 package com.haruhiism.bbs.command.account;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;

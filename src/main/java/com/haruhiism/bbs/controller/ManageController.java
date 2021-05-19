@@ -1,11 +1,11 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.DateBasedListCommand;
-import com.haruhiism.bbs.command.manage.AccountListCommand;
 import com.haruhiism.bbs.command.article.ArticleListCommand;
-import com.haruhiism.bbs.command.manage.CommentListCommand;
+import com.haruhiism.bbs.command.manage.AccountListCommand;
 import com.haruhiism.bbs.command.manage.AccountManagementCommand;
 import com.haruhiism.bbs.command.manage.BoardManagementCommand;
+import com.haruhiism.bbs.command.manage.CommentListCommand;
 import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
@@ -217,7 +217,6 @@ public class ManageController {
                                         @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
 
         if (bindingResult.hasErrors()) {
-            // TODO: 알림용 페이지(alert 하나 띄우고 다른곳으로 redirect)를 하나 만들어서 사용?
             return "redirect:/manage/console/account";
         }
 

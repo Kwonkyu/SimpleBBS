@@ -2,7 +2,6 @@ package com.haruhiism.bbs.command.account;
 
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
