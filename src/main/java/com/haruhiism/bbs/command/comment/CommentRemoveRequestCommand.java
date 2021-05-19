@@ -11,9 +11,10 @@ import javax.validation.constraints.Positive;
 @Setter
 public class CommentRemoveRequestCommand {
 
-    @NotNull
-    @Positive
+    @NotNull(message = "Article ID cannot be null.", groups = {CommentRemoveRequestValidationGroup.class, CommentRemoveSubmitValidationGroup.class})
+    @Positive(message = "Article ID cannot be negative or zero.", groups = {CommentRemoveRequestValidationGroup.class, CommentRemoveSubmitValidationGroup.class})
     private Long id;
-    @NotBlank
+
+    @NotBlank(message = "Password cannot be empty.", groups = {CommentRemoveSubmitValidationGroup.class})
     private String password;
 }

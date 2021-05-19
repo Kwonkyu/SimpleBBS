@@ -6,23 +6,23 @@
 </head>
 <body>
 
-<div>
+<div th:object="${article}">
     <div>
-        <h1 th:text="${article.getTitle()}">Title</h1>
+        <h1 th:text="*{title}">Title</h1>
     </div>
     <div>
-        <h3 th:text="${article.writer}">Writer</h3>
-        <h3 th:if="${article.userId != ''}" th:text="${'(' + article.userId} + ')'">Writer</h3>
+        <h3 th:text="*{writer}">Writer</h3>
+        <h3 th:unless="*{userId.isBlank()}" th:text="|(*{userId})|">Writer</h3>
     </div>
     <div>
-        <h4 th:text="${'Written: ' + article.getCreatedDate() + ' / Modified: ' + article.getModifiedDate()}">CREATED/MODIFIED DATE</h4>
-        <h4 th:text="${'Hit: ' + article.getHit()}">HIT VALUE</h4>
+        <h4 th:text="|Written: *{createdDate} / Modified: *{modifiedDate}|">CREATED/MODIFIED DATE</h4>
+        <h4 th:text="|Hit: *{hit}|">HIT VALUE</h4>
     </div>
 
     <hr>
 
     <div>
-        <p th:text="${article.getContent()}">Content</p>
+        <p th:text="*{content}">Content</p>
     </div>
 
     <div th:unless="${resources.isEmpty()}">
@@ -40,7 +40,11 @@
             </tr>
         </table>
     </div>
+</div>
 
+<br>
+
+<div>
     <div>
         <a href="/board/list">List</a>
         <a th:href="@{/board/edit(id=${article.getId()})}">Edit</a>
@@ -49,29 +53,44 @@
 
     <div>
         <form action="/comment/create" method="post">
-            <input type="hidden" th:value="${article.getId()}" name="articleID">
+            <input type="hidden" th:value="${article.id}" name="articleID">
             <table>
-                <caption>WRITE YOUR COMMENT...</caption>
+                <caption>WRITE YOUR COMMENT</caption>
                 <tr>
-                    <th>WRITER</th><th th:if="${loginUsername == null}">PASSWORD</th><th>CONTENT</th>
+                    <th>
+                        <label for="form-writer">WRITER</label>
+                    </th>
+                    <th th:if="${loginUsername.isBlank()}">
+                        <label for="form-password">PASSWORD</label>
+                    </th>
+                    <th>
+                        <label for="form-content">CONTENT</label>
+                    </th>
                 </tr>
-                <tr>
-                    <td>
-                        <input th:if="${loginUsername == null}" type="text" name="writer" maxlength="64" required>
 
-                        <span th:unless="${loginUsername == null}" th:text="${loginUsername}"></span>
-                        <input th:unless="${loginUsername == null}" type="hidden" name="writer" th:value="${loginUsername}">
+                <tr>
+                    <td>
+                        <input id="form-writer" th:if="${loginUsername.isBlank()}" type="text" name="writer" maxlength="64" required>
+
+                        <span th:unless="${loginUsername.isBlank()}" th:text="${loginUsername}"></span>
+                        <input th:unless="${loginUsername.isBlank()}" type="hidden" name="writer" th:value="${loginUsername}">
                     </td>
                     <td>
-                        <input th:if="${loginUsername == null}" type="password" name="password" minlength="4" required>
-                        <input th:unless="${loginUsername == null}" type="hidden" name="password" value="THIS_IS_DUMMY_PASSWORD">
+                        <input id="form-password" th:if="${loginUsername.isBlank()}" type="password" name="password" minlength="4" required>
+                        <input th:unless="${loginUsername.isBlank()}" type="hidden" name="password" value="THIS_IS_DUMMY_PASSWORD">
                     </td>
-                    <td><input type="text" name="content" maxlength="255" required></td>
+                    <td>
+                        <input id="form-content" type="text" name="content" maxlength="255" required>
+                    </td>
+                    <td>
+                        <input type="submit" value="Submit">
+                    </td>
                 </tr>
-                <tr><td colspan="3"><input type="submit" value="Submit"></td></tr>
             </table>
         </form>
     </div>
+
+<br>
 
     <table>
         <caption>COMMENTS</caption>

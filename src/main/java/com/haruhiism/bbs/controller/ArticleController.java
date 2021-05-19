@@ -96,7 +96,7 @@ public class ArticleController {
         List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
 
         LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-        if(loginSessionInfo != null) model.addAttribute("loginUsername", loginSessionInfo.getUsername());
+        model.addAttribute("loginUsername", loginSessionInfo == null ? "" : loginSessionInfo.getUsername());
 
         model.addAttribute("article", article);
         model.addAttribute("comments", comments.getBoardComments());
