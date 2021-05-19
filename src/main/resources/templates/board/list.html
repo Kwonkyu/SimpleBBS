@@ -80,8 +80,8 @@
     <div>
         <span><a href="/board/list">LIST</a></span>
         <span><a href="/board/write">WRITE</a></span>
-        <span th:each="link: ${links}">
-            <a th:text="${link.getKey()}" th:href="${link.getValue()}">/link/to/destination</a>
+        <span th:each="link: ${links}" th:object="${link}">
+            <a th:text="*{key}" th:href="*{value}">/link/to/destination</a>
         </span>
     </div>
 

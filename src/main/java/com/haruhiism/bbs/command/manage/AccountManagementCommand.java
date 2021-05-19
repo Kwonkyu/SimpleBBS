@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class AccountManagementCommand {
 
-    @NotNull
+    @NotNull(message = "Account management operation should not be null.")
     AccountManagementOperation operation;
 
     List<Long> target = new ArrayList<>();

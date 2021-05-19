@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
@@ -14,5 +15,6 @@ import java.time.LocalDate;
 @Setter
 public class AccountListCommand extends DateBasedListCommand {
 
+    @NotNull(message = "Search mode cannot be null.")
     private AccountSearchMode mode = AccountSearchMode.USERNAME;
 }

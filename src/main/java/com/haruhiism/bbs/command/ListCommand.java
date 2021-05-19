@@ -10,9 +10,10 @@ import javax.validation.constraints.PositiveOrZero;
 @Getter
 @Setter
 public class ListCommand {
-    @PositiveOrZero
+    @PositiveOrZero(message = "Page index can't be negative.")
     private int pageNum = 0;
 
-    @Positive @Max(40)
+    @Positive(message = "Page size can't be negative or zero.")
+    @Max(value = 40, message = "Page size can't exceeds 40.")
     private int pageSize = 10;
 }

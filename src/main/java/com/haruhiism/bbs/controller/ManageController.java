@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -98,10 +99,17 @@ public class ManageController {
 
     @GetMapping("/console/article")
     public String articleManagementPage(@Valid ArticleListCommand command,
+                                        BindingResult bindingResult,
                                         Model model,
                                         @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
+
+        if(bindingResult.hasErrors()){
+            return "redirect:/manage/console/article";
+        }
+
         BoardArticlesDTO result;
         if(command.getKeyword().isBlank()) {
+            // TODO: ArticleService에 파라미터로 검색 조건을 설정하는 방식으로 통합?
             result = articleManagerService.readArticles(
                     command.getPageNum(), command.getPageSize(),
                     command.isBetweenDates() ? LocalDateTime.of(command.getFrom(), LocalTime.of(0, 0)) : LocalDateTime.MIN,
@@ -127,16 +135,20 @@ public class ManageController {
     }
 
     @PostMapping("/console/article")
-    public String submitArticleManagements(@Valid BoardManagementCommand command) {
-        List<Long> articleIds = command.getTarget();
-        switch (command.getOperation()) {
-            case DELETE:
-                articleManagerService.deleteArticles(articleIds);
-                break;
+    public String submitArticleManagements(@Valid BoardManagementCommand command,
+                                           BindingResult bindingResult) {
 
-            case RESTORE:
-                articleManagerService.restoreArticles(articleIds);
-                break;
+        if (!bindingResult.hasErrors()) {
+            List<Long> articleIds = command.getTarget();
+            switch (command.getOperation()) {
+                case DELETE:
+                    articleManagerService.deleteArticles(articleIds);
+                    break;
+
+                case RESTORE:
+                    articleManagerService.restoreArticles(articleIds);
+                    break;
+            }
         }
 
         return "redirect:/manage/console/article";
@@ -145,8 +157,14 @@ public class ManageController {
 
     @GetMapping("/console/comment")
     public String commentManagementPage(@Valid CommentListCommand command,
+                                        BindingResult bindingResult,
                                         Model model,
                                         @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
+
+        if (bindingResult.hasErrors()) {
+            return "redirect:/manage/console/comment";
+        }
+
         BoardCommentsDTO result;
         if(command.getKeyword().isBlank()){
             result = commentManagerService.readComments(
@@ -172,27 +190,36 @@ public class ManageController {
     }
 
     @PostMapping("/console/comment")
-    public String submitCommentManagements(@Valid BoardManagementCommand command){
-        List<Long> commentIds = command.getTarget();
-        switch (command.getOperation()) {
-            case DELETE:
-                commentManagerService.deleteComments(commentIds);
-                break;
+    public String submitCommentManagements(@Valid BoardManagementCommand command,
+                                           BindingResult bindingResult){
 
-            case RESTORE:
-                commentManagerService.restoreComments(commentIds);
-                break;
+        if (!bindingResult.hasErrors()) {
+            List<Long> commentIds = command.getTarget();
+            switch (command.getOperation()) {
+                case DELETE:
+                    commentManagerService.deleteComments(commentIds);
+                    break;
+
+                case RESTORE:
+                    commentManagerService.restoreComments(commentIds);
+                    break;
+            }
         }
 
         return "redirect:/manage/console/comment";
-
     }
 
 
     @GetMapping("/console/account")
     public String accountManagementPage(@Valid AccountListCommand command,
+                                        BindingResult bindingResult,
                                         Model model,
                                         @SessionAttribute(sessionAuthAttribute)LoginSessionInfo loginSessionInfo){
+
+        if (bindingResult.hasErrors()) {
+            // TODO: 알림용 페이지(alert 하나 띄우고 다른곳으로 redirect)를 하나 만들어서 사용?
+            return "redirect:/manage/console/account";
+        }
 
         BoardAccountsDTO accounts;
         if(command.getKeyword().isBlank()){
@@ -221,7 +248,13 @@ public class ManageController {
 
 
     @PostMapping("/console/account")
-    public String submitAccountManagements(@Valid AccountManagementCommand command) {
+    public String submitAccountManagements(@Valid AccountManagementCommand command,
+                                           BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            return "redirect:/manage/console/account";
+        }
+
         List<Long> target = command.getTarget();
         switch (command.getOperation()) {
             case INVALIDATE:
