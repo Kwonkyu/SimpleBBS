@@ -10,9 +10,10 @@ import javax.validation.constraints.PositiveOrZero;
 @Getter
 @Setter
 public class ArticleReadCommand {
-    @NotNull
-    @Positive
+    @NotNull(message = "Article ID cannot be null.")
+    @Positive(message = "Article ID cannot be negative.")
     private Long id;
-    @PositiveOrZero
+
+    @PositiveOrZero(message = "Comment page cannot be negative or zero.")
     private int commentPage = 0;
 }

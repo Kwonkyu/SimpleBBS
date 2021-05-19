@@ -9,7 +9,6 @@ import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,11 +16,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 
 @Controller
 @RequestMapping("/account")
@@ -42,11 +38,9 @@ public class AccountController {
 
     @PostMapping("/register")
     public String submitRegister(HttpServletRequest request,
-                                 HttpServletResponse response,
                                  @ModelAttribute("command") @Valid RegisterRequestCommand command,
                                  BindingResult bindingResult){
         if(bindingResult.hasErrors()) {
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "account/register";
         }
 
@@ -71,14 +65,12 @@ public class AccountController {
     }
 
     @PostMapping("/withdraw")
-    public String submitWithdraw(HttpServletResponse response,
-                                 @ModelAttribute("command") @Valid WithdrawRequestCommand command,
+    public String submitWithdraw(@ModelAttribute("command") @Valid WithdrawRequestCommand command,
                                  BindingResult bindingResult,
                                  HttpSession session,
                                  @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo){
 
         if(bindingResult.hasErrors()){
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "account/withdraw";
         }
 
@@ -88,7 +80,6 @@ public class AccountController {
                     AuthDTO.builder().rawPassword(command.getPassword()).build());
             session.invalidate();
         } catch (AuthenticationFailedException exception){
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "account/withdraw";
         }
@@ -105,11 +96,9 @@ public class AccountController {
     @PostMapping("/login")
     public String submitLogin(@ModelAttribute(name = "command") @Valid LoginRequestCommand command,
                               BindingResult bindingResult,
-                              HttpServletRequest request,
-                              HttpServletResponse response){
+                              HttpServletRequest request){
 
         if(bindingResult.hasErrors()){
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
             return "account/login";
         }
 
@@ -120,7 +109,6 @@ public class AccountController {
             HttpSession session = request.getSession();
             session.setAttribute(sessionAuthAttribute, loginResult);
         } catch (AuthenticationFailedException e) {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             bindingResult.addError(new FieldError("command", "userid", "Id or Password is not matched."));
             return "account/login";
         }
@@ -194,7 +182,6 @@ public class AccountController {
 
     @PostMapping("/manage/change")
     public String submitChangePersonalInformation(HttpSession session,
-                                                  HttpServletResponse response,
                                                   Model model,
                                                   @ModelAttribute("command") @Valid InfoUpdateRequestCommand command,
                                                   BindingResult bindingResult,
@@ -214,7 +201,6 @@ public class AccountController {
 
             session.setAttribute(sessionAuthAttribute, updateResult);
         } catch (AuthenticationFailedException exception) {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             model.addAttribute("previousValue", command.getPrevious());
             bindingResult.addError(new FieldError("command", "auth", "Authentication string not matched."));
             return "account/change";
