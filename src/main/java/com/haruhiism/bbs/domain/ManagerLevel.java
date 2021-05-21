@@ -1,10 +1,9 @@
 package com.haruhiism.bbs.domain;
 
-public enum AccountLevel {
+public enum ManagerLevel {
     /**
-     * NORMAL: normal user.
      * BOARD_MANAGER: board articles/comments manager.
      * ACCOUNT_MANAGER: account manager.
      */
-    NORMAL, BOARD_MANAGER, ACCOUNT_MANAGER
+    BOARD_MANAGER, ACCOUNT_MANAGER
 }

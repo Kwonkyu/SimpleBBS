@@ -1,6 +1,6 @@
 package com.haruhiism.bbs.interceptor;
 
-import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.service.account.AccountService;
@@ -23,10 +23,10 @@ public class BoardManagerInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession(false);
         LoginSessionInfo loginSessionInfo = (LoginSessionInfo) session.getAttribute("loginSessionInfo");
-        List<AccountLevel> levels = accountService.getAccountLevels(
+        List<ManagerLevel> levels = accountService.getAccountLevels(
                 BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
 
-        if(levels.contains(AccountLevel.BOARD_MANAGER)) {
+        if(levels.contains(ManagerLevel.BOARD_MANAGER)) {
             return true;
         } else {
             response.sendRedirect("/manage/console");

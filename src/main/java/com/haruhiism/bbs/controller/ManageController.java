@@ -2,13 +2,11 @@ package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.DateBasedListCommand;
 import com.haruhiism.bbs.command.article.ArticleListCommand;
-import com.haruhiism.bbs.command.manage.AccountListCommand;
-import com.haruhiism.bbs.command.manage.AccountManagementCommand;
-import com.haruhiism.bbs.command.manage.BoardManagementCommand;
-import com.haruhiism.bbs.command.manage.CommentListCommand;
-import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.command.manage.*;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
+import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.manage.AccountManagerService;
 import com.haruhiism.bbs.service.manage.ArticleManagerService;
@@ -18,10 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -45,11 +41,11 @@ public class ManageController {
     private final String sessionAuthAttribute = "loginSessionInfo";
 
 
-    private Map<String, String> generateConsoleLinksByAccountLevel(List<AccountLevel> levels){
+    private Map<String, String> generateConsoleLinksByAccountLevel(List<ManagerLevel> levels){
         Map<String, String> links = new LinkedHashMap<>();
         links.put("BOARD", "/board/list");
         links.put("CONSOLE", "/manage/console");
-        for (AccountLevel level : levels) {
+        for (ManagerLevel level : levels) {
             switch(level){
                 case ACCOUNT_MANAGER:
                     links.put("ACCOUNTS", "/manage/console/account");
@@ -90,7 +86,7 @@ public class ManageController {
         model.addAttribute("signedAccounts", accountManagerService.countAllAccounts());
 
         model.addAttribute("userInfo", loginSessionInfo);
-        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
+        List<ManagerLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/management-console";
@@ -128,7 +124,7 @@ public class ManageController {
         model.addAttribute("commentSizes", result.getBoardArticleCommentSize());
         model.addAttribute("mode", command.getMode().name());
 
-        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
+        List<ManagerLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/article-console";
@@ -183,7 +179,7 @@ public class ManageController {
         model.addAttribute("comments", result.getBoardComments());
         model.addAttribute("mode", command.getMode().name());
 
-        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
+        List<ManagerLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/comment-console";
@@ -239,7 +235,7 @@ public class ManageController {
         model.addAttribute("accounts", accounts.getAccounts());
         model.addAttribute("mode", command.getMode().name());
 
-        List<AccountLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
+        List<ManagerLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build()).getLevels();
         model.addAttribute("links", generateConsoleLinksByAccountLevel(levels));
 
         return "admin/account-console";
@@ -274,6 +270,49 @@ public class ManageController {
         }
 
         return "redirect:/manage/console/account";
+    }
+
+
+    @GetMapping("/console/account/level")
+    public String manageAccountLevels(Model model,
+                                      @ModelAttribute("command")
+                                      @Validated(AccountLevelManagementRequestValidationGroup.class)
+                                      AccountLevelManagementCommand command,
+                                      BindingResult bindingResult) {
+
+        if(bindingResult.hasErrors()){
+            return "redirect:/manage/console/account";
+        }
+
+        List<ManagerLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(command.getId()).build()).getLevels();
+        model.addAttribute("accountLevels", levels);
+        model.addAttribute("levels", ManagerLevel.values());
+
+        return "admin/account-level-console";
+    }
+
+    @PostMapping("/console/account/level")
+    public String submitAccountLevelManagement(Model model,
+                                               @ModelAttribute("command")
+                                               @Validated(AccountLevelManagementSubmitValidationGroup.class)
+                                               AccountLevelManagementCommand command,
+                                               BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            return "admin/account-level-console";
+        }
+
+        try {
+            accountManagerService.changeManagerLevel(command.getId(), command.getLevelName(), command.getOperation().equals(AccountLevelManagementOperation.GRANT));
+        } catch (NoAccountFoundException exception) {
+            return "redirect:/manage/console/account";
+        }
+
+        List<ManagerLevel> levels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(command.getId()).build()).getLevels();
+        model.addAttribute("accountLevels", levels);
+        model.addAttribute("levels", ManagerLevel.values());
+
+        return "admin/account-level-console";
     }
 
 }

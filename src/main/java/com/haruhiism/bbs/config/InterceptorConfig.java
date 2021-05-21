@@ -39,7 +39,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(boardManagerInterceptor)
                 .addPathPatterns(
-                        "/manage/article",
+                        "/manage/article/**",
                         "/manage/comment");
 
         registry.addInterceptor(accountManagerInterceptor)
