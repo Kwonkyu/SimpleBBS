@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BCryptDataEncoder implements DataEncoder{
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public String encode(String string) {
@@ -15,6 +15,7 @@ public class BCryptDataEncoder implements DataEncoder{
 
     @Override
     public boolean compare(String rawString, String encodedString) {
+        if(rawString == null || encodedString == null) return false;
         return passwordEncoder.matches(rawString, encodedString);
     }
 }

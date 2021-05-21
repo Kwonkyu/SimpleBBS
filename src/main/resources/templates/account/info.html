@@ -27,19 +27,33 @@
                     <td><span th:text="|Username: *{username}|">Username: USERNAME</span></td>
                     <td><a th:href="@{/account/manage/change(mode=username)}">CHANGE</a></td>
                 </tr>
+
                 <tr>
-                    <td><span th:text="|UserID: *{userID}|">UserID: USERID</span></td>
+                    <td><span th:text="|UserID: *{userId}|">UserID: USERID</span></td>
                 </tr>
+
                 <tr>
                     <td><span>Password: ********</span></td>
                     <td><a th:href="@{/account/manage/change(mode=password)}">CHANGE</a></td>
                 </tr>
+
                 <tr>
                     <td><span th:text="|Registered Date: *{registeredDate}|">Registered Date: 0000-00-00</span></td>
                 </tr>
+
                 <tr>
-                    <td><span th:text="|Your EMAIL: *{email}|">Your EMAIL: -</span></td>
+                    <td><span th:text="|EMAIL: *{email}|">Your EMAIL: -</span></td>
                     <td><a th:href="@{/account/manage/change(mode=email)}">CHANGE</a></td>
+                </tr>
+
+                <tr>
+                    <td><span th:text="|Account Restore Question: *{getRecoveryQuestion}|">Question</span></td>
+                    <td><a th:href="@{/account/manage/change(mode=question)}">CHANGE</a></td>
+                </tr>
+
+                <tr>
+                    <td><span th:text="|Account Restore Answer: *{getRecoveryAnswer}|">Answer</span></td>
+                    <td><a th:href="@{/account/manage/change(mode=answer)}">CHANGE</a></td>
                 </tr>
             </table>
         </div>

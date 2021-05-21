@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Restore - SimpleBBS</title>
+    <style>
+      table {
+        border: 1px solid black;
+      }
+
+      td {
+        border: 1px solid black;
+      }
+
+      th {
+        border: 1px solid black;
+      }
+
+      ul {
+        display: inline;
+      }
+
+      span.current {
+        font-weight: 800;
+      }
+    </style>
+</head>
+<body>
+
+<h1>ACCOUNT RESTORE</h1>
+<h3>Please fill recovery question's answer</h3>
+
+<div th:object="${command}">
+    <form action="/account/recovery/submit" method="post">
+        <input type="hidden" name="userId" th:value="*{userId}">
+      <table>
+          <tr>
+              <td><span th:text="|Recovery question for *{userId}|">Recovery Question for account</span></td>
+              <td><span><b th:text="${question}">Question String here</b></span></td>
+          </tr>
+
+          <tr>
+              <td><label for="form-answer">Recovery Answer for account</label></td>
+              <td><input id="form-answer" type="text" name="answer" required></td>
+              <td><span th:if="${#fields.hasErrors('answer')}" th:errors="*{answer}">Answer error string.</span></td>
+          </tr>
+
+          <tr>
+              <td><label for="form-password">Change Password</label></td>
+              <td><input id="form-password" type="password" name="newPassword" required></td>
+              <td><span th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}">Password error string.</span></td>
+          </tr>
+
+          <tr>
+              <td colspan="2"><input type="submit"></td>
+          </tr>
+      </table>
+    </form>
+</div>
+
+</body>
+</html>

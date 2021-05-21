@@ -11,6 +11,8 @@ import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 
 public interface AccountService {
 
+    BoardAccountDTO readAccount(BoardAccountDTO boardAccountDTO);
+
     void registerAccount(BoardAccountDTO boardAccountDTO);
 
     void withdrawAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;

@@ -12,4 +12,5 @@ import lombok.Setter;
 public class AuthDTO {
     private String rawPassword;
     private LoginSessionInfo loginSessionInfo;
+    private String recoveryAnswer;
 }

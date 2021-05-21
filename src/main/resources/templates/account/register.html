@@ -33,6 +33,16 @@
             <td><span th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error Message</span></td>
         </tr>
         <tr>
+            <td><label for="question-form">RECOVERY QUESTION</label></td>
+            <td><input id="question-form" name="recoveryQuestion" type="text" th:value="*{recoveryQuestion}" required></td>
+            <td><span th:if="${#fields.hasErrors('recoveryQuestion')}" th:errors="*{recoveryQuestion}">Question Error Message</span></td>
+        </tr>
+        <tr>
+            <td><label for="answer-form">RECOVERY ANSWER</label></td>
+            <td><input id="answer-form" name="recoveryAnswer" type="text" th:value="*{recoveryAnswer}" required></td>
+            <td><span th:if="${#fields.hasErrors('recoveryAnswer')}" th:errors="*{recoveryAnswer}">Answer Error Message</span></td>
+        </tr>
+        <tr>
             <td><input type="submit" value="Register"></td>
         </tr>
     </table>

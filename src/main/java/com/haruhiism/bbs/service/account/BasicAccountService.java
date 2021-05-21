@@ -31,19 +31,26 @@ public class BasicAccountService implements AccountService {
 
 
     @Override
+    public BoardAccountDTO readAccount(BoardAccountDTO boardAccountDTO) {
+        return new BoardAccountDTO(accountRepository.findByUserId(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new));
+    }
+
+    @Override
     public void registerAccount(BoardAccountDTO boardAccountDTO) {
         BoardAccount boardAccount = new BoardAccount(
                 boardAccountDTO.getUserId(),
                 boardAccountDTO.getUsername(),
                 dataEncoder.encode(boardAccountDTO.getRawPassword()),
                 boardAccountDTO.getEmail(),
-                true);
+                true,
+                boardAccountDTO.getRecoveryQuestion(),
+                boardAccountDTO.getRecoveryAnswer());
         accountRepository.save(boardAccount);
     }
 
     @Override
     public void withdrawAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws NoAccountFoundException {
-        authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword()).invalidate();
+        authenticateAccount(boardAccountDTO.getUserId(), authDTO).invalidate();
     }
 
     @Override
@@ -53,10 +60,10 @@ public class BasicAccountService implements AccountService {
     }
 
     @Transactional(readOnly = true)
-    public BoardAccount authenticateAccount(String userId, String rawPassword) throws NoAccountFoundException, AuthenticationFailedException {
+    public BoardAccount authenticateAccount(String userId, AuthDTO authDTO) throws NoAccountFoundException, AuthenticationFailedException {
         BoardAccount account = accountRepository.findByUserIdAndAvailableTrue(userId).orElseThrow(NoAccountFoundException::new);
 
-        if(dataEncoder.compare(rawPassword, account.getPassword())){
+        if(dataEncoder.compare(authDTO.getRawPassword(), account.getPassword()) || account.getRecoveryAnswer().equals(authDTO.getRecoveryAnswer())){
             return account;
         } else {
             throw new AuthenticationFailedException();
@@ -65,13 +72,13 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public LoginSessionInfo loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) {
-        return new LoginSessionInfo(authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword()));
+        return new LoginSessionInfo(authenticateAccount(boardAccountDTO.getUserId(), authDTO));
     }
 
 
     @Override
     public LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) {
-        BoardAccount account = authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword());
+        BoardAccount account = authenticateAccount(boardAccountDTO.getUserId(), authDTO);
         switch(updatedField){
             case username:
                 account.changeUsername(updatedValue);
@@ -83,6 +90,14 @@ public class BasicAccountService implements AccountService {
 
             case password:
                 account.changePassword(dataEncoder.encode(updatedValue));
+                break;
+
+            case question:
+                account.changeRestoreQuestion(updatedValue);
+                break;
+
+            case answer:
+                account.changeRestoreAnswer(updatedValue);
                 break;
         }
 
