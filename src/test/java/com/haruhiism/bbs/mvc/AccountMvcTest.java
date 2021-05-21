@@ -1,7 +1,6 @@
 package com.haruhiism.bbs.mvc;
 
 
-import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -140,8 +139,8 @@ public class AccountMvcTest {
     void submitInvalidWithdrawTest() throws Exception {
         // given
         accountService.registerAccount(
-                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
-                AccountLevel.NORMAL);
+                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail)
+        );
 
         LoginSessionInfo loginSessionInfo = accountService.loginAccount(
                 BoardAccountDTO.builder().userId(testUserId).build(),
@@ -165,8 +164,8 @@ public class AccountMvcTest {
     void submitInvalidLoginTest() throws Exception {
         // given
         accountService.registerAccount(
-                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
-                AccountLevel.NORMAL);
+                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail)
+        );
 
         HttpHeaders params = new HttpHeaders();
         params.set("userid", "");
@@ -205,8 +204,8 @@ public class AccountMvcTest {
     void submitInvalidInfoUpdateTest() throws Exception {
         // given
         accountService.registerAccount(
-                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail),
-                AccountLevel.NORMAL);
+                new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail)
+        );
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("loginSessionInfo", accountService.loginAccount(

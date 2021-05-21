@@ -1,6 +1,6 @@
 package com.haruhiism.bbs.domain.dto;
 
-import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,5 +11,5 @@ import java.util.List;
 public class BoardAccountLevelDTO {
 
     private String userId;
-    private List<AccountLevel> levels;
+    private List<ManagerLevel> levels;
 }

@@ -1,6 +1,6 @@
 package com.haruhiism.bbs.service.account;
 
-import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -13,7 +13,6 @@ import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.service.article.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +27,11 @@ public class BasicAccountService implements AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountLevelRepository accountLevelRepository;
-    private final ArticleService articleService;
     private final DataEncoder dataEncoder;
 
 
     @Override
-    public void registerAccount(BoardAccountDTO boardAccountDTO, AccountLevel level) {
+    public void registerAccount(BoardAccountDTO boardAccountDTO) {
         BoardAccount boardAccount = new BoardAccount(
                 boardAccountDTO.getUserId(),
                 boardAccountDTO.getUsername(),
@@ -41,8 +39,6 @@ public class BasicAccountService implements AccountService {
                 boardAccountDTO.getEmail(),
                 true);
         accountRepository.save(boardAccount);
-
-        accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
     }
 
     @Override
@@ -95,7 +91,7 @@ public class BasicAccountService implements AccountService {
 
     @Override
     public BoardAccountLevelDTO getAccountLevels(BoardAccountDTO boardAccountDTO) throws NoAccountFoundException {
-        List<AccountLevel> userLevels = accountLevelRepository.findAllByBoardAccount(
+        List<ManagerLevel> userLevels = accountLevelRepository.findAllByBoardAccount(
                 accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new))
                 .stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toList());
 

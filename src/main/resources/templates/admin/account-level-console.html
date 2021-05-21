@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Management Console - Account Level</title>
+</head>
+<body>
+
+<div>
+    <h1>ACCOUNT LEVEL MANAGEMENT CONSOLE</h1>
+</div>
+
+<div th:object="${command}">
+    <span th:text="|Account ID: *{id}|">Account ID: -</span>
+    <br>
+    <span th:if="${#fields.hasErrors('id')}" th:errors="*{id}">Id Error String</span>
+    <span th:if="${#fields.hasErrors('levelName')}" th:errors="*{levelName}">Id Error String</span>
+    <span th:if="${#fields.hasErrors('operation')}" th:errors="*{operation}">Id Error String</span>
+</div>
+
+<div>
+    <span>ACCOUNT LEVELS</span>
+    <table>
+        <tr th:each="level, index: ${levels}">
+            <td>
+                <span th:text="${index.index}">0</span>
+            </td>
+            <td>
+                <span th:text="${level}">LEVEL</span>
+            </td>
+            <td>
+                <form method="post" action="#">
+<!--                    <input type="hidden" name="id" th:value="${command.id}">-->
+                    <input type="hidden" name="levelName" th:value="${level}">
+                    <input type="submit" name="operation" value="GRANT" th:disabled="${accountLevels.contains(level)}">
+                </form>
+            </td>
+            <td>
+                <form method="post" action="#">
+<!--                    <input type="hidden" name="id" th:value="${command.id}">-->
+                    <input type="hidden" name="levelName" th:value="${level}">
+                    <input type="submit" name="operation" value="REVOKE" th:disabled="${!accountLevels.contains(level)}">
+                </form>
+            </td>
+        </tr>
+    </table>
+    <a href="/manage/console/account">BACK</a>
+</div>
+
+</body>
+</html>

@@ -1,6 +1,5 @@
 package com.haruhiism.bbs.service;
 
-import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -47,7 +46,7 @@ class AccountServiceTest {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
         // when
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
         // then
         assertFalse(accountRepository.findByUserIdAndAvailableTrue(testUserId).isEmpty());
 
@@ -84,7 +83,7 @@ class AccountServiceTest {
     void withdrawAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.withdrawAccount(
@@ -107,7 +106,7 @@ class AccountServiceTest {
     void loginAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         assertThrows(AuthenticationFailedException.class, () -> {
@@ -142,7 +141,7 @@ class AccountServiceTest {
     void updateUsernameTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.updateAccount(
@@ -162,7 +161,7 @@ class AccountServiceTest {
     void updateEmailTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.updateAccount(
@@ -182,7 +181,7 @@ class AccountServiceTest {
     void updatePasswordTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.updateAccount(

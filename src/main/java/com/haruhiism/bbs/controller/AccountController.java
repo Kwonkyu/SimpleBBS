@@ -1,7 +1,6 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.account.*;
-import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
@@ -50,7 +49,7 @@ public class AccountController {
             return "account/register";
         }
 
-        accountService.registerAccount(new BoardAccountDTO(command), AccountLevel.NORMAL);
+        accountService.registerAccount(new BoardAccountDTO(command));
         HttpSession session = request.getSession();
         session.setAttribute(sessionAuthAttribute, accountService.loginAccount(
                 BoardAccountDTO.builder().userId(command.getUserid()).build(),

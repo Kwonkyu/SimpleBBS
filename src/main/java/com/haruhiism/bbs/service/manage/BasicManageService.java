@@ -1,16 +1,18 @@
 package com.haruhiism.bbs.service.manage;
 
-import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.AccountSearchMode;
 import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.CommentSearchMode;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountsDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
+import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
@@ -27,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -222,8 +225,20 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     public boolean authManagerAccess(String userId) {
-        List<AccountLevel> levelOfAccount = accountService.getAccountLevels(BoardAccountDTO.builder().userId(userId).build()).getLevels();
-        return levelOfAccount.contains(AccountLevel.BOARD_MANAGER) || levelOfAccount.contains(AccountLevel.ACCOUNT_MANAGER);
+        return !accountService.getAccountLevels(BoardAccountDTO.builder().userId(userId).build()).getLevels().isEmpty();
+    }
+
+    @Override
+    public void changeManagerLevel(String userId, ManagerLevel level, boolean enable) {
+        BoardAccount boardAccount = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+        Set<ManagerLevel> managerLevels = accountLevelRepository.findAllByBoardAccount(boardAccount).stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toSet());
+
+        if(enable && !managerLevels.contains(level)) {
+            accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
+        }
+        else if(!enable && managerLevels.contains(level)) {
+            accountLevelRepository.deleteByBoardAccountAndAccountLevel(boardAccount, level);
+        }
     }
 
     @Override
