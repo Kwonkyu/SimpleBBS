@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Management Console</title>
+    <style>
+        table {
+            border: 1px solid black;
+        }
+
+        td {
+            border: 1px solid black;
+        }
+
+        th {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+  <div>
+    <h1>MANAGEMENT CONSOLE</h1>
+    <h3 th:text="|Welcome Back, ${userInfo.username}|"></h3>
+  </div>
+
+  <div>
+      <table>
+          <tr>
+              <th th:each="link: ${links}">
+                  <a th:text="${link.getKey()}" th:href="${link.getValue()}">/link/to/destination</a>
+              </th>
+          </tr>
+      </table>
+  </div>
+  <br>
+  <div>
+      <table>
+          <tr>
+              <td>Written articles</td>
+              <td th:text="${writtenArticles}">COUNT OF WRITTEN ARTICLES HERE</td>
+              <td>Deleted articles</td>
+              <td th:text="${deletedArticles}">COUNT OF DELETED ARTICLES HERE</td>
+          </tr>
+          <tr>
+              <td>Written comments</td>
+              <td th:text="${writtenComments}">COUNT OF WRITTEN COMMENTS HERE</td>
+              <td>Deleted comments</td>
+              <td th:text="${deletedComments}">COUNT OF DELETED COMMENTS HERE</td>
+          </tr>
+          <tr>
+              <td>Signed Accounts</td>
+              <td th:text="${signedAccounts}">COUNT OF SIGNED ACCOUNTS HERE</td>
+          </tr>
+      </table>
+  </div>
+
+
+</body>
+</html>

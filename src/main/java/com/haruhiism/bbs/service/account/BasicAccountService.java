@@ -1,25 +1,28 @@
 package com.haruhiism.bbs.service.account;
 
-import com.haruhiism.bbs.domain.AccountLevel;
-import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
+import com.haruhiism.bbs.domain.dto.BoardAccountLevelDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
+import com.haruhiism.bbs.domain.entity.BoardAccountChallenge;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
+import com.haruhiism.bbs.exception.account.AccountChallengeThresholdLimitExceededException;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
+import com.haruhiism.bbs.repository.AccountChallengeRepository;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.service.article.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -28,27 +31,33 @@ public class BasicAccountService implements AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountLevelRepository accountLevelRepository;
-    private final ArticleService articleService;
+    private final AccountChallengeRepository accountChallengeRepository;
     private final DataEncoder dataEncoder;
 
 
     @Override
-    public void registerAccount(BoardAccountDTO boardAccountDTO, AccountLevel level) {
+    public BoardAccountDTO readAccount(BoardAccountDTO boardAccountDTO) {
+        return new BoardAccountDTO(accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new));
+    }
+
+    @Override
+    public void registerAccount(BoardAccountDTO boardAccountDTO) {
         BoardAccount boardAccount = new BoardAccount(
                 boardAccountDTO.getUserId(),
                 boardAccountDTO.getUsername(),
                 dataEncoder.encode(boardAccountDTO.getRawPassword()),
-                boardAccountDTO.getEmail());
+                boardAccountDTO.getEmail(),
+                true,
+                boardAccountDTO.getRecoveryQuestion(),
+                boardAccountDTO.getRecoveryAnswer());
         accountRepository.save(boardAccount);
-
-        accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
     }
 
     @Override
     public void withdrawAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws NoAccountFoundException {
-        BoardAccount boardAccount = authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword());
-        accountLevelRepository.deleteAllByBoardAccount(boardAccount);
-        accountRepository.delete(boardAccount);
+        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new);
+        if(authenticateAccount(boardAccount, authDTO)) boardAccount.invalidate();
+        else throw new AuthenticationFailedException();
     }
 
     @Override
@@ -58,40 +67,85 @@ public class BasicAccountService implements AccountService {
     }
 
     @Transactional(readOnly = true)
-    public BoardAccount authenticateAccount(String userId, String rawPassword) throws NoAccountFoundException, AuthenticationFailedException {
-        BoardAccount account = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
+    public boolean authenticateAccount(BoardAccount boardAccount, AuthDTO authDTO) throws NoAccountFoundException, AuthenticationFailedException {
+        return dataEncoder.compare(authDTO.getRawPassword(), boardAccount.getPassword()) || boardAccount.getRecoveryAnswer().equals(authDTO.getRecoveryAnswer());
+    }
 
-        if(dataEncoder.compare(rawPassword, account.getPassword())){
-            return account;
-        } else {
+
+    private boolean challengeAccount(BoardAccount boardAccount){
+        // old account has null challenge object.
+        if(boardAccount.getChallenge() == null){
+            BoardAccountChallenge challenge = new BoardAccountChallenge(LocalDateTime.now());
+            accountChallengeRepository.save(challenge);
+            boardAccount.registerChallenge(challenge);
+        }
+
+        return boardAccount.getChallenge().challenge();
+    }
+
+    @Override
+    @Transactional(noRollbackFor = {AccountChallengeThresholdLimitExceededException.class, AuthenticationFailedException.class})
+    public BoardAccountDTO loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) {
+        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new);
+
+        if(!challengeAccount(boardAccount)) {
+            throw new AccountChallengeThresholdLimitExceededException(LocalDateTime.now().plusHours(1));
+        }
+
+        if(!authenticateAccount(boardAccount, authDTO)){
             throw new AuthenticationFailedException();
         }
-    }
 
-    @Override
-    public LoginSessionInfo loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) {
-        return new LoginSessionInfo(authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword()));
+        return new BoardAccountDTO(boardAccount);
     }
 
 
     @Override
-    public LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) {
-        // TODO: use session too?
-        BoardAccount account = authenticateAccount(boardAccountDTO.getUserId(), authDTO.getRawPassword());
+    @Transactional(noRollbackFor = {AccountChallengeThresholdLimitExceededException.class, AuthenticationFailedException.class})
+    public BoardAccountDTO updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) {
+        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new);
+
+        if(!challengeAccount(boardAccount)) {
+            throw new AccountChallengeThresholdLimitExceededException(LocalDateTime.now().plusHours(1));
+        }
+
+        if(!authenticateAccount(boardAccount, authDTO)) {
+            throw new AuthenticationFailedException();
+        }
+
         switch(updatedField){
             case username:
-                account.changeUsername(updatedValue);
+                boardAccount.changeUsername(updatedValue);
                 break;
 
             case email:
-                account.changeEmail(updatedValue);
+                boardAccount.changeEmail(updatedValue);
                 break;
 
             case password:
-                account.changePassword(dataEncoder.encode(updatedValue));
+                boardAccount.changePassword(dataEncoder.encode(updatedValue));
+                break;
+
+            case question:
+                boardAccount.changeRestoreQuestion(updatedValue);
+                break;
+
+            case answer:
+                boardAccount.changeRestoreAnswer(updatedValue);
                 break;
         }
 
-        return new LoginSessionInfo(account);
+        return new BoardAccountDTO(boardAccount);
+    }
+
+    @Override
+    public BoardAccountLevelDTO getAccountLevels(BoardAccountDTO boardAccountDTO) throws NoAccountFoundException {
+        List<ManagerLevel> userLevels = accountLevelRepository.findAllByBoardAccount(
+                accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new))
+                .stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toList());
+
+        return BoardAccountLevelDTO.builder()
+                .userId(boardAccountDTO.getUserId())
+                .levels(userLevels).build();
     }
 }

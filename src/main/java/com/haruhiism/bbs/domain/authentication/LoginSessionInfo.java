@@ -1,10 +1,10 @@
 package com.haruhiism.bbs.domain.authentication;
 
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Getter
@@ -16,7 +16,6 @@ public class LoginSessionInfo {
     private final Long accountID;
     private final String userID;
     private final String username;
-    private final String password;
     private final String email;
     private final String registeredDate;
 
@@ -24,8 +23,15 @@ public class LoginSessionInfo {
         this.accountID = account.getId();
         this.userID = account.getUserId();
         this.username = account.getUsername();
-        this.password = account.getPassword();
         this.email = account.getEmail();
         this.registeredDate = formatter.format(account.getCreatedDateTime());
+    }
+
+    public LoginSessionInfo(BoardAccountDTO accountDTO){
+        this.accountID = accountDTO.getId();
+        this.userID = accountDTO.getUserId();
+        this.username = accountDTO.getUsername();
+        this.email = accountDTO.getEmail();
+        this.registeredDate = accountDTO.getRegisteredDate();
     }
 }

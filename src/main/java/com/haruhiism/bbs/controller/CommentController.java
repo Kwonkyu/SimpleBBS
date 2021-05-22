@@ -1,6 +1,8 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.comment.CommentRemoveRequestCommand;
+import com.haruhiism.bbs.command.comment.CommentRemoveRequestValidationGroup;
+import com.haruhiism.bbs.command.comment.CommentRemoveSubmitValidationGroup;
 import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -9,11 +11,13 @@ import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -29,11 +33,17 @@ public class CommentController {
 
     @PostMapping("/create")
     public String createComment(@Valid CommentSubmitCommand command,
+                                BindingResult bindingResult,
                                 HttpServletRequest request) {
+
+        if (bindingResult.hasErrors()) {
+            return "redirect:/board/read?id=" + command.getArticleID();
+        }
+
         LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
 
         commentService.createComment(BoardCommentDTO.builder()
-                .articleID(command.getArticleID())
+                .articleId(command.getArticleID())
                 .writer(command.getWriter())
                 .password(command.getPassword())
                 .content(command.getContent()).build(),
@@ -44,34 +54,47 @@ public class CommentController {
 
 
     @GetMapping("/remove")
-    public String requestRemoveComment(Model model,
-                                       @RequestParam("id") Long commentID,
+    public String requestRemoveComment(@ModelAttribute("command") @Validated(CommentRemoveRequestValidationGroup.class) CommentRemoveRequestCommand command,
+                                       BindingResult bindingResult,
                                        HttpServletRequest request){
 
-        // TODO: Article 쪽도 그냥 이렇게 하는걸 고려해보기.
-        BoardCommentDTO commentDTO = commentService.readComment(commentID);
-        if (commentDTO.isWrittenByAccount()) {
-            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-            if(loginSessionInfo == null) throw new AuthenticationFailedException();
+        if (bindingResult.hasErrors()) {
+            return "redirect:/board/read?id=" + command.getId();
+        }
 
-            commentService.deleteComment(commentID, AuthDTO.builder().loginSessionInfo(loginSessionInfo).build());
-            return String.format("redirect:/board/read?id=%d",commentDTO.getArticleID());
+        BoardCommentDTO commentDTO = commentService.readComment(command.getId());
+        if (!commentDTO.getUserId().isBlank()) {
+            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
+            if(loginSessionInfo != null) {
+                commentService.deleteComment(command.getId(), AuthDTO.builder().loginSessionInfo(loginSessionInfo).build());
+            }
+
+            return "redirect:/board/read?id=" + commentDTO.getArticleId();
         } else {
-            model.addAttribute("commentID", commentID);
             return "comment/removeRequest";
         }
     }
 
     @PostMapping("/remove")
-    public String submitRemoveComment(@Valid CommentRemoveRequestCommand command) {
-        BoardCommentDTO commentDTO = commentService.readComment(command.getId());
-        commentService.deleteComment(command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build());
-        return String.format("redirect:/board/read?id=%d", commentDTO.getArticleID());
+    public String submitRemoveComment(@ModelAttribute("command") @Validated(CommentRemoveSubmitValidationGroup.class) CommentRemoveRequestCommand command,
+                                      BindingResult bindingResult) {
+
+        if(bindingResult.hasErrors()){
+            return "comment/removeRequest";
+        }
+
+        try {
+            BoardCommentDTO commentDTO = commentService.readComment(command.getId());
+            commentService.deleteComment(command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build());
+            return "redirect:/board/read?id=" + commentDTO.getArticleId();
+        } catch (AuthenticationFailedException exception) {
+            bindingResult.addError(new FieldError("command", "password", "Password not matched."));
+            return "comment/removeRequest";
+        }
     }
 
     private LoginSessionInfo getLoginSessionInfoFromHttpSession(HttpSession session) {
         if(session == null) return null;
-        String sessionAuthAttribute = "loginSessionInfo";
-        return (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
+        return (LoginSessionInfo) session.getAttribute("loginSessionInfo");
     }
 }

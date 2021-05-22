@@ -1,24 +1,16 @@
 package com.haruhiism.bbs.command.article;
 
-import com.haruhiism.bbs.domain.SearchMode;
+import com.haruhiism.bbs.command.DateBasedListCommand;
+import com.haruhiism.bbs.domain.ArticleSearchMode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 
 @Getter
 @Setter
-public class ArticleListCommand {
+public class ArticleListCommand extends DateBasedListCommand {
 
-    @PositiveOrZero
-    private int pageNum = 0;
-    @Positive
-    @Max(value = 40)
-    private int pageSize = 10;
-    @NotNull
-    private SearchMode mode = SearchMode.TITLE;
-    private String keyword = "";
+    @NotNull(message = "Search mode cannot be null.")
+    private ArticleSearchMode mode = ArticleSearchMode.TITLE;
 }

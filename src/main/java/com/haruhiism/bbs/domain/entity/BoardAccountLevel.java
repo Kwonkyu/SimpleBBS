@@ -1,6 +1,6 @@
 package com.haruhiism.bbs.domain.entity;
 
-import com.haruhiism.bbs.domain.AccountLevel;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import lombok.*;
 
 import javax.persistence.*;
@@ -22,6 +22,6 @@ public class BoardAccountLevel {
     @NonNull
     @Enumerated(EnumType.STRING) // to store enum types as string value.
     @Column(name = "ACCOUNT_LEVEL")
-    private AccountLevel accountLevel;
+    private ManagerLevel accountLevel;
 
 }

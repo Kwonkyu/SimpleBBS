@@ -7,27 +7,32 @@
 </head>
 <body>
 
-<form action="/account/manage/change" method="post">
+<h1 th:text="|CHANGE ACCOUNT INFORMATION - ${command.mode}|"></h1>
+
+<form action="/account/manage/change" method="post" th:object="${command}">
     <table>
-        <caption th:text="|Change ${attributeType}|">Change AttributeType</caption>
-        <input type="hidden" name="mode" th:value="${attributeType}" readonly required>
+        <input type="hidden" name="mode" th:value="*{mode}" readonly required>
         <tr>
             <th colspan="2"><label for="form-auth">AUTHENTICATION(Type your password again)</label></th>
         </tr>
         <tr>
             <td colspan="2"><input id="form-auth" type="password" name="auth" required></td>
+            <td><span th:if="${#fields.hasErrors('auth')}" th:errors="*{auth}">Authentication error message.</span></td>
         </tr>
         <tr>
             <th><label for="form-previous">PREVIOUS VALUE</label></th>
             <th><label for="form-new">NEW VALUE</label></th>
         </tr>
         <tr>
-            <td><input id="form-previous" name="previous" th:value="${attributeValue}" readonly></td>
-            <td th:switch="${attributeType}">
+            <td><input id="form-previous" name="previous" th:value="${previousValue}" readonly></td>
+            <td th:switch="*{mode.name()}">
                 <input th:case="'password'" id="form-new" type="password" name="updated" required>
                 <input th:case="'email'" id="form-new" type="email" name="updated" required>
                 <input th:case="'username'" id="form-new" type="text" name="updated" required>
+                <input th:case="'question'" id="form-new" type="text" name="updated" required>
+                <input th:case="'answer'" id="form-new" type="text" name="updated" required>
             </td>
+            <td th:if="${#fields.hasErrors('updated')}" th:errors="*{updated}"></td>
         </tr>
         <tr>
             <td colspan="2"><input type="submit" value="CHANGE"></td>

@@ -8,17 +8,27 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface CommentRepository extends CrudRepository<BoardComment, Long> {
 
-    public Page<BoardComment> findAllByBoardArticleOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
-    public Page<BoardComment> findAllByBoardArticleAndDeletedFalseOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
+    Page<BoardComment> findAllByBoardArticleAndDeletedFalseOrderByIdAsc(BoardArticle boardArticle, Pageable pageable);
 
-    public void deleteAllByBoardArticle(BoardArticle boardArticle);
+    void deleteAllByBoardArticle(BoardArticle boardArticle);
 
-    public int countAllByBoardArticle(BoardArticle boardArticle);
-    public int countAllByBoardArticleAndDeletedFalse(BoardArticle boardArticle);
+    int countAllByBoardArticle(BoardArticle boardArticle);
+    int countAllByBoardArticleAndDeletedFalse(BoardArticle boardArticle);
 
-    public Page<BoardComment> findAllByBoardAccount(BoardAccount account, Pageable pageable);
-    public Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
+    Page<BoardComment> findAllByBoardAccount(BoardAccount account, Pageable pageable);
+    Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
+
+    Page<BoardComment> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardComment> findAllByWriterContainingAndCreatedDateTimeBetween(String writer, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardComment> findAllByContentContainingAndCreatedDateTimeBetween(String content, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardComment> findAllByBoardArticleAndCreatedDateTimeBetween(BoardArticle boardArticle, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardComment> findAllByBoardAccountAndCreatedDateTimeBetween(BoardAccount boardAccount, LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+
+    Long countAllByDeletedTrue();
 }

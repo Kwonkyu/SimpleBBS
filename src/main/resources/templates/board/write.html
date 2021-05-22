@@ -14,33 +14,31 @@
                     <label for="form-writer">WRITER</label>
                 </td>
 
-                <td th:if="${loginUsername == null}">
+                <td th:if="${loginUsername.isBlank()}">
                     <input id="form-writer" name="writer" type="text"
-                           th:value="${#fields.hasErrors('writer') == false ? command.writer : ''}"
+                           th:value="*{writer}"
                            maxlength="64" required>
                 </td>
-                <td th:if="${#fields.hasErrors('writer')}" th:errors="*{writer}">Writer is not valid.</td>
+                <td th:if="${#fields.hasErrors('writer')}" th:errors="*{writer}">Writer error message.</td>
 
-                <td th:unless="${loginUsername == null}">
-                    <span th:text="${loginUsername}"></span>
+                <td th:unless="${loginUsername.isBlank()}">
+                    <span th:text="${loginUsername}">Logged-in user's name</span>
                     <input name="writer" th:value="${loginUsername}" hidden>
                 </td>
-
             </tr>
 
             <tr>
-                <td th:if="${loginUsername == null}">
+                <td th:if="${loginUsername.isBlank()}">
                     <label for="form-password">PASSWORD</label>
                 </td>
-                <td th:if="${loginUsername == null}">
+                <td th:if="${loginUsername.isBlank()}">
                     <input id="form-password" name="password" type="password" minlength="4" required>
                 </td>
-                <td th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password is not valid.</td>
+                <td th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error string.</td>
 
-                <td th:unless="${loginUsername == null}">
+                <td th:unless="${loginUsername.isBlank()}">
                     <input name="password" type="password" value="THIS_IS_USELESS_PASSWORD" hidden>
                 </td>
-
             </tr>
 
             <tr>
@@ -49,10 +47,10 @@
                 </td>
                 <td>
                     <input id="form-title" name="title" type="text"
-                           th:value="${#fields.hasErrors('title') == false ? command.title : ''}"
+                           th:value="*{title}"
                            maxlength="255" required>
                 </td>
-                <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title is not valid.</td>
+                <td th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title error string.</td>
             </tr>
 
             <tr>
@@ -61,10 +59,10 @@
                 </td>
                 <td>
                     <textarea id="form-content" name="content"
-                              th:text="${#fields.hasErrors('content') == false ? command.content : ''}"
+                              th:text="*{content}"
                               maxlength="65535" required></textarea>
                 </td>
-                <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content is not valid.</td>
+                <td th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Content error string.</td>
             </tr>
 
             <tr>

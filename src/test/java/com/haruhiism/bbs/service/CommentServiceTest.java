@@ -64,7 +64,7 @@ class CommentServiceTest {
         // when
         commentService.createComment(
                 BoardCommentDTO.builder()
-                        .articleID(commentedArticle.getId())
+                        .articleId(commentedArticle.getId())
                         .writer(testCommentWriter)
                         .content(testCommentContent)
                         .password(testCommentPassword).build(),
@@ -76,7 +76,7 @@ class CommentServiceTest {
         BoardCommentDTO commentDTO = boardCommentsDTO.getBoardComments().get(0);
         assertEquals(testCommentWriter, commentDTO.getWriter());
         assertEquals(testCommentContent, commentDTO.getContent());
-        assertEquals(commentedArticle.getId(), commentDTO.getArticleID());
+        assertEquals(commentedArticle.getId(), commentDTO.getArticleId());
         assertFalse(commentDTO.isWrittenByAccount());
         assertTrue(dataEncoder.compare(testCommentPassword, commentDTO.getPassword()));
 
@@ -85,7 +85,7 @@ class CommentServiceTest {
         assertThrows(NoArticleFoundException.class, () -> {
             commentService.createComment(
                     BoardCommentDTO.builder()
-                            .articleID(commentedArticle.getId()+1L)
+                            .articleId(commentedArticle.getId()+1L)
                             .writer(testCommentWriter)
                             .content(testCommentContent)
                             .password(testCommentPassword).build(),
@@ -107,7 +107,7 @@ class CommentServiceTest {
         // when
         commentService.createComment(
                 BoardCommentDTO.builder()
-                        .articleID(commentedArticle.getId())
+                        .articleId(commentedArticle.getId())
                         .writer(testCommentWriter)
                         .content(testCommentContent)
                         .password(testCommentPassword).build(),
@@ -120,7 +120,7 @@ class CommentServiceTest {
         BoardCommentDTO commentDTO = boardCommentsDTO.getBoardComments().get(0);
         assertEquals(boardAccount.getUsername(), commentDTO.getWriter());
         assertEquals(testCommentContent, commentDTO.getContent());
-        assertEquals(commentedArticle.getId(), commentDTO.getArticleID());
+        assertEquals(commentedArticle.getId(), commentDTO.getArticleId());
         assertTrue(commentDTO.isWrittenByAccount());
 
 
@@ -128,7 +128,7 @@ class CommentServiceTest {
         assertThrows(NoArticleFoundException.class, () -> {
             commentService.createComment(
                     BoardCommentDTO.builder()
-                            .articleID(commentedArticle.getId()+1L)
+                            .articleId(commentedArticle.getId()+1L)
                             .writer(testCommentWriter)
                             .content(testCommentContent)
                             .password(testCommentPassword).build(),

@@ -1,6 +1,5 @@
 package com.haruhiism.bbs.service;
 
-import com.haruhiism.bbs.domain.AccountLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.AuthDTO;
@@ -47,9 +46,9 @@ class AccountServiceTest {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
         // when
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
         // then
-        assertFalse(accountRepository.findByUserId(testUserId).isEmpty());
+        assertFalse(accountRepository.findByUserIdAndAvailableTrue(testUserId).isEmpty());
 
 
         // when
@@ -84,7 +83,7 @@ class AccountServiceTest {
     void withdrawAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.withdrawAccount(
@@ -99,7 +98,7 @@ class AccountServiceTest {
         });
 
         //then
-        assertTrue(accountRepository.findByUserId(testUserId).isEmpty());
+        assertTrue(accountRepository.findByUserIdAndAvailableTrue(testUserId).isEmpty());
     }
 
     @Test
@@ -107,7 +106,7 @@ class AccountServiceTest {
     void loginAccountTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         assertThrows(AuthenticationFailedException.class, () -> {
@@ -142,7 +141,7 @@ class AccountServiceTest {
     void updateUsernameTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.updateAccount(
@@ -152,7 +151,7 @@ class AccountServiceTest {
                 "updatedusername");
 
         // then
-        Optional<BoardAccount> updateResult = accountRepository.findByUserId(testUserId);
+        Optional<BoardAccount> updateResult = accountRepository.findByUserIdAndAvailableTrue(testUserId);
         assertFalse(updateResult.isEmpty());
         assertEquals("updatedusername", updateResult.get().getUsername());
     }
@@ -162,7 +161,7 @@ class AccountServiceTest {
     void updateEmailTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.updateAccount(
@@ -172,7 +171,7 @@ class AccountServiceTest {
                 "updateduseremail@domain.com");
 
         // then
-        Optional<BoardAccount> updateResult = accountRepository.findByUserId(testUserId);
+        Optional<BoardAccount> updateResult = accountRepository.findByUserIdAndAvailableTrue(testUserId);
         assertFalse(updateResult.isEmpty());
         assertEquals("updateduseremail@domain.com", updateResult.get().getEmail());
     }
@@ -182,7 +181,7 @@ class AccountServiceTest {
     void updatePasswordTest() {
         // given
         BoardAccountDTO boardAccountDTO = new BoardAccountDTO(testUserId, testUsername, testPassword, testEmail);
-        accountService.registerAccount(boardAccountDTO, AccountLevel.NORMAL);
+        accountService.registerAccount(boardAccountDTO);
 
         // when
         accountService.updateAccount(

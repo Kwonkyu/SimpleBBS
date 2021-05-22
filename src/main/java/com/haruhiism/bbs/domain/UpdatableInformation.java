@@ -1,5 +1,5 @@
 package com.haruhiism.bbs.domain;
 
 public enum UpdatableInformation {
-    username, email, password;
+    username, email, password, question, answer;
 }

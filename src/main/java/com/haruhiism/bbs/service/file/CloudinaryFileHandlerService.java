@@ -12,7 +12,6 @@ import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.ResourceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +58,6 @@ public class CloudinaryFileHandlerService implements FileHandlerService{
     }
 
     private void store(MultipartFile file, BoardArticle article) {
-        // TODO: exception handler for file is null, empty, exceeded size.
         try {
             fileValidator.validate(file).orElseThrow(InvalidFileException::new);
             log.info("validated file {}", file.getOriginalFilename());
@@ -78,10 +76,9 @@ public class CloudinaryFileHandlerService implements FileHandlerService{
             String cloudinaryPublicId = (String) result.get("public_id");
             log.info("uploaded file to cloudinary(public_id: {})", cloudinaryPublicId);
             UploadedFile uploadedFile = new UploadedFile(Objects.requireNonNull(file.getOriginalFilename()), cloudinaryPublicId, article);
-            uploadedFile.registerRemoteUrl((String) result.get("url")); // TODO: secure_url for https
+            uploadedFile.registerRemoteUrl((String) result.get("url"));
 
             resourceRepository.save(uploadedFile);
-            // TODO: apply asynchronous API. when uploading is finished, add database record.
         } catch (IOException e){
             log.error("uploading file {} failed({}).", file.getOriginalFilename(), e.getLocalizedMessage());
         }
@@ -107,7 +104,6 @@ public class CloudinaryFileHandlerService implements FileHandlerService{
                 throw new InvalidFileException();
             }
 
-            // TODO: transactional 확인.
             resourceRepository.deleteByHashedFilename(deletedHashedFilename);
             try {
                 cloudinary.uploader().rename(

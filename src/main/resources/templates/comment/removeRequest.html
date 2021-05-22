@@ -5,12 +5,13 @@
     <title>Remove comment - SimpleBBS</title>
 </head>
 <body>
-<form action="#" method="post">
-    <input type="hidden" name="commentID" th:value="${commentID}">
+<form action="#" method="post" th:object="${command}">
+    <input type="hidden" name="id" th:value="*{id}">
     <table>
         <tr>
             <td><label for="remove-password">Password</label></td>
             <td><input id="remove-password" name="password" type="password" required></td>
+            <td><span th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error string</span></td>
             <td><input type="submit" value="Submit"></td>
         </tr>
     </table>

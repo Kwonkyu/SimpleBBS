@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Recovery - SimpleBBS</title>
+    <style>
+      table {
+        border: 1px solid black;
+      }
+
+      td {
+        border: 1px solid black;
+      }
+
+      th {
+        border: 1px solid black;
+      }
+
+      ul {
+        display: inline;
+      }
+
+      span.current {
+        font-weight: 800;
+      }
+    </style>
+</head>
+<body>
+<div>
+  <h1>ACCOUNT RECOVERY</h1>
+  <h3>Type account's ID to recover</h3>
+  <form action="/account/recovery" method="post" th:object="${command}">
+    <label for="form-id">ID</label>
+    <input id="form-id" name="userId" type="text" th:value="*{userId}" required>
+    <input type="submit">
+    <span th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}">User ID Error String</span>
+  </form>
+</div>
+
+</body>
+</html>
