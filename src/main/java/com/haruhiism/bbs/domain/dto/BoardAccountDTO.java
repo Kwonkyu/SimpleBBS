@@ -24,7 +24,7 @@ public class BoardAccountDTO {
     private String rawPassword;
     private String email;
     private String registeredDate;
-    private boolean available;
+    private Boolean available;
     private String recoveryQuestion;
     private String recoveryAnswer;
 
