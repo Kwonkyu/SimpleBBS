@@ -13,6 +13,8 @@ public class AccountRecoveryCommand {
     @NotBlank(message = "User ID cannot be empty.", groups = {AccountRecoveryRequestValidationGroup.class, AccountRecoverySubmitValidationGroup.class})
     private String userId = "";
 
+    private String question;
+
     @NotBlank(message = "Answer cannot be empty.", groups = {AccountRecoverySubmitValidationGroup.class})
     private String answer = "";
 

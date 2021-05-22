@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -11,6 +12,7 @@ import javax.persistence.*;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+// TODO: @Table 어노테이션 및 컬럼 제약조건 추가. 다른 엔티티도 마찬가지.
 public class BoardAccount extends MACDate {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +47,14 @@ public class BoardAccount extends MACDate {
     @Column(name = "RECOVERY_ANSWER")
     private String recoveryAnswer;
 
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "BOARD_ACCOUNT_CHALLENGE_ID")
+    private BoardAccountChallenge challenge = new BoardAccountChallenge(LocalDateTime.now());
+
+
+    public void registerChallenge(BoardAccountChallenge challenge){
+        this.challenge = challenge;
+    }
 
     public void changeUsername(String username){
         this.username = username;

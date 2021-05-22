@@ -4,6 +4,7 @@ import com.haruhiism.bbs.command.account.*;
 import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
 import com.haruhiism.bbs.domain.dto.*;
+import com.haruhiism.bbs.exception.account.AccountChallengeThresholdLimitExceededException;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.account.AccountService;
@@ -112,8 +113,14 @@ public class AccountController {
                     AuthDTO.builder().rawPassword(command.getPassword()).build());
             HttpSession session = request.getSession();
             session.setAttribute(sessionAuthAttribute, loginResult);
+        } catch (NoAccountFoundException e){
+            bindingResult.addError(new FieldError("command", "userid", e.errorDescription));
+            return "account/login";
         } catch (AuthenticationFailedException e) {
             bindingResult.addError(new FieldError("command", "userid", "Id or Password is not matched."));
+            return "account/login";
+        } catch (AccountChallengeThresholdLimitExceededException e){
+            bindingResult.addError(new FieldError("command", "userid", "Login attempt limit exceed. Please try again later."));
             return "account/login";
         }
 
@@ -129,12 +136,12 @@ public class AccountController {
 
 
     @GetMapping("/recovery")
-    public String requestRestore(@ModelAttribute("command") AccountRecoveryCommand command){
+    public String requestRecovery(@ModelAttribute("command") AccountRecoveryCommand command){
         return "account/recoveryRequest";
     }
 
     @PostMapping("/recovery")
-    public String restoreAccount(@ModelAttribute("command")
+    public String recoverAccount(@ModelAttribute("command")
                                  @Validated(AccountRecoveryRequestValidationGroup.class) AccountRecoveryCommand command,
                                  BindingResult bindingResult,
                                  Model model) {
@@ -154,7 +161,8 @@ public class AccountController {
     }
     
     @PostMapping("/recovery/submit")
-    public String submitRestoreAccount(@ModelAttribute("command")
+    public String submitRestoreAccount(Model model,
+                                       @ModelAttribute("command")
                                        @Validated(AccountRecoverySubmitValidationGroup.class) AccountRecoveryCommand command,
                                        BindingResult bindingResult) {
 
@@ -164,17 +172,21 @@ public class AccountController {
 
         BoardAccountDTO request = BoardAccountDTO.builder().userId(command.getUserId()).build();
         try {
-            LoginSessionInfo loginSessionInfo = accountService.updateAccount(
+            accountService.updateAccount(
                     request,
                     AuthDTO.builder().recoveryAnswer(command.getAnswer()).build(),
                     UpdatableInformation.password,
                     command.getNewPassword());
+            return "redirect:/account/login";
         } catch (AuthenticationFailedException exception){
+            model.addAttribute("question", command.getQuestion());
             bindingResult.addError(new FieldError("command", "answer", "Recovery answer not matched."));
             return "account/recovery";
+        } catch (AccountChallengeThresholdLimitExceededException exception){
+            model.addAttribute("question", command.getQuestion());
+            bindingResult.addError(new FieldError("command", "newPassword", "Login attempt threshold limit exceeded."));
+            return "account/recovery";
         }
-
-        return "redirect:/account/login";
     }
 
 
