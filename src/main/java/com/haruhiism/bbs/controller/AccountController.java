@@ -56,9 +56,9 @@ public class AccountController {
 
         accountService.registerAccount(new BoardAccountDTO(command));
         HttpSession session = request.getSession();
-        session.setAttribute(sessionAuthAttribute, accountService.loginAccount(
+        session.setAttribute(sessionAuthAttribute, new LoginSessionInfo(accountService.loginAccount(
                 BoardAccountDTO.builder().userId(command.getUserid()).build(),
-                AuthDTO.builder().rawPassword(command.getPassword()).build()));
+                AuthDTO.builder().rawPassword(command.getPassword()).build())));
 
         return "redirect:/board/list";
     }
