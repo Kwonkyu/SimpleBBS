@@ -85,8 +85,9 @@ public class BasicAccountService implements AccountService {
 
     @Override
     @Transactional(noRollbackFor = {AccountChallengeThresholdLimitExceededException.class, AuthenticationFailedException.class})
-    public LoginSessionInfo loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) {
+    public BoardAccountDTO loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) {
         BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new);
+
         if(!challengeAccount(boardAccount)) {
             throw new AccountChallengeThresholdLimitExceededException(LocalDateTime.now().plusHours(1));
         }
@@ -95,19 +96,22 @@ public class BasicAccountService implements AccountService {
             throw new AuthenticationFailedException();
         }
 
-        return new LoginSessionInfo(boardAccount);
+        return new BoardAccountDTO(boardAccount);
     }
 
 
     @Override
     @Transactional(noRollbackFor = {AccountChallengeThresholdLimitExceededException.class, AuthenticationFailedException.class})
-    public LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) {
-        // TODO: LoginSessionInfo를 반환하는 것은 바람직하지 않은듯. BoardAccountDTO를 반환하고 생성자로 변환하도록 구현.
+    public BoardAccountDTO updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) {
         BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(boardAccountDTO.getUserId()).orElseThrow(NoAccountFoundException::new);
 
-        if(!challengeAccount(boardAccount)) throw new AccountChallengeThresholdLimitExceededException(LocalDateTime.now().plusHours(1));
+        if(!challengeAccount(boardAccount)) {
+            throw new AccountChallengeThresholdLimitExceededException(LocalDateTime.now().plusHours(1));
+        }
 
-        if(!authenticateAccount(boardAccount, authDTO)) throw new AuthenticationFailedException();
+        if(!authenticateAccount(boardAccount, authDTO)) {
+            throw new AuthenticationFailedException();
+        }
 
         switch(updatedField){
             case username:
@@ -131,7 +135,7 @@ public class BasicAccountService implements AccountService {
                 break;
         }
 
-        return new LoginSessionInfo(boardAccount);
+        return new BoardAccountDTO(boardAccount);
     }
 
     @Override

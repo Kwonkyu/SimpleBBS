@@ -108,11 +108,11 @@ public class AccountController {
         }
 
         try {
-            LoginSessionInfo loginResult = accountService.loginAccount(
+            BoardAccountDTO loginResult = accountService.loginAccount(
                     BoardAccountDTO.builder().userId(command.getUserid()).build(),
                     AuthDTO.builder().rawPassword(command.getPassword()).build());
             HttpSession session = request.getSession();
-            session.setAttribute(sessionAuthAttribute, loginResult);
+            session.setAttribute(sessionAuthAttribute, new LoginSessionInfo(loginResult));
         } catch (NoAccountFoundException e){
             bindingResult.addError(new FieldError("command", "userid", e.errorDescription));
             return "account/login";
@@ -274,13 +274,13 @@ public class AccountController {
         }
 
         try {
-            LoginSessionInfo updateResult = accountService.updateAccount(
+            BoardAccountDTO updateResult = accountService.updateAccount(
                     new BoardAccountDTO(loginSessionInfo),
                     AuthDTO.builder().rawPassword(command.getAuth()).build(),
                     command.getMode(),
                     command.getUpdated());
 
-            session.setAttribute(sessionAuthAttribute, updateResult);
+            session.setAttribute(sessionAuthAttribute, new LoginSessionInfo(updateResult));
         } catch (AuthenticationFailedException exception) {
             model.addAttribute("previousValue", command.getPrevious());
             bindingResult.addError(new FieldError("command", "auth", "Authentication string not matched."));
