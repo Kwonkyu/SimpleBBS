@@ -25,6 +25,8 @@ public class BoardAccountDTO {
     private String email;
     private String registeredDate;
     private boolean available;
+    private String recoveryQuestion;
+    private String recoveryAnswer;
 
     public BoardAccountDTO(BoardAccount boardAccount){
         this.id = boardAccount.getId();
@@ -33,6 +35,8 @@ public class BoardAccountDTO {
         this.email = boardAccount.getEmail();
         this.registeredDate = formatter.format(boardAccount.getCreatedDateTime());
         this.available = boardAccount.isAvailable();
+        this.recoveryQuestion = boardAccount.getRecoveryQuestion();
+        this.recoveryAnswer = boardAccount.getRecoveryAnswer();
     }
 
     public BoardAccountDTO(RegisterRequestCommand command) {
@@ -41,6 +45,8 @@ public class BoardAccountDTO {
         this.rawPassword = command.getPassword();
         this.email = command.getEmail();
         this.available = true;
+        this.recoveryQuestion = command.getRecoveryQuestion();
+        this.recoveryAnswer = command.getRecoveryAnswer();
     }
 
     public BoardAccountDTO(LoginSessionInfo loginSessionInfo){

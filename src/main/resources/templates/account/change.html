@@ -29,6 +29,8 @@
                 <input th:case="'password'" id="form-new" type="password" name="updated" required>
                 <input th:case="'email'" id="form-new" type="email" name="updated" required>
                 <input th:case="'username'" id="form-new" type="text" name="updated" required>
+                <input th:case="'question'" id="form-new" type="text" name="updated" required>
+                <input th:case="'answer'" id="form-new" type="text" name="updated" required>
             </td>
             <td th:if="${#fields.hasErrors('updated')}" th:errors="*{updated}"></td>
         </tr>

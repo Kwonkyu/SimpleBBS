@@ -11,15 +11,17 @@ import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 
 public interface AccountService {
 
+    BoardAccountDTO readAccount(BoardAccountDTO boardAccountDTO);
+
     void registerAccount(BoardAccountDTO boardAccountDTO);
 
     void withdrawAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;
 
     boolean isDuplicatedUserID(String userId);
 
-    LoginSessionInfo loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;
+    BoardAccountDTO loginAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO) throws AuthenticationFailedException;
 
-    LoginSessionInfo updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) throws AuthenticationFailedException;
+    BoardAccountDTO updateAccount(BoardAccountDTO boardAccountDTO, AuthDTO authDTO, UpdatableInformation updatedField, String updatedValue) throws AuthenticationFailedException;
 
     BoardAccountLevelDTO getAccountLevels(BoardAccountDTO boardAccountDTO) throws NoAccountFoundException;
 }
