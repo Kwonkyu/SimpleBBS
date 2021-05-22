@@ -37,7 +37,7 @@ public class BoardAccount extends MACDate {
 
     @NonNull
     @Column(name = "AVAILABLE")
-    private boolean available;
+    private Boolean available;
 
     @NonNull
     @Column(name = "RECOVERY_QUESTION")
