@@ -34,7 +34,7 @@ public class BoardAccountDTO {
         this.username = boardAccount.getUsername();
         this.email = boardAccount.getEmail();
         this.registeredDate = formatter.format(boardAccount.getCreatedDateTime());
-        this.available = boardAccount.isAvailable();
+        this.available = boardAccount.getAvailable();
         this.recoveryQuestion = boardAccount.getRecoveryQuestion();
         this.recoveryAnswer = boardAccount.getRecoveryAnswer();
     }
