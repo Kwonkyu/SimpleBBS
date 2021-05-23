@@ -54,7 +54,7 @@ public class CloudinaryFileHandlerService implements FileHandlerService{
         this.resourceRepository = resourceRepository;
         this.articleRepository = articleRepository;
 
-        temporaryFilePath = Files.createTempDirectory("SimpleBBS/tmp");
+        temporaryFilePath = Files.createTempDirectory("SimpleBBS");
         cloudinary = Singleton.getCloudinary(); // available if CLOUDINARY_URL env var is set.
     }
 
