@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
 @Profile("publish")
 public class CloudinaryFileHandlerService implements FileHandlerService{
 
-    private final Path temporaryFilePath = Paths.get("C:\\Temp\\SimpleBBS\\temps");
+//    private final Path temporaryFilePath = Paths.get("C:\\Temp\\SimpleBBS\\temps");
+    private final Path temporaryFilePath;
     private final FileValidator fileValidator;
     private final ResourceRepository resourceRepository;
     private final ArticleRepository articleRepository;
@@ -48,13 +49,13 @@ public class CloudinaryFileHandlerService implements FileHandlerService{
 
     public CloudinaryFileHandlerService(FileValidator fileValidator,
                                         ResourceRepository resourceRepository,
-                                        ArticleRepository articleRepository){
+                                        ArticleRepository articleRepository) throws IOException {
         this.fileValidator = fileValidator;
         this.resourceRepository = resourceRepository;
         this.articleRepository = articleRepository;
 
-        // available if CLOUDINARY_URL env var is set.
-        cloudinary = Singleton.getCloudinary();
+        temporaryFilePath = Files.createTempDirectory("SimpleBBS/tmp");
+        cloudinary = Singleton.getCloudinary(); // available if CLOUDINARY_URL env var is set.
     }
 
     private void store(MultipartFile file, BoardArticle article) {
