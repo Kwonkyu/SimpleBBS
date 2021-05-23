@@ -68,7 +68,14 @@ public class BasicAccountService implements AccountService {
 
     @Transactional(readOnly = true)
     public boolean authenticateAccount(BoardAccount boardAccount, AuthDTO authDTO) throws NoAccountFoundException, AuthenticationFailedException {
-        return dataEncoder.compare(authDTO.getRawPassword(), boardAccount.getPassword()) || boardAccount.getRecoveryAnswer().equals(authDTO.getRecoveryAnswer());
+        if(dataEncoder.compare(authDTO.getRawPassword(), boardAccount.getPassword()) ||
+                boardAccount.getRecoveryAnswer().equals(authDTO.getRecoveryAnswer())){
+            
+            boardAccount.getChallenge().clear();
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
