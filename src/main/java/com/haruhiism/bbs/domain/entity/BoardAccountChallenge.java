@@ -24,6 +24,10 @@ public class BoardAccountChallenge {
     private LocalDateTime lastChallengeTime;
 
 
+    public void clear() {
+        count = 0;
+    }
+
     public boolean challenge(){
         count = lastChallengeTime.isBefore(LocalDateTime.now().minusHours(1)) ? 0 : count+1;
         lastChallengeTime = LocalDateTime.now();
