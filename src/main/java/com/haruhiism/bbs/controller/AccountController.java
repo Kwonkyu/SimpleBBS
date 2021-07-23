@@ -1,16 +1,20 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.account.*;
+import com.haruhiism.bbs.domain.ArticleSearchMode;
+import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.UpdatableInformation;
-import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.*;
-import com.haruhiism.bbs.exception.account.AccountChallengeThresholdLimitExceededException;
+import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
+import com.haruhiism.bbs.service.account.AccountRecoveryService;
 import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,9 +22,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.security.Principal;
+import java.util.List;
 
 @Controller
 @RequestMapping("/account")
@@ -29,9 +33,8 @@ public class AccountController {
 
     private final ArticleService articleService;
     private final AccountService accountService;
+    private final AccountRecoveryService accountRecoveryService;
     private final CommentService commentService;
-
-    private final String sessionAuthAttribute = "loginSessionInfo";
 
 
     @GetMapping("/register")
@@ -40,26 +43,19 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public String submitRegister(HttpServletRequest request,
-                                 @ModelAttribute("command") @Valid RegisterRequestCommand command,
+    public String submitRegister(@ModelAttribute("command") @Valid RegisterRequestCommand command,
                                  BindingResult bindingResult){
-
         if(bindingResult.hasErrors()) {
             return "account/register";
         }
 
-        if(accountService.isDuplicatedUserID(command.getUserid())) {
+        if(accountService.isDuplicatedUserID(command.getUserId())) {
             // when manually add field binding errors to binding result, use FieldError. Not ObjectError!
             bindingResult.addError(new FieldError("command", "userid", "Duplicated id."));
             return "account/register";
         }
 
         accountService.registerAccount(new BoardAccountDTO(command));
-        HttpSession session = request.getSession();
-        session.setAttribute(sessionAuthAttribute, new LoginSessionInfo(accountService.loginAccount(
-                BoardAccountDTO.builder().userId(command.getUserid()).build(),
-                AuthDTO.builder().rawPassword(command.getPassword()).build())));
-
         return "redirect:/board/list";
     }
 
@@ -72,19 +68,16 @@ public class AccountController {
     @PostMapping("/withdraw")
     public String submitWithdraw(@ModelAttribute("command") @Valid WithdrawRequestCommand command,
                                  BindingResult bindingResult,
-                                 HttpSession session,
-                                 @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo){
-
+                                 @CurrentSecurityContext SecurityContext context,
+                                 Principal principal){
         if(bindingResult.hasErrors()){
             return "account/withdraw";
         }
 
-        try {
-            accountService.withdrawAccount(
-                    BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build(),
-                    AuthDTO.builder().rawPassword(command.getPassword()).build());
-            session.invalidate();
-        } catch (AuthenticationFailedException exception){
+        if(accountService.authenticateAccount(principal.getName(), command.getPassword())) {
+            accountService.withdrawAccount(principal.getName());
+            context.setAuthentication(null);
+        } else {
             bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "account/withdraw";
         }
@@ -94,44 +87,23 @@ public class AccountController {
 
 
     @GetMapping("/login")
-    public String requestLogin(@ModelAttribute(name = "command") LoginRequestCommand command) {
+    public String requestLogin(@ModelAttribute(name = "command") LoginRequestCommand command,
+                               BindingResult bindingResult,
+                               @RequestParam(name = "failed", required = false) Object failed,
+                               @RequestParam(name = "locked", required = false) Object locked,
+                               Principal principal) {
+        if(principal != null) return "redirect:/board/list";
+
+        if(failed != null) bindingResult.addError(new FieldError("command", "userId", "ID or password not matched."));
+        if(locked != null) bindingResult.addError(new FieldError("command", "userId", "Account login attempt exceeded its limit. Try 1 hour later."));
+
         return "account/login";
     }
 
-    @PostMapping("/login")
-    public String submitLogin(@ModelAttribute(name = "command") @Valid LoginRequestCommand command,
-                              BindingResult bindingResult,
-                              HttpServletRequest request){
-
-        if(bindingResult.hasErrors()){
-            return "account/login";
-        }
-
-        try {
-            BoardAccountDTO loginResult = accountService.loginAccount(
-                    BoardAccountDTO.builder().userId(command.getUserid()).build(),
-                    AuthDTO.builder().rawPassword(command.getPassword()).build());
-            HttpSession session = request.getSession();
-            session.setAttribute(sessionAuthAttribute, new LoginSessionInfo(loginResult));
-        } catch (NoAccountFoundException e){
-            bindingResult.addError(new FieldError("command", "userid", e.errorDescription));
-            return "account/login";
-        } catch (AuthenticationFailedException e) {
-            bindingResult.addError(new FieldError("command", "userid", "Id or Password is not matched."));
-            return "account/login";
-        } catch (AccountChallengeThresholdLimitExceededException e){
-            bindingResult.addError(new FieldError("command", "userid", "Login attempt limit exceed. Please try again later."));
-            return "account/login";
-        }
-
-        return "redirect:/board/list";
-    }
-
-
     @GetMapping("/logout")
-    public String requestLogout(HttpSession session){
-        session.invalidate();
-        return "redirect:/board/list";
+    public String requestLogout(Principal principal) {
+        if(principal == null) return "redirect:/board/list";
+        else return "account/logout";
     }
 
 
@@ -145,47 +117,47 @@ public class AccountController {
                                  @Validated(AccountRecoveryRequestValidationGroup.class) AccountRecoveryCommand command,
                                  BindingResult bindingResult,
                                  Model model) {
-
         if (bindingResult.hasErrors()) {
             return "account/recoveryRequest";
         }
 
         try {
-            BoardAccountDTO boardAccountDTO = accountService.readAccount(BoardAccountDTO.builder().userId(command.getUserId()).build());
-            model.addAttribute("question", boardAccountDTO.getRecoveryQuestion());
-            return "account/recovery";
+            if (!accountRecoveryService.challengeAccount(command.getUserId())) {
+                bindingResult.addError(new FieldError("command", "userId", "Recovery challenge limit exceeded. Try 1 hour later."));
+                return "account/recoveryRequest";
+            }
         } catch (NoAccountFoundException exception) {
             bindingResult.addError(new FieldError("command", "userId", "No account found."));
             return "account/recoveryRequest";
         }
+
+        model.addAttribute("question", accountService.getAccountInformation(command.getUserId()).getRecoveryQuestion());
+        return "account/recovery";
     }
     
     @PostMapping("/recovery/submit")
-    public String submitRestoreAccount(Model model,
-                                       @ModelAttribute("command")
+    public String submitRestoreAccount(@ModelAttribute("command")
                                        @Validated(AccountRecoverySubmitValidationGroup.class) AccountRecoveryCommand command,
-                                       BindingResult bindingResult) {
+                                       BindingResult bindingResult,
+                                       Model model) {
 
         if(bindingResult.hasErrors()){
             return "account/recovery";
         }
+        BoardAccountDTO account = accountService.getAccountInformation(command.getUserId());
+        if(!accountRecoveryService.getChallengeStatus(command.getUserId())) {
+            model.addAttribute("question", account.getRecoveryQuestion());
+            bindingResult.addError(new FieldError("command", "answer", "Recovery challenge limit exceeded."));
+            return "account/recovery";
+        }
 
-        BoardAccountDTO request = BoardAccountDTO.builder().userId(command.getUserId()).build();
-        try {
-            accountService.updateAccount(
-                    request,
-                    AuthDTO.builder().recoveryAnswer(command.getAnswer()).build(),
-                    UpdatableInformation.password,
-                    command.getNewPassword());
-            return "redirect:/account/login";
-        } catch (AuthenticationFailedException exception){
-            model.addAttribute("question", command.getQuestion());
+        if (!accountRecoveryService.recoverAccount(command.getUserId(), command.getAnswer())) {
+            model.addAttribute("question", account.getRecoveryQuestion());
             bindingResult.addError(new FieldError("command", "answer", "Recovery answer not matched."));
             return "account/recovery";
-        } catch (AccountChallengeThresholdLimitExceededException exception){
-            model.addAttribute("question", command.getQuestion());
-            bindingResult.addError(new FieldError("command", "newPassword", "Login attempt threshold limit exceeded."));
-            return "account/recovery";
+        } else {
+            accountService.updateAccount(command.getUserId(), UpdatableInformation.password, command.getNewPassword());
+            return "redirect:/account/login";
         }
     }
 
@@ -194,27 +166,27 @@ public class AccountController {
     public String manage(@Valid AccountManageListCommand command,
                          BindingResult bindingResult,
                          Model model,
-                         @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo) {
+                         Principal principal) {
 
         if (bindingResult.hasErrors()) {
             return "redirect:/account/manage";
         }
 
-        BoardArticlesDTO boardArticles = articleService.readArticlesOfAccount(loginSessionInfo.getUserID(), command.getArticlePage(), 10);
-        BoardCommentsDTO boardComments = commentService.readCommentsOfAccount(loginSessionInfo.getUserID(), command.getCommentPage(), 10);
-        BoardAccountDTO boardAccountDTO = accountService.readAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
-        BoardAccountLevelDTO accountLevels = accountService.getAccountLevels(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        BoardArticleDTO.PagedArticles articles = articleService.searchAllByPages(ArticleSearchMode.ACCOUNT, principal.getName(), command.getArticlePage(), 10);
+        BoardCommentDTO.PagedComments comments = commentService.readCommentsOfAccount(principal.getName(), command.getCommentPage(), 10);
+        BoardAccountDTO account = accountService.getAccountInformation(principal.getName());
+        List<ManagerLevel> accountLevels = accountService.getAccountManagerAuthorities(principal.getName());
 
-        model.addAttribute("userInfo", boardAccountDTO);
-        model.addAttribute("articles", boardArticles.getBoardArticles());
-        model.addAttribute("comments", boardComments.getBoardComments());
+        model.addAttribute("userInfo", account);
+        model.addAttribute("articles", articles.getArticles());
+        model.addAttribute("comments", comments.getComments());
 
-        model.addAttribute("currentArticlePage", boardArticles.getCurrentPage());
-        model.addAttribute("articlePages", boardArticles.getTotalPages());
-        model.addAttribute("currentCommentPage", boardComments.getCurrentPage());
-        model.addAttribute("commentPages", boardComments.getTotalPages());
+        model.addAttribute("currentArticlePage", articles.getCurrentPage());
+        model.addAttribute("articlePages", articles.getPages());
+        model.addAttribute("currentCommentPage", comments.getCurrentPage());
+        model.addAttribute("commentPages", comments.getPages());
 
-        model.addAttribute("levels", accountLevels.getLevels());
+        model.addAttribute("levels", accountLevels);
 
         return "account/info";
     }
@@ -223,18 +195,18 @@ public class AccountController {
     @GetMapping("/manage/change")
     public String requestChangePersonalInformation(@ModelAttribute("command")
                                                    @Validated(InfoUpdateRequestValidationGroup.class)
-                                                   InfoUpdateRequestCommand command,
+                                                           InfoUpdateRequestCommand command,
                                                    BindingResult bindingResult,
-                                                   @SessionAttribute("loginSessionInfo") LoginSessionInfo loginSessionInfo,
+                                                   Principal principal,
                                                    Model model) {
 
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             return "redirect:/account/manage";
         }
 
-        BoardAccountDTO boardAccountDTO = accountService.readAccount(BoardAccountDTO.builder().userId(loginSessionInfo.getUserID()).build());
+        BoardAccountDTO boardAccountDTO = accountService.getAccountInformation(principal.getName());
 
-        switch(command.getMode()){
+        switch (command.getMode()) {
             case password:
                 model.addAttribute("previousValue", "********");
                 break;
@@ -260,33 +232,24 @@ public class AccountController {
     }
 
     @PostMapping("/manage/change")
-    public String submitChangePersonalInformation(HttpSession session,
-                                                  Model model,
+    public String submitChangePersonalInformation(Model model,
                                                   @ModelAttribute("command")
                                                   @Validated(InfoUpdateSubmitValidationGroup.class)
-                                                  InfoUpdateRequestCommand command,
+                                                          InfoUpdateRequestCommand command,
                                                   BindingResult bindingResult,
-                                                  @SessionAttribute(name = "loginSessionInfo") LoginSessionInfo loginSessionInfo){
-
+                                                  Principal principal){
         if (bindingResult.hasErrors()) {
             model.addAttribute("previousValue", command.getPrevious());
             return "account/change";
         }
 
-        try {
-            BoardAccountDTO updateResult = accountService.updateAccount(
-                    new BoardAccountDTO(loginSessionInfo),
-                    AuthDTO.builder().rawPassword(command.getAuth()).build(),
-                    command.getMode(),
-                    command.getUpdated());
-
-            session.setAttribute(sessionAuthAttribute, new LoginSessionInfo(updateResult));
-        } catch (AuthenticationFailedException exception) {
+        if(!accountService.authenticateAccount(principal.getName(), command.getAuth())) {
             model.addAttribute("previousValue", command.getPrevious());
             bindingResult.addError(new FieldError("command", "auth", "Authentication string not matched."));
             return "account/change";
         }
 
+        accountService.updateAccount(principal.getName(), command.getMode(), command.getUpdated());
         return "redirect:/account/manage";
     }
 }

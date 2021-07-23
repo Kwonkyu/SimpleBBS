@@ -16,4 +16,6 @@ public class ListCommand {
     @Positive(message = "Page size can't be negative or zero.")
     @Max(value = 40, message = "Page size can't exceeds 40.")
     private int pageSize = 10;
+
+    private String keyword = "";
 }

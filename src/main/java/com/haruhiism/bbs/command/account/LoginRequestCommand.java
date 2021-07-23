@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 @Setter
 public class LoginRequestCommand {
     @NotBlank(message = "ID cannot be empty.")
-    private String userid = "";
+    private String userId = "";
     @NotBlank(message = "Password cannot be empty.")
     private String password = "";
 }

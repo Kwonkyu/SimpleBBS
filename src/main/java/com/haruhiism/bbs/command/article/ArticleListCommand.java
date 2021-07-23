@@ -10,7 +10,6 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class ArticleListCommand extends DateBasedListCommand {
-
     @NotNull(message = "Search mode cannot be null.")
     private ArticleSearchMode mode = ArticleSearchMode.TITLE;
 }

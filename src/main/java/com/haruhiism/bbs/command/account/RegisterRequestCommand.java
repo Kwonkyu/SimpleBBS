@@ -11,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 @Setter
 public class RegisterRequestCommand {
     @NotBlank(message = "ID cannot be empty.")
-    private String userid;
+    private String userId;
 
     @NotBlank(message = "Name cannot be empty.")
     private String username;

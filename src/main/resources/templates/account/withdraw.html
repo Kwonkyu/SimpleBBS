@@ -9,7 +9,7 @@
 
 <h1>ACCOUNT WITHDRAWAL</h1>
 
-<form action="/account/withdraw" method="post" th:object="${command}">
+<form th:action="@{/account/withdraw}" method="post" th:object="${command}">
     <table>
         <tr>
             <td><label for="password-form">PASSWORD</label></td>

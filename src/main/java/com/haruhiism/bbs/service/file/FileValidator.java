@@ -8,11 +8,24 @@ import java.util.Optional;
 
 public interface FileValidator {
 
-    public Optional<String> validate(File file);
+    /**
+     * Validate file.
+     * @param file File object containing file.
+     * @return Optional\<String> object containing validated file's name.
+     */
+    Optional<String> validate(File file);
 
-    public Optional<String> validate(MultipartFile file);
+    /**
+     * Validate file.
+     * @param file MultipartFile object containing file.
+     * @return Optional\<String> object containing validated file's name.
+     */
+    Optional<String> validate(MultipartFile file);
 
-    public Optional<String> validate(Path path);
-
-
+    /**
+     * Validate file.
+     * @param path Path object containing file.
+     * @return Optional\<String> object containing validated file's name.
+     */
+    Optional<String> validate(Path path);
 }

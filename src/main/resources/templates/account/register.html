@@ -9,12 +9,12 @@
 
 <h1>REGISTER NEW ACCOUNT</h1>
 
-<form action="/account/register" method="post" th:object="${command}">
+<form th:action="@{/account/register}" method="post" th:object="${command}">
     <table>
         <tr>
             <td><label for="id-form">ID</label></td>
-            <td><input id="id-form" name="userid" type="text" th:value="*{userid}" required></td>
-            <td><span th:if="${#fields.hasErrors('userid')}" th:errors="*{userid}">UserId Error Message</span></td>
+            <td><input id="id-form" name="userId" type="text" th:value="*{userId}" required></td>
+            <td><span th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}">UserId Error Message</span></td>
             <!-- *{} for accessing fields of th:object's object. -->
         </tr>
         <tr>

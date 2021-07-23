@@ -46,14 +46,14 @@
 
 <div>
     <div>
-        <a href="/board/list">List</a>
+        <a th:href="@{/board/list}">List</a>
         <a th:href="@{/board/edit(id=${article.getId()})}">Edit</a>
         <a th:href="@{/board/remove(id=${article.getId()})}">Delete</a>
     </div>
 
     <div>
-        <form action="/comment/create" method="post">
-            <input type="hidden" th:value="${article.id}" name="articleID">
+        <form th:action="@{/comment/create}" method="post">
+            <input type="hidden" th:value="${article.id}" name="articleId">
             <table>
                 <caption>WRITE YOUR COMMENT</caption>
                 <tr>
@@ -101,7 +101,7 @@
             <td th:text="${comment.getContent()}">COMMENT HERE</td>
             <td th:text="${comment.getCreatedDate()}"></td>
             <td>
-                <form action="/comment/remove" method="get">
+                <form th:action="@{/comment/remove}" method="get">
                     <input type="hidden" name="id" th:value="${comment.getId()}">
                     <input type="submit" value="DELETE">
                 </form>

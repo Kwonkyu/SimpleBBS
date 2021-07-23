@@ -1,29 +1,24 @@
 package com.haruhiism.bbs.service.article;
 
 import com.haruhiism.bbs.domain.ArticleSearchMode;
-import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.AuthDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
-import com.haruhiism.bbs.exception.account.NoAccountFoundException;
 import com.haruhiism.bbs.exception.article.NoArticleFoundException;
 import com.haruhiism.bbs.exception.article.UpdateDeletedArticleException;
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
-import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.service.PageUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.UUID;
 
+import static com.haruhiism.bbs.service.RepositoryUtility.findAccountByUserId;
+import static com.haruhiism.bbs.service.RepositoryUtility.findArticleById;
 
 @Service
 @Transactional
@@ -33,96 +28,82 @@ public class BasicArticleService implements ArticleService {
     private final ArticleRepository articleRepository;
     private final AccountRepository accountRepository;
 
-    private final DataEncoder dataEncoder;
-    private final PageUtility pageUtility;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Override
-    public Long createArticle(BoardArticleDTO article, @NonNull AuthDTO authDTO) {
-        BoardArticle boardArticle = new BoardArticle(
-                article.getWriter(),
-                dataEncoder.encode(article.getPassword()),
-                article.getTitle(),
-                article.getContent());
+    public boolean authorizeArticleAccess(long articleId, String password) {
+        return passwordEncoder.matches(password, findArticleById(articleRepository, articleId).getPassword());
+    }
 
-        LoginSessionInfo loginSessionInfo = authDTO.getLoginSessionInfo();
-        if(loginSessionInfo != null){
-            boardArticle.registerAccountInfo(
-                    accountRepository.findById(loginSessionInfo.getAccountID())
-                            .orElseThrow(NoAccountFoundException::new));
-        }
-
+    @Override
+    public long createArticle(BoardArticleDTO article) {
+        article.encodePassword(passwordEncoder);
+        BoardArticle boardArticle = new BoardArticle(article);
         articleRepository.save(boardArticle);
         return boardArticle.getId();
     }
 
+    @Override
+    public long createArticle(BoardArticleDTO article, String userId) {
+        article.encodePassword(passwordEncoder, UUID.randomUUID().toString());
+        BoardAccount boardAccount = findAccountByUserId(accountRepository, userId);
+        BoardArticle boardArticle = new BoardArticle(article, boardAccount);
+        articleRepository.save(boardArticle);
+        return boardArticle.getId();
+    }
 
     @Override
-//    @Transactional(readOnly = true)
-    public BoardArticleDTO readArticle(Long articleID) {
-        BoardArticle readArticle = articleRepository.findById(articleID).orElseThrow(NoArticleFoundException::new);
-        if(readArticle.isDeleted()){
+    public BoardArticleDTO readArticle(long articleId) { // not readonly because view counts need to be updated.
+        BoardArticle article = findArticleById(articleRepository, articleId);
+        if(article.isDeleted()){
             throw new NoArticleFoundException();
         } else {
-            readArticle.getHit().increaseHit();
-            return new BoardArticleDTO(readArticle);
+            article.increaseHit();
+            return new BoardArticleDTO(article);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO readAllByPages(int pageNum, int pageSize){
-        Page<BoardArticle> boardArticles = articleRepository.findAllByDeletedFalseOrderByIdDesc(PageRequest.of(pageNum, pageSize));
-        return pageUtility.convertBoardArticles(boardArticles);
-    }
-
-    @Override
-    public BoardArticlesDTO readArticlesOfAccount(String userId, int pageNum, int pageSize) {
-        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(userId).orElseThrow(NoAccountFoundException::new);
-        Page<BoardArticle> articles = articleRepository.findAllByBoardAccountAndDeletedFalse(boardAccount, PageRequest.of(pageNum, pageSize));
-        return pageUtility.convertBoardArticles(articles);
+    public BoardArticleDTO.PagedArticles readAllByPages(int pageNum, int pageSize){
+        Page<BoardArticle> articles = articleRepository.findAllByDeletedFalseOrderByIdDesc(PageRequest.of(pageNum, pageSize));
+        return new BoardArticleDTO.PagedArticles(articles);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize) {
-        Page<BoardArticle> result = null;
+    public BoardArticleDTO.PagedArticles searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize) {
+        Page<BoardArticle> result = Page.empty();
+        PageRequest page = PageRequest.of(pageNum, pageSize);
 
         switch(articleSearchMode){
             case TITLE:
-                result = articleRepository.findAllByTitleContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByTitleContainingAndDeletedFalseOrderByIdDesc(keyword, page);
                 break;
 
             case WRITER:
-                result = articleRepository.findAllByWriterContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByWriterContainingAndDeletedFalseOrderByIdDesc(keyword, page);
                 break;
 
             case CONTENT:
-                result = articleRepository.findAllByContentContainingAndDeletedFalseOrderByIdDesc(keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByContentContainingAndDeletedFalseOrderByIdDesc(keyword, page);
                 break;
 
             case TITLE_CONTENT:
-                result = articleRepository.findAllByTitleContainingOrContentContainingOrderByIdDesc(keyword, keyword, PageRequest.of(pageNum, pageSize));
+                result = articleRepository.findAllByTitleContainingOrContentContainingOrderByIdDesc(keyword, keyword, page);
                 break;
+
+            case ACCOUNT:
+                BoardAccount account = findAccountByUserId(accountRepository, keyword);
+                result = articleRepository.findAllByBoardAccountAndDeletedFalse(account, page);
         }
 
-        return pageUtility.convertBoardArticles(result);
+        return new BoardArticleDTO.PagedArticles(result);
     }
-
-
-    private boolean verifyArticleAndAccount(BoardArticle boardArticle, String authValue, LoginSessionInfo loginSessionInfo){
-        if (boardArticle.isDeleted()) {
-            return false;
-        }
-
-        Optional<Long> articleWriterId = getArticleWriterId(boardArticle);
-        return articleWriterId.map(id ->
-                loginSessionInfo != null && id.equals(loginSessionInfo.getAccountID()))
-                .orElseGet(() -> dataEncoder.compare(authValue, boardArticle.getPassword()));
-    }
-
 
     @Override
-    public void updateArticle(BoardArticleDTO article, AuthDTO authDTO) {
+    public void updateArticle(BoardArticleDTO article) {
         BoardArticle updatedArticle = articleRepository.findById(article.getId())
                 .orElseThrow(UpdateDeletedArticleException::new);
 
@@ -130,46 +111,14 @@ public class BasicArticleService implements ArticleService {
             throw new UpdateDeletedArticleException();
         }
 
-        if(verifyArticleAndAccount(updatedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
-            updatedArticle.changeTitle(article.getTitle());
-            updatedArticle.changeContent(article.getContent());
-        } else {
-            throw new AuthenticationFailedException();
-        }
+        updatedArticle.changeTitle(article.getTitle());
+        updatedArticle.changeContent(article.getContent());
     }
 
 
     @Override
-    public void deleteArticle(Long articleId, AuthDTO authDTO){
-        BoardArticle deletedArticle = articleRepository.findById(articleId)
-                .orElseThrow(NoArticleFoundException::new);
-
-        if(verifyArticleAndAccount(deletedArticle, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
-            deletedArticle.delete();
-        } else {
-            throw new AuthenticationFailedException();
-        }
-    }
-
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<BoardArticleDTO> authArticleEdit(Long articleId, AuthDTO authDTO) {
-        BoardArticle article = articleRepository.findById(articleId)
-                .orElseThrow(NoArticleFoundException::new);
-
-        if(verifyArticleAndAccount(article, authDTO.getRawPassword(), authDTO.getLoginSessionInfo())){
-            BoardArticleDTO boardArticleDTO = new BoardArticleDTO(article);
-            boardArticleDTO.setPassword(authDTO.getRawPassword() == null ? "PASSWORD" : authDTO.getRawPassword());
-            return Optional.of(boardArticleDTO);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-
-    private Optional<Long> getArticleWriterId(BoardArticle boardArticle) {
-        if(boardArticle.getBoardAccount() == null) return Optional.empty();
-        return Optional.of(boardArticle.getBoardAccount().getId());
+    public void deleteArticle(long articleId){
+        BoardArticle deletedArticle = findArticleById(articleRepository, articleId);
+        deletedArticle.delete();
     }
 }

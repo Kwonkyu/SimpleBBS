@@ -35,40 +35,48 @@
             <!-- https://www.thymeleaf.org/doc/articles/standardurlsyntax.html -->
             <td><a th:text="${article.getTitle()}" th:href="@{/board/read(id=${article.getId()})}">TITLE HERE</a></td>
             <td th:text="${article.getWriter()}">WRITER HERE</td>
-            <td th:text="${commentSizes.get(state.index)}">COMMENT SIZE HERE</td>
+            <td th:text="${article.getComments()}">COMMENT SIZE HERE</td>
             <td th:text="${article.getCreatedDate()}">CREATED DATE HERE</td>
             <td th:text="${article.getHit()}">HIT VALUE HERE</td>
         </tr>
     </table>
 
     <div>
-        <form action="/board/list" method="get">
+        <form th:action="@{/board/list}" method="get">
             <label for="article-size">HOW MANY ARTICLES?</label>
-            <select name="pageSize">
+            <select id="article-size" name="pageSize">
                 <option th:selected="${10 eq pageSize}">10</option>
                 <option th:selected="${20 eq pageSize}">20</option>
                 <option th:selected="${30 eq pageSize}">30</option>
                 <option th:selected="${40 eq pageSize}">40</option>
             </select>
-            <input id="article-size" type="submit" value="CHANGE">
+            <input type="submit" value="CHANGE">
         </form>
     </div>
 
-    <form action="/board/list" method="get">
+    <form th:action="@{/board/list}" method="get">
         <input type="hidden" th:value="${currentPage}" name="pageNum">
         <input type="hidden" th:value="${pageSize}" name="pageSize">
         <table>
             <tr>
                 <td>
-                    <select name="mode">
+                    <label for="search-mode">Search Mode</label>
+                </td>
+                <td>
+                    <select id="search-mode" name="mode">
                         <option value="WRITER" th:selected="${'WRITER' eq searchMode}">Writer</option>
                         <option value="TITLE" th:selected="${'TITLE' eq searchMode}">Title</option>
                         <option value="CONTENT" th:selected="${'CONTENT' eq searchMode}">Content</option>
                         <option value="TITLE_CONTENT" th:selected="${'TITLE_CONTENT' eq searchMode}">Title & Content</option>
                     </select>
                 </td>
+            </tr>
+            <tr>
                 <td>
-                    <input type="text" name="keyword" th:value="${searchKeyword}" required>
+                    <label for="search-value">Search Value</label>
+                </td>
+                <td>
+                    <input id="search-value" type="text" name="keyword" th:value="${searchKeyword}" required>
                 </td>
                 <td>
                     <input type="submit" value="Search">
@@ -78,8 +86,8 @@
     </form>
 
     <div>
-        <span><a href="/board/list">LIST</a></span>
-        <span><a href="/board/write">WRITE</a></span>
+        <span><a th:href="@{/board/list}">LIST</a></span>
+        <span><a th:href="@{/board/write}">WRITE</a></span>
         <span th:each="link: ${links}" th:object="${link}">
             <a th:text="*{key}" th:href="*{value}">/link/to/destination</a>
         </span>

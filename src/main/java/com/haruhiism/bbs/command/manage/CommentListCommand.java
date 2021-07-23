@@ -10,7 +10,6 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class CommentListCommand extends DateBasedListCommand {
-
     @NotNull(message = "Search mode cannot be null.")
     CommentSearchMode mode = CommentSearchMode.CONTENT;
 }

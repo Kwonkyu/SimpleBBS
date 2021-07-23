@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>SimpleBBS - Logout</title>
+</head>
+<body>
+
+<form th:action="@{/account/logout}" method="post" name="logout"><form>
+
+</body>
+<script>
+  window.onload = () => {
+    document.forms["logout"].submit();
+  }
+</script>
+</html>

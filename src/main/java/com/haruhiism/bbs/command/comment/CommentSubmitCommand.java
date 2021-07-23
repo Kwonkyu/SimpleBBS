@@ -14,7 +14,7 @@ public class CommentSubmitCommand {
 
     @NotNull(message = "Article ID cannot be null.")
     @Positive(message = "Article ID cannot be negative or zero.")
-    private Long articleID;
+    private Long articleId;
 
     @NotBlank(message = "Writer cannot be empty.")
     @Length(max = 64, message = "Writer cannot exceeds 64 characters.")

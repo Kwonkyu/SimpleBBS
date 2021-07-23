@@ -10,7 +10,6 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class AccountListCommand extends DateBasedListCommand {
-
     @NotNull(message = "Search mode cannot be null.")
     private AccountSearchMode mode = AccountSearchMode.USERNAME;
 }

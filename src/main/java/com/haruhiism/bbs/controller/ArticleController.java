@@ -1,8 +1,10 @@
 package com.haruhiism.bbs.controller;
 
 import com.haruhiism.bbs.command.article.*;
-import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.*;
+import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
+import com.haruhiism.bbs.domain.dto.ResourceDTO;
+import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
@@ -10,6 +12,10 @@ import com.haruhiism.bbs.service.file.FileHandlerService;
 import com.haruhiism.bbs.service.manage.AccountManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,9 +26,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,31 +44,37 @@ public class ArticleController {
     private final FileHandlerService fileHandlerService;
 
 
+    private String getUsernameFromSecurityContext(SecurityContext context) {
+        return isAnonymousUser(context) ? "" : ((BoardAccount) context.getAuthentication().getPrincipal()).getAlias();
+    }
+
+    private boolean isAnonymousUser(SecurityContext context) {
+        return context.getAuthentication() instanceof AnonymousAuthenticationToken;
+    }
+
     @GetMapping("/list")
     public String listBoardArticles(Model model,
                                     @ModelAttribute("command") @Valid ArticleListCommand command,
                                     BindingResult bindingResult,
-                                    HttpServletRequest request){
+                                    Principal principal){ // https://www.baeldung.com/get-user-in-spring-security
 
         if(bindingResult.hasErrors()){
             return "redirect:/board/list";
         }
 
-        BoardArticlesDTO articlesDTO = command.getKeyword().isBlank() ?
+        BoardArticleDTO.PagedArticles articles = command.getKeyword().isBlank() ?
                 articleService.readAllByPages(command.getPageNum(), command.getPageSize()) :
                 articleService.searchAllByPages(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
 
-        model.addAttribute("articles", articlesDTO.getBoardArticles());
-        model.addAttribute("commentSizes", articlesDTO.getBoardArticleCommentSize());
-        model.addAttribute("totalPages", articlesDTO.getTotalPages());
-        model.addAttribute("currentPage", command.getPageNum());
+        model.addAttribute("articles", articles.getArticles());
+        model.addAttribute("totalPages", articles.getPages());
+        model.addAttribute("currentPage", articles.getCurrentPage());
         model.addAttribute("pageSize", command.getPageSize());
         model.addAttribute("searchMode", command.getMode().name());
         model.addAttribute("searchKeyword", command.getKeyword());
 
-        HttpSession session = request.getSession(false);
         Map<String, String> links = new LinkedHashMap<>();
-        if(session == null){
+        if(principal == null){
             links.put("LOGIN", "/account/login");
             links.put("REGISTER", "/account/register");
         } else {
@@ -71,8 +82,7 @@ public class ArticleController {
             links.put("WITHDRAW", "/account/withdraw");
             links.put("MANAGE", "/account/manage");
 
-            String userId = ((LoginSessionInfo)session.getAttribute("loginSessionInfo")).getUserID();
-            if(accountManagerService.authManagerAccess(userId)){
+            if(accountManagerService.authManagerAccess(principal.getName())){
                 links.put("ADMIN CONSOLE", "/manage/console");
             }
         }
@@ -85,23 +95,21 @@ public class ArticleController {
     public String readBoardArticle(Model model,
                                    @Valid ArticleReadCommand command,
                                    BindingResult bindingResult,
-                                   HttpServletRequest request) {
+                                   @CurrentSecurityContext SecurityContext context) {
 
         if (bindingResult.hasErrors()) {
             return "redirect:/board/list";
         }
 
         BoardArticleDTO article = articleService.readArticle(command.getId());
-        BoardCommentsDTO comments = commentService.readCommentsOfArticle(article.getId(), command.getCommentPage(), 10);
+        BoardCommentDTO.PagedComments comments = commentService.readArticleCommentsPaged(article.getId(), command.getCommentPage(), 10);
         List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
 
-        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-        model.addAttribute("loginUsername", loginSessionInfo == null ? "" : loginSessionInfo.getUsername());
-
+        model.addAttribute("loginUsername", getUsernameFromSecurityContext(context));
         model.addAttribute("article", article);
-        model.addAttribute("comments", comments.getBoardComments());
+        model.addAttribute("comments", comments.getComments());
         model.addAttribute("currentCommentPage", comments.getCurrentPage());
-        model.addAttribute("totalCommentPages", comments.getTotalPages());
+        model.addAttribute("totalCommentPages", comments.getPages());
         model.addAttribute("resources", resources);
 
         return "board/read";
@@ -112,11 +120,9 @@ public class ArticleController {
     public String writeBoardArticle(
             Model model,
             @ModelAttribute("command") ArticleSubmitCommand command,
-            HttpServletRequest request){
-
-        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-        model.addAttribute("loginUsername", loginSessionInfo == null ? "" : loginSessionInfo.getUsername());
-
+            @CurrentSecurityContext SecurityContext context){
+        // https://stackoverflow.com/questions/57053736/how-to-check-if-user-is-logged-in-or-anonymous-in-spring-security
+        model.addAttribute("loginUsername", getUsernameFromSecurityContext(context));
         return "board/write";
     }
 
@@ -125,52 +131,50 @@ public class ArticleController {
             Model model,
             @ModelAttribute("command") @Valid ArticleSubmitCommand command,
             BindingResult bindingResult,
-            HttpServletRequest request){
-
-        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-
+            @CurrentSecurityContext SecurityContext context){
         if(bindingResult.hasErrors()){
-            model.addAttribute("loginUsername", loginSessionInfo == null ? "" : loginSessionInfo.getUsername());
+            model.addAttribute("loginUsername", getUsernameFromSecurityContext(context));
             return "/board/write";
         }
 
         BoardArticleDTO articleDTO = new BoardArticleDTO(command);
-        AuthDTO authDTO = AuthDTO.builder().loginSessionInfo(loginSessionInfo).build();
-        Long createdArticleId = articleService.createArticle(articleDTO, authDTO);
+        long createdArticleId;
+        if(isAnonymousUser(context)) {
+            createdArticleId = articleService.createArticle(articleDTO);
+        } else {
+            createdArticleId = articleService.createArticle(articleDTO, context.getAuthentication().getName());
+        }
         fileHandlerService.store(command.getUploadedFiles(), createdArticleId);
 
-        return "redirect:/board/list";
+        return "redirect:/board/read?id=" + createdArticleId;
     }
 
 
-    private boolean isArticleWrittenByLoggedInAccount(Long articleId){
-        return !articleService.readArticle(articleId).getUserId().isBlank();
-    }
-
-    private void addArticleToModel(Model model, Long articleID, AuthDTO authDTO){
-        model.addAttribute("article", articleService.authArticleEdit(articleID, authDTO).orElseThrow(AuthenticationFailedException::new));
+    private void addArticleToModel(Model model, Long articleID){
+        model.addAttribute("article", articleService.readArticle(articleID));
         model.addAttribute("resources", fileHandlerService.listResourcesOfArticle(articleID));
     }
 
+    private void authorizeAccountWrittenArticle(BoardArticleDTO article, Principal principal) {
+        if(principal == null || !principal.getName().equals(article.getUserId()))
+            throw new AuthenticationFailedException();
+    }
 
     @GetMapping("/edit")
     public String requestEditArticle(Model model,
-                                     @ModelAttribute("command") @Validated(ArticleEditRequestValidationGroup.class) ArticleEditRequestCommand command,
+                                     @ModelAttribute("command") @Validated(ArticleEditRequestValidationGroup.class)
+                                     ArticleEditRequestCommand command,
                                      BindingResult bindingResult,
-                                     HttpServletRequest request){
+                                     Principal principal){
 
         if(bindingResult.hasErrors()){
             return "redirect:/board/list";
         }
 
-        if (isArticleWrittenByLoggedInAccount(command.getId())) {
-            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-            if(loginSessionInfo == null){
-                throw new AuthenticationFailedException();
-            }
-
-            addArticleToModel(model, command.getId(), AuthDTO.builder().loginSessionInfo(loginSessionInfo).build());
-            model.addAttribute("password", "THIS_IS_USELESS_PASSWORD");
+        BoardArticleDTO article = articleService.readArticle(command.getId());
+        if (article.isWrittenByAccount()) {
+            authorizeAccountWrittenArticle(article, principal);
+            addArticleToModel(model, command.getId());
             return "board/edit";
         } else {
             return "board/editRequest";
@@ -179,20 +183,20 @@ public class ArticleController {
 
     @PostMapping("/edit")
     public String authEditArticle(Model model,
-                                  @ModelAttribute("command") @Validated(ArticleEditSubmitValidationGroup.class) ArticleEditRequestCommand command,
+                                  @ModelAttribute("command") @Validated(ArticleEditSubmitValidationGroup.class)
+                                  ArticleEditRequestCommand command,
                                   BindingResult bindingResult){
 
         if (bindingResult.hasErrors()) {
             return "board/editRequest";
         }
 
-        try {
-            addArticleToModel(model, command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build());
-        } catch (AuthenticationFailedException ex){
+        if(!articleService.authorizeArticleAccess(command.getId(), command.getPassword())) {
             bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "board/editRequest";
         }
 
+        addArticleToModel(model, command.getId());
         model.addAttribute("password", command.getPassword());
         return "board/edit";
     }
@@ -200,27 +204,23 @@ public class ArticleController {
 
     @PostMapping("/edit/submit")
     public String submitEditArticle(
-            Model model,
             @ModelAttribute("article") @Valid ArticleEditSubmitCommand command,
             BindingResult bindingResult,
-            HttpServletRequest request){
+            Principal principal){
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("password", command.getPassword());
-            model.addAttribute("resources", fileHandlerService.listResourcesOfArticle(command.getId()));
-            return "board/edit";
+            return "redirect:/board/list";
         }
 
-        BoardArticleDTO editedArticleDTO = BoardArticleDTO.builder()
-                .id(command.getId())
-                .title(command.getTitle())
-                .content(command.getContent()).build();
+        BoardArticleDTO article = articleService.readArticle(command.getId());
+        if(article.isWrittenByAccount()) {
+            authorizeAccountWrittenArticle(article, principal);
+        } else {
+            if (!articleService.authorizeArticleAccess(command.getId(), command.getPassword()))
+                throw new AuthenticationFailedException();
+        }
 
-        AuthDTO authDTO = AuthDTO.builder()
-                .rawPassword(command.getPassword())
-                .loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build();
-
-        articleService.updateArticle(editedArticleDTO, authDTO);
+        articleService.updateArticle(new BoardArticleDTO(command));
         fileHandlerService.delete(command.getDelete(), command.getId());
         fileHandlerService.store(command.getUploadedFiles(), command.getId());
         return "redirect:/board/list";
@@ -229,19 +229,19 @@ public class ArticleController {
 
     @GetMapping("/remove")
     public String requestRemoveArticle(
-            Model model,
-            @ModelAttribute("command") @Validated(ArticleRemoveRequestValidationGroup.class) ArticleRemoveRequestCommand command,
+            @ModelAttribute("command") @Validated(ArticleRemoveRequestValidationGroup.class)
+            ArticleRemoveRequestCommand command,
             BindingResult bindingResult,
-            HttpServletRequest request){
+            Principal principal) {
 
         if (bindingResult.hasErrors()) {
             return "redirect:/board/list";
         }
 
-        if (isArticleWrittenByLoggedInAccount(command.getId())) {
-            articleService.deleteArticle(
-                    command.getId(),
-                    AuthDTO.builder().loginSessionInfo(getLoginSessionInfoFromHttpSession(request.getSession(false))).build());
+        BoardArticleDTO article = articleService.readArticle(command.getId());
+        if (article.isWrittenByAccount()) {
+            authorizeAccountWrittenArticle(article, principal);
+            articleService.deleteArticle(command.getId());
             return "redirect:/board/list";
         } else {
             return "board/removeRequest";
@@ -249,30 +249,25 @@ public class ArticleController {
     }
 
     @PostMapping("/remove")
-    public String authRemoveArticle(@ModelAttribute("command") @Validated(ArticleRemoveSubmitValidationGroup.class) ArticleRemoveRequestCommand command,
+    public String authRemoveArticle(@ModelAttribute("command") @Validated(ArticleRemoveSubmitValidationGroup.class)
+                                    ArticleRemoveRequestCommand command,
                                     BindingResult bindingResult){
-
         if(bindingResult.hasErrors()){
             return "board/removeRequest";
         }
 
-        try {
-            articleService.deleteArticle(
-                    command.getId(),
-                    AuthDTO.builder()
-                            .rawPassword(command.getPassword())
-                            .build());
-        } catch (AuthenticationFailedException exception) {
-            bindingResult.addError(new FieldError("command", "password", "Password not matched."));
-            return "board/removeRequest";
+        BoardArticleDTO article = articleService.readArticle(command.getId());
+        if(article.isWrittenByAccount()) {
+            throw new IllegalStateException("Unauthorized article access.");
+        } else {
+            if(articleService.authorizeArticleAccess(command.getId(), command.getPassword())) {
+                articleService.deleteArticle(command.getId());
+            } else {
+                bindingResult.addError(new FieldError("command", "password", "Password not matched."));
+                return "board/removeRequest";
+            }
         }
 
         return "redirect:/board/list";
-    }
-
-    private LoginSessionInfo getLoginSessionInfoFromHttpSession(HttpSession session) {
-        if(session == null) return null;
-        String sessionAuthAttribute = "loginSessionInfo";
-        return (LoginSessionInfo) session.getAttribute(sessionAuthAttribute);
     }
 }

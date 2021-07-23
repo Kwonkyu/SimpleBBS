@@ -5,32 +5,28 @@ import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.CommentSearchMode;
 import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
-import com.haruhiism.bbs.domain.dto.BoardAccountsDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-import com.haruhiism.bbs.domain.dto.BoardCommentsDTO;
+import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
+import com.haruhiism.bbs.exception.article.NoArticleFoundException;
 import com.haruhiism.bbs.repository.AccountLevelRepository;
 import com.haruhiism.bbs.repository.AccountRepository;
 import com.haruhiism.bbs.repository.ArticleRepository;
 import com.haruhiism.bbs.repository.CommentRepository;
-import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
-import com.haruhiism.bbs.service.PageUtility;
-import com.haruhiism.bbs.service.account.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -42,52 +38,47 @@ public class BasicManageService implements AccountManagerService, ArticleManager
     private final CommentRepository commentRepository;
     private final AccountRepository accountRepository;
     private final AccountLevelRepository accountLevelRepository;
-
-    private final AccountService accountService;
-
-    private final PageUtility pageUtility;
-
-    private final DataEncoder dataEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     // Article Services.
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllArticles() {
+    public long countAllArticles() {
         return articleRepository.count();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllDeletedArticles() {
+    public long countAllDeletedArticles() {
         return articleRepository.countAllByDeletedTrue();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllNotDeletedArticles() {
+    public long countAllNotDeletedArticles() {
         return articleRepository.count() - articleRepository.countAllByDeletedTrue();
     }
 
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO readArticles(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
-        Page<BoardArticle> articles = articleRepository.findAllByCreatedDateTimeBetweenOrderByIdDesc(from, to, PageRequest.of(pageNum, pageSize));
-        return pageUtility.convertBoardArticles(articles);
+    public BoardArticleDTO.PagedArticles readArticlesPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        return new BoardArticleDTO.PagedArticles(
+                articleRepository.findAllByCreatedDateTimeBetweenOrderByIdDesc(from, to, PageRequest.of(pageNum, pageSize)));
     }
 
 
     @Override
     public void deleteArticles(List<Long> articleIds) {
-        for (Long articleId : articleIds) {
+        for (long articleId : articleIds) {
             articleRepository.findById(articleId).ifPresent(BoardArticle::delete);
         }
     }
 
     @Override
     public void restoreArticles(List<Long> articleIds) {
-        for (Long articleId : articleIds) {
+        for (long articleId : articleIds) {
             articleRepository.findById(articleId).ifPresent(BoardArticle::restore);
         }
     }
@@ -95,8 +86,8 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticlesDTO searchArticles(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
-        Page<BoardArticle> result;
+    public BoardArticleDTO.PagedArticles searchArticlesPage(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        Page<BoardArticle> result = Page.empty();
         PageRequest page = PageRequest.of(pageNum, pageSize);
         switch (articleSearchMode) {
             case TITLE:
@@ -117,19 +108,11 @@ public class BasicManageService implements AccountManagerService, ArticleManager
                 break;
 
             case ACCOUNT:
-                Optional<BoardAccount> account = accountRepository.findByUserId(keyword);
-                if(account.isPresent()){
-                    return pageUtility.convertBoardArticles(
-                            articleRepository.findAllByBoardAccount(account.get(), page));
-                } else {
-                    return pageUtility.generateEmptyBoardArticles();
-                }
-
-            default:
-                throw new UnsupportedOperationException();
+                BoardAccount account = accountRepository.findByUserId(keyword).orElseThrow(NoAccountFoundException::new);
+                result = articleRepository.findAllByBoardAccount(account, page);
         }
 
-        return pageUtility.convertBoardArticles(result);
+        return new BoardArticleDTO.PagedArticles(result);
     }
 
 
@@ -138,40 +121,39 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllComments() {
+    public long countAllComments() {
         return commentRepository.count();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllDeletedComments() {
+    public long countAllDeletedComments() {
         return commentRepository.countAllByDeletedTrue();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllNotDeletedComments() {
+    public long countAllNotDeletedComments() {
         return commentRepository.count() - commentRepository.countAllByDeletedTrue();
     }
 
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentsDTO readComments(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
-        Page<BoardComment> comments = commentRepository.findAllByCreatedDateTimeBetween(from, to, PageRequest.of(pageNum, pageSize));
-        return pageUtility.convertBoardComments(comments);
+    public BoardCommentDTO.PagedComments readCommentsPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        return new BoardCommentDTO.PagedComments(commentRepository.findAllByCreatedDateTimeBetweenOrderByIdDesc(from, to, PageRequest.of(pageNum, pageSize)));
     }
 
     @Override
     public void deleteComments(List<Long> commentIds) {
-        for (Long commentId : commentIds) {
+        for (long commentId : commentIds) {
             commentRepository.findById(commentId).ifPresent(BoardComment::delete);
         }
     }
 
     @Override
     public void restoreComments(List<Long> commentIds) {
-        for (Long commentId : commentIds) {
+        for (long commentId : commentIds) {
             commentRepository.findById(commentId).ifPresent(BoardComment::restore);
         }
     }
@@ -179,38 +161,32 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentsDTO searchComments(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+    public BoardCommentDTO.PagedComments searchCommentsPage(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        Page<BoardComment> result = Page.empty();
+        PageRequest page = PageRequest.of(pageNum, pageSize);
 
+        // TODO: dynamic query
         switch(commentSearchMode){
             case WRITER:
-                return pageUtility.convertBoardComments(
-                        commentRepository.findAllByWriterContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
+                result = commentRepository.findAllByWriterContainingAndCreatedDateTimeBetween(keyword, from, to, page);
+                break;
 
             case CONTENT:
-                return pageUtility.convertBoardComments(
-                        commentRepository.findAllByContentContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
+                result = commentRepository.findAllByContentContainingAndCreatedDateTimeBetween(keyword, from, to, page);
+                break;
 
             case ARTICLE:
-                Optional<BoardArticle> article = articleRepository.findById(Long.parseLong(keyword));
-                if(article.isPresent()){
-                    return pageUtility.convertBoardComments(
-                            commentRepository.findAllByBoardArticleAndCreatedDateTimeBetween(article.get(), from, to, PageRequest.of(pageNum, pageSize)));
-                } else {
-                    return pageUtility.generateEmptyBoardComments();
-                }
+                BoardArticle article = articleRepository.findById(Long.parseLong(keyword)).orElseThrow(NoArticleFoundException::new);
+                result = commentRepository.findAllByBoardArticleAndCreatedDateTimeBetween(article, from, to, page);
+                break;
 
             case ACCOUNT:
-                Optional<BoardAccount> account = accountRepository.findByUserId(keyword);
-                if(account.isPresent()) {
-                    return pageUtility.convertBoardComments(
-                            commentRepository.findAllByBoardAccountAndCreatedDateTimeBetween(account.get(), from, to, PageRequest.of(pageNum, pageSize)));
-                } else {
-                    return pageUtility.generateEmptyBoardComments();
-                }
-
-            default:
-                throw new UnsupportedOperationException();
+                BoardAccount account = accountRepository.findByUserId(keyword).orElseThrow(NoAccountFoundException::new);
+                result = commentRepository.findAllByBoardAccountAndCreatedDateTimeBetween(account, from, to, page);
+                break;
         }
+
+        return new BoardCommentDTO.PagedComments(result);
     }
 
 
@@ -219,20 +195,20 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public Long countAllAccounts() {
+    public long countAllAccounts() {
         return accountRepository.count();
     }
 
     @Override
     public boolean authManagerAccess(String userId) {
-        return !accountService.getAccountLevels(BoardAccountDTO.builder().userId(userId).build()).getLevels().isEmpty();
+        BoardAccount boardAccount = accountRepository.findByUserIdAndAvailableTrue(userId).orElseThrow(NoAccountFoundException::new);
+        return !boardAccount.getAuthorities().isEmpty();
     }
 
     @Override
     public void changeManagerLevel(String userId, ManagerLevel level, boolean enable) {
         BoardAccount boardAccount = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
-        Set<ManagerLevel> managerLevels = accountLevelRepository.findAllByBoardAccount(boardAccount).stream().map(BoardAccountLevel::getAccountLevel).collect(Collectors.toSet());
-
+        Set<ManagerLevel> managerLevels = boardAccount.getManagerLevels();
         if(enable && !managerLevels.contains(level)) {
             accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
         }
@@ -243,56 +219,57 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardAccountsDTO readAccounts(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
-        return pageUtility.convertBoardAccounts(accountRepository.findAllByCreatedDateTimeBetween(from, to, PageRequest.of(pageNum, pageSize)));
+    public BoardAccountDTO.PagedAccounts readAccountsPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        return new BoardAccountDTO.PagedAccounts(
+                accountRepository.findAllByCreatedDateTimeBetween(from, to, PageRequest.of(pageNum, pageSize)));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardAccountsDTO searchAccounts(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+    public BoardAccountDTO.PagedAccounts searchAccountsPage(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+        Page<BoardAccount> result = Page.empty();
+
         switch(mode){
             case EMAIL:
-                return pageUtility.convertBoardAccounts(
-                        accountRepository.findAllByEmailContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
+                result = accountRepository.findAllByEmailContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize));
+                break;
 
             case USERID:
-                return pageUtility.convertBoardAccounts(
-                        accountRepository.findAllByUserIdContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
+                result = accountRepository.findAllByUserIdContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize));
+                break;
 
             case USERNAME:
-                return pageUtility.convertBoardAccounts(
-                        accountRepository.findAllByUsernameContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize)));
-
-            default:
-                throw new UnsupportedOperationException();
-
+                result = accountRepository.findAllByUsernameContainingAndCreatedDateTimeBetween(keyword, from, to, PageRequest.of(pageNum, pageSize));
+                break;
         }
+
+        return new BoardAccountDTO.PagedAccounts(result);
     }
 
     @Override
     public void invalidateAccounts(List<Long> accountIds) {
-        for (Long accountId : accountIds) {
+        for (long accountId : accountIds) {
             accountRepository.findById(accountId).ifPresent(BoardAccount::invalidate);
         }
     }
 
     @Override
     public void restoreAccounts(List<Long> accountIds) {
-        for (Long accountId : accountIds) {
+        for (long accountId : accountIds) {
             accountRepository.findById(accountId).ifPresent(BoardAccount::restore);
         }
     }
 
     @Override
     public void changePassword(List<Long> accountIds, String newPassword) {
-        for (Long accountId : accountIds) {
-            accountRepository.findById(accountId).ifPresent(boardAccount -> boardAccount.changePassword(dataEncoder.encode(newPassword)));
+        for (long accountId : accountIds) {
+            accountRepository.findById(accountId).ifPresent(boardAccount -> boardAccount.changePassword(passwordEncoder.encode(newPassword)));
         }
     }
 
     @Override
     public void changeUsername(List<Long> accountIds, String newUsername) {
-        for (Long accountId : accountIds) {
+        for (long accountId : accountIds) {
             accountRepository.findById(accountId).ifPresent(boardAccount -> boardAccount.changeUsername(newUsername));
         }
     }

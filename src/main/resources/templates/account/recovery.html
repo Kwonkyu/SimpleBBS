@@ -32,7 +32,7 @@
 <h3>Please fill recovery question's answer</h3>
 
 <div th:object="${command}">
-    <form action="/account/recovery/submit" method="post">
+    <form th:action="@{/account/recovery/submit}" method="post">
         <input type="hidden" name="userId" th:value="*{userId}">
       <table>
           <tr>
