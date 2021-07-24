@@ -1,7 +1,6 @@
 package com.haruhiism.bbs.service.account;
 
 import com.haruhiism.bbs.domain.ManagerLevel;
-import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardAccountLevel;
@@ -23,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.haruhiism.bbs.service.RepositoryUtility.findAccountByUserId;
-
+import static com.haruhiism.bbs.domain.dto.BoardAccountDTO.*;
 
 @Service
 @Transactional

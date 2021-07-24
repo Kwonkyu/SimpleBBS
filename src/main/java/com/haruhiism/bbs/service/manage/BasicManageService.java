@@ -1,8 +1,6 @@
 package com.haruhiism.bbs.service.manage;
 
-import com.haruhiism.bbs.domain.AccountSearchMode;
-import com.haruhiism.bbs.domain.ArticleSearchMode;
-import com.haruhiism.bbs.domain.CommentSearchMode;
+import com.haruhiism.bbs.command.manage.AccountLevelManagementCommand;
 import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
@@ -28,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import static com.haruhiism.bbs.command.manage.AccountLevelManagementCommand.LevelOperation.*;
 
 @Service
 @Transactional
@@ -86,7 +85,7 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticleDTO.PagedArticles searchArticlesPage(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+    public BoardArticleDTO.PagedArticles searchArticlesPage(BoardArticleDTO.ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
         Page<BoardArticle> result = Page.empty();
         PageRequest page = PageRequest.of(pageNum, pageSize);
         switch (articleSearchMode) {
@@ -161,7 +160,7 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentDTO.PagedComments searchCommentsPage(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+    public BoardCommentDTO.PagedComments searchCommentsPage(BoardCommentDTO.CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
         Page<BoardComment> result = Page.empty();
         PageRequest page = PageRequest.of(pageNum, pageSize);
 
@@ -206,13 +205,13 @@ public class BasicManageService implements AccountManagerService, ArticleManager
     }
 
     @Override
-    public void changeManagerLevel(String userId, ManagerLevel level, boolean enable) {
+    public void changeManagerLevel(String userId, ManagerLevel level, AccountLevelManagementCommand.LevelOperation operation) {
         BoardAccount boardAccount = accountRepository.findByUserId(userId).orElseThrow(NoAccountFoundException::new);
         Set<ManagerLevel> managerLevels = boardAccount.getManagerLevels();
-        if(enable && !managerLevels.contains(level)) {
+        if(operation.equals(GRANT) && !managerLevels.contains(level)) {
             accountLevelRepository.save(new BoardAccountLevel(boardAccount, level));
         }
-        else if(!enable && managerLevels.contains(level)) {
+        else if(operation.equals(REVOKE) && managerLevels.contains(level)) {
             accountLevelRepository.deleteByBoardAccountAndAccountLevel(boardAccount, level);
         }
     }
@@ -226,7 +225,7 @@ public class BasicManageService implements AccountManagerService, ArticleManager
 
     @Override
     @Transactional(readOnly = true)
-    public BoardAccountDTO.PagedAccounts searchAccountsPage(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
+    public BoardAccountDTO.PagedAccounts searchAccountsPage(BoardAccountDTO.AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to) {
         Page<BoardAccount> result = Page.empty();
 
         switch(mode){

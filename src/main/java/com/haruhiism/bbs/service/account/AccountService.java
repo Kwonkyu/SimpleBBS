@@ -1,13 +1,12 @@
 package com.haruhiism.bbs.service.account;
 
 import com.haruhiism.bbs.domain.ManagerLevel;
-import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.exception.account.NoAccountFoundException;
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 
 import java.util.List;
 
+import static com.haruhiism.bbs.domain.dto.BoardAccountDTO.*;
 
 public interface AccountService {
 
@@ -54,9 +53,8 @@ public interface AccountService {
      * @param password User's password.
      * @return BoardAccountDTO object filled with account information.
      * @throws NoAccountFoundException when user with given id not found.
-     * @throws AuthenticationFailedException when authentication failed.
      */
-    BoardAccountDTO loginAccount(String userId, String password) throws NoAccountFoundException, AuthenticationFailedException;
+    BoardAccountDTO loginAccount(String userId, String password) throws NoAccountFoundException;
 
     /**
      * Update account information.

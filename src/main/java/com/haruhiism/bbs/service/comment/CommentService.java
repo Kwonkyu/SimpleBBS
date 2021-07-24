@@ -1,8 +1,6 @@
 package com.haruhiism.bbs.service.comment;
 
-import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
-
-import java.util.List;
+import static com.haruhiism.bbs.domain.dto.BoardCommentDTO.*;
 
 public interface CommentService {
 
@@ -19,7 +17,7 @@ public interface CommentService {
      * @param comment BoardCommentDTO object containing comment information.
      * @return Created comment's id.
      */
-    long createComment(BoardCommentDTO comment);
+    long createComment(Submit comment);
 
     /**
      * Create comment with given user.
@@ -27,7 +25,7 @@ public interface CommentService {
      * @param userId User's id.
      * @return Created comment's id.
      */
-    long createComment(BoardCommentDTO comment, String userId);
+    long createComment(Submit comment, String userId);
 
     /**
      * Read comments of article with paging.
@@ -36,7 +34,7 @@ public interface CommentService {
      * @param pageSize Page's size.
      * @return BoardCommentDTO.PagedComments object containing comments.
      */
-    BoardCommentDTO.PagedComments readArticleCommentsPaged(long articleID, int pageNum, int pageSize);
+    PagedComments readArticleCommentsPaged(long articleID, int pageNum, int pageSize);
 
     /**
      * Read comments of account with paging.
@@ -45,19 +43,20 @@ public interface CommentService {
      * @param pageSize Page's size.
      * @return BoardCommentDTO.PagedCOmments object containing searched comments.
      */
-    BoardCommentDTO.PagedComments readCommentsOfAccount(String userId, int pageNum, int pageSize);
+    PagedComments readCommentsOfAccount(String userId, int pageNum, int pageSize);
 
     /**
      * Read specific comment.
      * @param commentID Comment's id.
      * @return BoardCommentDTO object containing comment information.
      */
-    BoardCommentDTO readComment(long commentID);
+    Read readComment(long commentID);
 
     /**
      * Delete comment.
      * @param commentID Comment's id.
+     * @return Deleted comment's article id.
      */
-    void deleteComment(long commentID);
+    long deleteComment(long commentID);
 
 }

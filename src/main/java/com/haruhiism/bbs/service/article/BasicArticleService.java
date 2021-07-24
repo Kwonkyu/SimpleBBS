@@ -1,7 +1,5 @@
 package com.haruhiism.bbs.service.article;
 
-import com.haruhiism.bbs.domain.ArticleSearchMode;
-import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.exception.article.NoArticleFoundException;
@@ -17,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static com.haruhiism.bbs.domain.dto.BoardArticleDTO.*;
 import static com.haruhiism.bbs.service.RepositoryUtility.findAccountByUserId;
 import static com.haruhiism.bbs.service.RepositoryUtility.findArticleById;
+
 
 @Service
 @Transactional
@@ -32,12 +32,12 @@ public class BasicArticleService implements ArticleService {
 
 
     @Override
-    public boolean authorizeArticleAccess(long articleId, String password) {
+    public boolean authorizeAnonymousArticleAccess(long articleId, String password) {
         return passwordEncoder.matches(password, findArticleById(articleRepository, articleId).getPassword());
     }
 
     @Override
-    public long createArticle(BoardArticleDTO article) {
+    public long createArticle(Submit article) {
         article.encodePassword(passwordEncoder);
         BoardArticle boardArticle = new BoardArticle(article);
         articleRepository.save(boardArticle);
@@ -45,7 +45,7 @@ public class BasicArticleService implements ArticleService {
     }
 
     @Override
-    public long createArticle(BoardArticleDTO article, String userId) {
+    public long createArticle(Submit article, String userId) {
         article.encodePassword(passwordEncoder, UUID.randomUUID().toString());
         BoardAccount boardAccount = findAccountByUserId(accountRepository, userId);
         BoardArticle boardArticle = new BoardArticle(article, boardAccount);
@@ -54,26 +54,26 @@ public class BasicArticleService implements ArticleService {
     }
 
     @Override
-    public BoardArticleDTO readArticle(long articleId) { // not readonly because view counts need to be updated.
+    public Read readArticle(long articleId) { // not readonly because view counts need to be updated.
         BoardArticle article = findArticleById(articleRepository, articleId);
         if(article.isDeleted()){
             throw new NoArticleFoundException();
         } else {
             article.increaseHit();
-            return new BoardArticleDTO(article);
+            return new Read(article);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticleDTO.PagedArticles readAllByPages(int pageNum, int pageSize){
+    public PagedArticles readAllByPages(int pageNum, int pageSize){
         Page<BoardArticle> articles = articleRepository.findAllByDeletedFalseOrderByIdDesc(PageRequest.of(pageNum, pageSize));
-        return new BoardArticleDTO.PagedArticles(articles);
+        return new PagedArticles(articles);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardArticleDTO.PagedArticles searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize) {
+    public PagedArticles searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize) {
         Page<BoardArticle> result = Page.empty();
         PageRequest page = PageRequest.of(pageNum, pageSize);
 
@@ -99,11 +99,11 @@ public class BasicArticleService implements ArticleService {
                 result = articleRepository.findAllByBoardAccountAndDeletedFalse(account, page);
         }
 
-        return new BoardArticleDTO.PagedArticles(result);
+        return new PagedArticles(result);
     }
 
     @Override
-    public void updateArticle(BoardArticleDTO article) {
+    public void updateArticle(Submit article) {
         BoardArticle updatedArticle = articleRepository.findById(article.getId())
                 .orElseThrow(UpdateDeletedArticleException::new);
 
@@ -120,5 +120,6 @@ public class BasicArticleService implements ArticleService {
     public void deleteArticle(long articleId){
         BoardArticle deletedArticle = findArticleById(articleRepository, articleId);
         deletedArticle.delete();
+        // deletedArticle.getComments().forEach(BoardComment::delete);
     }
 }

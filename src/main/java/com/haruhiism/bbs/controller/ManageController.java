@@ -253,7 +253,7 @@ public class ManageController {
     @GetMapping("/console/account/level")
     public String manageAccountLevels(Model model,
                                       @ModelAttribute("command")
-                                      @Validated(AccountLevelManagementRequestValidationGroup.class)
+                                      @Validated(AccountLevelManagementCommand.Request.class)
                                       AccountLevelManagementCommand command,
                                       BindingResult bindingResult) {
 
@@ -271,7 +271,7 @@ public class ManageController {
     @PostMapping("/console/account/level")
     public String submitAccountLevelManagement(Model model,
                                                @ModelAttribute("command")
-                                               @Validated(AccountLevelManagementSubmitValidationGroup.class)
+                                               @Validated(AccountLevelManagementCommand.Group.class)
                                                AccountLevelManagementCommand command,
                                                BindingResult bindingResult) {
 
@@ -280,7 +280,7 @@ public class ManageController {
         }
 
         try {
-            accountManagerService.changeManagerLevel(command.getId(), command.getLevelName(), command.getOperation().equals(AccountLevelManagementOperation.GRANT));
+            accountManagerService.changeManagerLevel(command.getId(), command.getLevelName(), command.getOperation());
         } catch (NoAccountFoundException exception) {
             return "redirect:/manage/console/account";
         }

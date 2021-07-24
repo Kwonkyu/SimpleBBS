@@ -47,8 +47,8 @@
 <div>
     <div>
         <a th:href="@{/board/list}">List</a>
-        <a th:href="@{/board/edit(id=${article.getId()})}">Edit</a>
-        <a th:href="@{/board/remove(id=${article.getId()})}">Delete</a>
+        <a th:if="${authorized}" th:href="@{/board/edit(id=${article.getId()})}">Edit</a>
+        <a th:if="${authorized}" th:href="@{/board/remove(id=${article.getId()})}">Delete</a>
     </div>
 
     <div>

@@ -5,7 +5,6 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -69,14 +68,14 @@ public class BoardComment extends MACDate{
     }
 
 
-    public BoardComment(BoardArticle article, BoardCommentDTO dto) {
+    public BoardComment(BoardArticle article, BoardCommentDTO.Submit dto) {
         this.boardArticle = article;
         this.writer = dto.getWriter();
         this.content = dto.getContent();
         this.password = dto.getPassword();
     }
 
-    public BoardComment(BoardArticle article, BoardAccount boardAccount, BoardCommentDTO dto) {
+    public BoardComment(BoardArticle article, BoardAccount boardAccount, BoardCommentDTO.Submit dto) {
         this.boardArticle = article;
         this.boardAccount = boardAccount;
         this.writer = boardAccount.getAlias();

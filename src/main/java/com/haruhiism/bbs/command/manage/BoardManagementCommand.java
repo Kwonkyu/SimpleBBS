@@ -12,7 +12,11 @@ import java.util.List;
 public class BoardManagementCommand {
 
     @NotNull(message = "Board management operation should not be null.")
-    BoardManagementOperation operation;
+    BoardManagementCommand.Operation operation;
 
     List<Long> target = new ArrayList<>();
+
+    public enum Operation {
+        DELETE, RESTORE
+    }
 }

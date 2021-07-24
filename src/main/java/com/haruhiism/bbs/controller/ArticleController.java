@@ -1,11 +1,9 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.article.*;
-import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
+import com.haruhiism.bbs.command.article.ArticleListCommand;
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.domain.dto.ResourceDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import com.haruhiism.bbs.service.file.FileHandlerService;
@@ -13,7 +11,6 @@ import com.haruhiism.bbs.service.manage.AccountManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
@@ -21,16 +18,15 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.haruhiism.bbs.domain.dto.BoardArticleDTO.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -62,7 +58,7 @@ public class ArticleController {
             return "redirect:/board/list";
         }
 
-        BoardArticleDTO.PagedArticles articles = command.getKeyword().isBlank() ?
+        PagedArticles articles = command.getKeyword().isBlank() ?
                 articleService.readAllByPages(command.getPageNum(), command.getPageSize()) :
                 articleService.searchAllByPages(command.getMode(), command.getKeyword(), command.getPageNum(), command.getPageSize());
 
@@ -93,19 +89,18 @@ public class ArticleController {
 
     @GetMapping("/read")
     public String readBoardArticle(Model model,
-                                   @Valid ArticleReadCommand command,
-                                   BindingResult bindingResult,
+                                   @RequestParam(name = "id") long id,
+                                   @RequestParam(name = "commentPage", defaultValue = "0") int commentPage,
                                    @CurrentSecurityContext SecurityContext context) {
 
-        if (bindingResult.hasErrors()) {
-            return "redirect:/board/list";
-        }
+        if (id <= 0 || commentPage < 0) return "redirect:/board/list";
 
-        BoardArticleDTO article = articleService.readArticle(command.getId());
-        BoardCommentDTO.PagedComments comments = commentService.readArticleCommentsPaged(article.getId(), command.getCommentPage(), 10);
-        List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(command.getId());
+        Read article = articleService.readArticle(id);
+        BoardCommentDTO.PagedComments comments = commentService.readArticleCommentsPaged(id, commentPage, 10);
+        List<ResourceDTO> resources = fileHandlerService.listResourcesOfArticle(id);
 
         model.addAttribute("loginUsername", getUsernameFromSecurityContext(context));
+        model.addAttribute("authorized", article.isAnonymous() || article.getUserId().equals(context.getAuthentication().getName()));
         model.addAttribute("article", article);
         model.addAttribute("comments", comments.getComments());
         model.addAttribute("currentCommentPage", comments.getCurrentPage());
@@ -119,7 +114,7 @@ public class ArticleController {
     @GetMapping("/write")
     public String writeBoardArticle(
             Model model,
-            @ModelAttribute("command") ArticleSubmitCommand command,
+            @ModelAttribute("command") Submit command,
             @CurrentSecurityContext SecurityContext context){
         // https://stackoverflow.com/questions/57053736/how-to-check-if-user-is-logged-in-or-anonymous-in-spring-security
         model.addAttribute("loginUsername", getUsernameFromSecurityContext(context));
@@ -129,17 +124,24 @@ public class ArticleController {
     @PostMapping("/write")
     public String submitBoardArticle(
             Model model,
-            @ModelAttribute("command") @Valid ArticleSubmitCommand command,
+            @ModelAttribute("command") @Validated(Submit.Create.class) Submit command,
             BindingResult bindingResult,
-            @CurrentSecurityContext SecurityContext context){
-        if(bindingResult.hasErrors()){
+            @CurrentSecurityContext SecurityContext context) {
+
+        if (bindingResult.hasErrors()) {
             model.addAttribute("loginUsername", getUsernameFromSecurityContext(context));
             return "/board/write";
         }
 
-        BoardArticleDTO articleDTO = new BoardArticleDTO(command);
+        Submit articleDTO = Submit.builder()
+                .writer(command.getWriter())
+                .title(command.getTitle())
+                .content(command.getContent())
+                .password(command.getPassword())
+                .build();
+
         long createdArticleId;
-        if(isAnonymousUser(context)) {
+        if (isAnonymousUser(context)) {
             createdArticleId = articleService.createArticle(articleDTO);
         } else {
             createdArticleId = articleService.createArticle(articleDTO, context.getAuthentication().getName());
@@ -149,54 +151,57 @@ public class ArticleController {
         return "redirect:/board/read?id=" + createdArticleId;
     }
 
-
-    private void addArticleToModel(Model model, Long articleID){
-        model.addAttribute("article", articleService.readArticle(articleID));
-        model.addAttribute("resources", fileHandlerService.listResourcesOfArticle(articleID));
-    }
-
-    private void authorizeAccountWrittenArticle(BoardArticleDTO article, Principal principal) {
-        if(principal == null || !principal.getName().equals(article.getUserId()))
-            throw new AuthenticationFailedException();
-    }
-
     @GetMapping("/edit")
     public String requestEditArticle(Model model,
-                                     @ModelAttribute("command") @Validated(ArticleEditRequestValidationGroup.class)
-                                     ArticleEditRequestCommand command,
+                                     @Validated(Authorize.Request.class) @ModelAttribute("command") Authorize command,
                                      BindingResult bindingResult,
                                      Principal principal){
 
-        if(bindingResult.hasErrors()){
-            return "redirect:/board/list";
+        if(bindingResult.hasErrors()) return "redirect:/board/list";
+
+        Read article = articleService.readArticle(command.getId());
+        if(article.isAnonymous()) return "board/editRequest";
+        if(principal != null && article.getUserId().equals(principal.getName())) {
+            Submit edit = Submit.builder()
+                    .id(article.getId())
+                    .writer(article.getWriter())
+                    .title(article.getTitle())
+                    .content(article.getContent())
+                    .password("PASSWORD_IS_ENCODED").build();
+
+            model.addAttribute("article", edit);
+            model.addAttribute("resources", fileHandlerService.listResourcesOfArticle(command.getId()));
+            return "board/edit";
         }
 
-        BoardArticleDTO article = articleService.readArticle(command.getId());
-        if (article.isWrittenByAccount()) {
-            authorizeAccountWrittenArticle(article, principal);
-            addArticleToModel(model, command.getId());
-            return "board/edit";
-        } else {
-            return "board/editRequest";
-        }
+        return "redirect:/board/list";
     }
 
     @PostMapping("/edit")
     public String authEditArticle(Model model,
-                                  @ModelAttribute("command") @Validated(ArticleEditSubmitValidationGroup.class)
-                                  ArticleEditRequestCommand command,
+                                  @Validated(Authorize.Submit.class) @ModelAttribute("command") Authorize command,
                                   BindingResult bindingResult){
 
         if (bindingResult.hasErrors()) {
             return "board/editRequest";
         }
 
-        if(!articleService.authorizeArticleAccess(command.getId(), command.getPassword())) {
+        if(!articleService.authorizeAnonymousArticleAccess(command.getId(), command.getPassword())) {
             bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "board/editRequest";
         }
 
-        addArticleToModel(model, command.getId());
+        Read read = articleService.readArticle(command.getId());
+        Submit article = Submit.builder()
+                .id(read.getId())
+                .title(read.getTitle())
+                .writer(read.getWriter())
+                .password(command.getPassword()) // not anonymous: doesn't need password. but anonymous does because of submit auth.
+                .content(read.getContent())
+                .build();
+
+        model.addAttribute("article", article);
+        model.addAttribute("resources", fileHandlerService.listResourcesOfArticle(command.getId()));
         model.addAttribute("password", command.getPassword());
         return "board/edit";
     }
@@ -204,70 +209,57 @@ public class ArticleController {
 
     @PostMapping("/edit/submit")
     public String submitEditArticle(
-            @ModelAttribute("article") @Valid ArticleEditSubmitCommand command,
+            Model model,
+            @ModelAttribute("article") @Validated(Submit.Update.class) Submit command,
             BindingResult bindingResult,
             Principal principal){
 
+        Read article = articleService.readArticle(command.getId());
+
         if (bindingResult.hasErrors()) {
-            return "redirect:/board/list";
+            model.addAttribute("resources", fileHandlerService.listResourcesOfArticle(command.getId()));
+            return "board/edit";
         }
 
-        BoardArticleDTO article = articleService.readArticle(command.getId());
-        if(article.isWrittenByAccount()) {
-            authorizeAccountWrittenArticle(article, principal);
-        } else {
-            if (!articleService.authorizeArticleAccess(command.getId(), command.getPassword()))
-                throw new AuthenticationFailedException();
+        if(article.isAnonymous() && articleService.authorizeAnonymousArticleAccess(command.getId(), command.getPassword()) ||
+            principal != null && article.getUserId().equals(principal.getName())) {
+            articleService.updateArticle(command);
+            fileHandlerService.delete(command.getDelete(), command.getId());
+            fileHandlerService.store(command.getUploadedFiles(), command.getId());
         }
 
-        articleService.updateArticle(new BoardArticleDTO(command));
-        fileHandlerService.delete(command.getDelete(), command.getId());
-        fileHandlerService.store(command.getUploadedFiles(), command.getId());
         return "redirect:/board/list";
     }
 
 
     @GetMapping("/remove")
     public String requestRemoveArticle(
-            @ModelAttribute("command") @Validated(ArticleRemoveRequestValidationGroup.class)
-            ArticleRemoveRequestCommand command,
+            @Validated(Authorize.Request.class) @ModelAttribute("command") Authorize command,
             BindingResult bindingResult,
             Principal principal) {
 
-        if (bindingResult.hasErrors()) {
-            return "redirect:/board/list";
-        }
+        if (bindingResult.hasErrors()) return "redirect:/board/list";
 
-        BoardArticleDTO article = articleService.readArticle(command.getId());
-        if (article.isWrittenByAccount()) {
-            authorizeAccountWrittenArticle(article, principal);
-            articleService.deleteArticle(command.getId());
-            return "redirect:/board/list";
-        } else {
-            return "board/removeRequest";
-        }
+        Read article = articleService.readArticle(command.getId());
+        if (article.isAnonymous()) return "board/removeRequest";
+        if (principal != null && article.getUserId().equals(principal.getName())) articleService.deleteArticle(command.getId());
+        return "redirect:/board/list";
     }
 
     @PostMapping("/remove")
-    public String authRemoveArticle(@ModelAttribute("command") @Validated(ArticleRemoveSubmitValidationGroup.class)
-                                    ArticleRemoveRequestCommand command,
+    public String authRemoveArticle(@ModelAttribute("command") @Validated(Authorize.Submit.class) Authorize command,
                                     BindingResult bindingResult){
+
         if(bindingResult.hasErrors()){
             return "board/removeRequest";
         }
 
-        BoardArticleDTO article = articleService.readArticle(command.getId());
-        if(article.isWrittenByAccount()) {
-            throw new IllegalStateException("Unauthorized article access.");
+        if(articleService.authorizeAnonymousArticleAccess(command.getId(), command.getPassword())) {
+            articleService.deleteArticle(command.getId());
+            return "redirect:/board/list";
         } else {
-            if(articleService.authorizeArticleAccess(command.getId(), command.getPassword())) {
-                articleService.deleteArticle(command.getId());
-            } else {
-                bindingResult.addError(new FieldError("command", "password", "Password not matched."));
-                return "board/removeRequest";
-            }
+            bindingResult.addError(new FieldError("command", "password", "Password not matched."));
+            return "board/removeRequest";
         }
-
-        return "redirect:/board/list";
     }
 }

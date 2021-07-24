@@ -1,11 +1,5 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.comment.CommentRemoveRequestCommand;
-import com.haruhiism.bbs.command.comment.CommentRemoveRequestValidationGroup;
-import com.haruhiism.bbs.command.comment.CommentRemoveSubmitValidationGroup;
-import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
-import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -15,13 +9,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.security.Principal;
+
+import static com.haruhiism.bbs.domain.dto.BoardCommentDTO.*;
+
 
 @Controller
 @RequestMapping("/comment")
@@ -32,7 +25,7 @@ public class CommentController {
 
 
     @PostMapping("/create")
-    public String createComment(@Valid CommentSubmitCommand command,
+    public String createComment(@Validated(Submit.Create.class) Submit command,
                                 BindingResult bindingResult,
                                 @CurrentSecurityContext SecurityContext context) {
 
@@ -40,8 +33,12 @@ public class CommentController {
             return "redirect:/board/read?id=" + command.getArticleId();
         }
 
-        BoardCommentDTO dto = new BoardCommentDTO(command);
-        // test usage of security context.
+        Submit dto = Submit.builder()
+                .articleId(command.getArticleId())
+                .writer(command.getWriter())
+                .password(command.getPassword())
+                .content(command.getContent()).build();
+
         if(context.getAuthentication() instanceof AnonymousAuthenticationToken) {
             commentService.createComment(dto);
         } else {
@@ -53,41 +50,32 @@ public class CommentController {
 
 
     @GetMapping("/remove")
-    public String requestRemoveComment(@ModelAttribute("command") @Validated(CommentRemoveRequestValidationGroup.class)
-                                       CommentRemoveRequestCommand command,
+    public String requestRemoveComment(@ModelAttribute("command") @Validated(Authorize.Request.class) Authorize command,
                                        BindingResult bindingResult,
                                        Principal principal){
 
-        if (bindingResult.hasErrors()) {
-            return "redirect:/board/read?id=" + command.getId();
+        if (bindingResult.hasErrors()) return "redirect:/board/list";
+
+        Read comment = commentService.readComment(command.getId());
+        if(comment.isAnonymous()) return "comment/removeRequest";
+        if(principal != null && comment.getUserId().equals(principal.getName())) {
+            commentService.deleteComment(command.getId());
         }
 
-        BoardCommentDTO comment = commentService.readComment(command.getId());
-        if(comment.isWrittenByAccount()) {
-            if(principal == null || !principal.getName().equals(comment.getUserId()))
-                throw new AuthenticationFailedException();
-            else {
-                commentService.deleteComment(command.getId());
-                return "redirect:/board/read?id=" + comment.getArticleId();
-            }
-        } else {
-            return "comment/removeRequest";
-        }
+        return "redirect:/board/read?id=" + comment.getArticleId();
     }
 
     @PostMapping("/remove")
-    public String submitRemoveComment(@ModelAttribute("command") @Validated(CommentRemoveSubmitValidationGroup.class)
-                                      CommentRemoveRequestCommand command,
+    public String submitRemoveComment(@ModelAttribute("command") @Validated(Authorize.Submit.class) Authorize command,
                                       BindingResult bindingResult) {
 
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             return "comment/removeRequest";
         }
 
-        BoardCommentDTO comment = commentService.readComment(command.getId());
-        if(commentService.authorizeCommentAccess(command.getId(), command.getPassword())) {
-            commentService.deleteComment(command.getId());
-            return "redirect:/board/read?id=" + comment.getArticleId();
+        if (commentService.authorizeCommentAccess(command.getId(), command.getPassword())) {
+            long article = commentService.deleteComment(command.getId());
+            return "redirect:/board/read?id=" + article;
         } else {
             bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "comment/removeRequest";

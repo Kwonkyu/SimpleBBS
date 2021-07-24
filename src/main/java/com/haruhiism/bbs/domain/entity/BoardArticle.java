@@ -8,6 +8,8 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.haruhiism.bbs.domain.dto.BoardArticleDTO.*;
+
 @Getter
 @EqualsAndHashCode(of = "id", callSuper = false)
 @NoArgsConstructor
@@ -87,24 +89,18 @@ public class BoardArticle extends MACDate{
     }
 
 
-    public BoardArticle(BoardArticleDTO article) {
+    public BoardArticle(Submit article) {
         this.writer = article.getWriter();
         this.title = article.getTitle();
         this.content = article.getContent();
         this.password = article.getPassword();
     }
 
-    public BoardArticle(BoardArticleDTO article, BoardAccount account) {
+    public BoardArticle(Submit article, BoardAccount account) {
         this.writer = account.getAlias();
         this.title = article.getTitle();
         this.content = article.getContent();
         this.boardAccount = account;
         this.password = article.getPassword();
-    }
-
-                        @Override
-    public String toString() {
-        return String.format("[#%d] '%s' written by '%s'.\nContents: %10s... [ DELETED = %s ]\n",
-                id, title, writer, content, deleted);
     }
 }

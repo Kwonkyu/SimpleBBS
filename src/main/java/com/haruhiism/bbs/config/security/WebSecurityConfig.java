@@ -45,7 +45,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests() // permit public services
-                    .antMatchers("/account/register**", "/account/login**", "/account/recovery/**", "/board/**", "/comment/**")
+                    .antMatchers("/", "/account/register**", "/account/login**", "/account/recovery/**", "/board/**", "/comment/**")
                             .permitAll().and()
                 .authorizeRequests()
                     .antMatchers("/manage/**").hasAnyAuthority(

@@ -1,19 +1,23 @@
 package com.haruhiism.bbs.domain.dto;
 
-import com.haruhiism.bbs.command.account.RegisterRequestCommand;
 import com.haruhiism.bbs.domain.ManagerLevel;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Getter
+@Setter
+@Builder
 @AllArgsConstructor
 public class BoardAccountDTO {
 
@@ -32,7 +36,7 @@ public class BoardAccountDTO {
         }
     }
 
-    private Long id;
+    private long id;
     private String userId;
     private String username;
     private String password;
@@ -42,18 +46,6 @@ public class BoardAccountDTO {
     private String recoveryQuestion;
     private String recoveryAnswer;
     private Set<ManagerLevel> managerLevels = new HashSet<>();
-
-    public void changeUserId(String userId) { this.userId = userId; }
-
-    public void changeUsername(String username) { this.username = username; }
-
-    public void changeEmail(String email) { this.email = email; }
-
-    public void setAvailable() { this.available = true; }
-    public void setUnavailable() { this.available = false; }
-
-    public void changeRecoveryQuestion(String recoveryQuestion) { this.recoveryQuestion = recoveryQuestion; }
-    public void changeRecoveryAnswer(String recoveryAnswer) { this.recoveryAnswer = recoveryAnswer; }
 
     public void encodePassword(PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(password);
@@ -71,7 +63,7 @@ public class BoardAccountDTO {
         this.managerLevels = boardAccount.getManagerLevels();
     }
 
-    public BoardAccountDTO(RegisterRequestCommand command) {
+    public BoardAccountDTO(Register command) {
         this.userId = command.getUserId();
         this.username = command.getUsername();
         this.password = command.getPassword();
@@ -79,5 +71,89 @@ public class BoardAccountDTO {
         this.available = true;
         this.recoveryQuestion = command.getRecoveryQuestion();
         this.recoveryAnswer = command.getRecoveryAnswer();
+    }
+
+    public enum UpdatableInformation {
+        username, email, password, question, answer
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class Register {
+        @NotBlank(message = "ID cannot be empty.")
+        private String userId;
+
+        @NotBlank(message = "Name cannot be empty.")
+        private String username;
+
+        @NotBlank(message = "Password cannot be empty.")
+        @Length(min = 4, message = "Password should be at least 4 characters.")
+        private String password;
+
+        @NotBlank(message = "Email cannot be empty.")
+        @Email(message = "Email format should be valid.")
+        private String email;
+
+        @NotBlank(message = "Recovery question string cannot be empty.")
+        private String recoveryQuestion;
+
+        @NotBlank(message = "Recovery answer string cannot be empty.")
+        private String recoveryAnswer;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class Recovery {
+        @NotBlank(message = "User ID cannot be empty.", groups = {Request.class, Submit.class})
+        private String userId = "";
+
+        private String question;
+
+        @NotBlank(message = "Answer cannot be empty.", groups = {Submit.class})
+        private String answer = "";
+
+        @NotBlank(message = "New password cannot be empty.", groups = {Submit.class})
+        private String newPassword = "";
+
+        public interface Request {}
+
+        public interface Submit {}
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class Update {
+        @NotNull(message = "Pick at least one information to change", groups = {Request.class, Submit.class})
+        private BoardAccountDTO.UpdatableInformation mode;
+
+        @NotBlank(message = "Authentication string should not be empty", groups = {Submit.class})
+        private String auth = "";
+
+        private String previous = "";
+
+        @NotBlank(message = "Updated string should not be empty", groups = {Submit.class})
+        private String updated = "";
+
+        public interface Request {}
+
+        public interface Submit {}
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class Login {
+        @NotBlank(message = "ID cannot be empty.")
+        private String userId = "";
+
+        @NotBlank(message = "Password cannot be empty.")
+        private String password = "";
+    }
+
+    public enum AccountSearchMode {
+        USERID, USERNAME, EMAIL
     }
 }

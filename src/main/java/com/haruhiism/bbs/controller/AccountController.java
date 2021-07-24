@@ -1,9 +1,6 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.account.*;
-import com.haruhiism.bbs.domain.ArticleSearchMode;
 import com.haruhiism.bbs.domain.ManagerLevel;
-import com.haruhiism.bbs.domain.UpdatableInformation;
 import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
 import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
@@ -19,12 +16,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+
+import static com.haruhiism.bbs.domain.dto.BoardAccountDTO.*;
 
 @Controller
 @RequestMapping("/account")
@@ -38,12 +38,12 @@ public class AccountController {
 
 
     @GetMapping("/register")
-    public String requestRegister(@ModelAttribute("command") RegisterRequestCommand command) {
+    public String requestRegister(@ModelAttribute("command") Register command) {
         return "account/register";
     }
 
     @PostMapping("/register")
-    public String submitRegister(@ModelAttribute("command") @Valid RegisterRequestCommand command,
+    public String submitRegister(@ModelAttribute("command") @Valid Register command,
                                  BindingResult bindingResult){
         if(bindingResult.hasErrors()) {
             return "account/register";
@@ -61,24 +61,24 @@ public class AccountController {
 
 
     @GetMapping("/withdraw")
-    public String requestWithdraw(@ModelAttribute("command") WithdrawRequestCommand command){
+    public String requestWithdraw(Model model){
+        model.addAttribute("password", "");
         return "account/withdraw";
     }
 
     @PostMapping("/withdraw")
-    public String submitWithdraw(@ModelAttribute("command") @Valid WithdrawRequestCommand command,
+    public String submitWithdraw(@ModelAttribute("password") @RequestParam(name = "password") String password,
                                  BindingResult bindingResult,
                                  @CurrentSecurityContext SecurityContext context,
                                  Principal principal){
-        if(bindingResult.hasErrors()){
-            return "account/withdraw";
-        }
 
-        if(accountService.authenticateAccount(principal.getName(), command.getPassword())) {
+        if(bindingResult.hasErrors()) return "account/withdraw";
+
+        if(accountService.authenticateAccount(principal.getName(), password)) {
             accountService.withdrawAccount(principal.getName());
             context.setAuthentication(null);
         } else {
-            bindingResult.addError(new FieldError("command", "password", "Password not matched."));
+            bindingResult.addError(new ObjectError("password", "Password not matched."));
             return "account/withdraw";
         }
 
@@ -87,7 +87,7 @@ public class AccountController {
 
 
     @GetMapping("/login")
-    public String requestLogin(@ModelAttribute(name = "command") LoginRequestCommand command,
+    public String requestLogin(@ModelAttribute(name = "command") Login command,
                                BindingResult bindingResult,
                                @RequestParam(name = "failed", required = false) Object failed,
                                @RequestParam(name = "locked", required = false) Object locked,
@@ -108,13 +108,13 @@ public class AccountController {
 
 
     @GetMapping("/recovery")
-    public String requestRecovery(@ModelAttribute("command") AccountRecoveryCommand command){
+    public String requestRecovery(@ModelAttribute("command") Recovery command){
         return "account/recoveryRequest";
     }
 
     @PostMapping("/recovery")
     public String recoverAccount(@ModelAttribute("command")
-                                 @Validated(AccountRecoveryRequestValidationGroup.class) AccountRecoveryCommand command,
+                                 @Validated(Recovery.Request.class) Recovery command,
                                  BindingResult bindingResult,
                                  Model model) {
         if (bindingResult.hasErrors()) {
@@ -137,7 +137,7 @@ public class AccountController {
     
     @PostMapping("/recovery/submit")
     public String submitRestoreAccount(@ModelAttribute("command")
-                                       @Validated(AccountRecoverySubmitValidationGroup.class) AccountRecoveryCommand command,
+                                       @Validated(Recovery.Submit.class) Recovery command,
                                        BindingResult bindingResult,
                                        Model model) {
 
@@ -156,24 +156,22 @@ public class AccountController {
             bindingResult.addError(new FieldError("command", "answer", "Recovery answer not matched."));
             return "account/recovery";
         } else {
-            accountService.updateAccount(command.getUserId(), UpdatableInformation.password, command.getNewPassword());
+            accountService.updateAccount(command.getUserId(), BoardAccountDTO.UpdatableInformation.password, command.getNewPassword());
             return "redirect:/account/login";
         }
     }
 
 
     @GetMapping("/manage")
-    public String manage(@Valid AccountManageListCommand command,
-                         BindingResult bindingResult,
+    public String manage(@RequestParam(name = "articlePage", defaultValue = "0") int articlePage,
+                         @RequestParam(name = "commentPage", defaultValue = "0") int commentPage,
                          Model model,
                          Principal principal) {
 
-        if (bindingResult.hasErrors()) {
-            return "redirect:/account/manage";
-        }
+        if(articlePage < 0 || commentPage < 0) return "redirect:/account/manage";
 
-        BoardArticleDTO.PagedArticles articles = articleService.searchAllByPages(ArticleSearchMode.ACCOUNT, principal.getName(), command.getArticlePage(), 10);
-        BoardCommentDTO.PagedComments comments = commentService.readCommentsOfAccount(principal.getName(), command.getCommentPage(), 10);
+        BoardArticleDTO.PagedArticles articles = articleService.searchAllByPages(BoardArticleDTO.ArticleSearchMode.ACCOUNT, principal.getName(), articlePage, 10);
+        BoardCommentDTO.PagedComments comments = commentService.readCommentsOfAccount(principal.getName(), commentPage, 10);
         BoardAccountDTO account = accountService.getAccountInformation(principal.getName());
         List<ManagerLevel> accountLevels = accountService.getAccountManagerAuthorities(principal.getName());
 
@@ -194,8 +192,7 @@ public class AccountController {
 
     @GetMapping("/manage/change")
     public String requestChangePersonalInformation(@ModelAttribute("command")
-                                                   @Validated(InfoUpdateRequestValidationGroup.class)
-                                                           InfoUpdateRequestCommand command,
+                                                   @Validated(Update.Request.class) Update command,
                                                    BindingResult bindingResult,
                                                    Principal principal,
                                                    Model model) {
@@ -234,8 +231,7 @@ public class AccountController {
     @PostMapping("/manage/change")
     public String submitChangePersonalInformation(Model model,
                                                   @ModelAttribute("command")
-                                                  @Validated(InfoUpdateSubmitValidationGroup.class)
-                                                          InfoUpdateRequestCommand command,
+                                                  @Validated(Update.Submit.class) Update command,
                                                   BindingResult bindingResult,
                                                   Principal principal){
         if (bindingResult.hasErrors()) {

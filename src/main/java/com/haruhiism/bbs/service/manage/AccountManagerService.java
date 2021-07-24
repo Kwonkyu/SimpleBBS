@@ -1,11 +1,12 @@
 package com.haruhiism.bbs.service.manage;
 
-import com.haruhiism.bbs.domain.AccountSearchMode;
 import com.haruhiism.bbs.domain.ManagerLevel;
-import com.haruhiism.bbs.domain.dto.BoardAccountDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.haruhiism.bbs.domain.dto.BoardAccountDTO.*;
+import static com.haruhiism.bbs.command.manage.AccountLevelManagementCommand.*;
 
 public interface AccountManagerService {
 
@@ -26,9 +27,9 @@ public interface AccountManagerService {
      * Grant/revoke user's manager level.
      * @param userId User's id.
      * @param level Manager level.
-     * @param enable true if grant, false if revoke.
+     * @param operation grant or revoke.
      */
-    void changeManagerLevel(String userId, ManagerLevel level, boolean enable);
+    void changeManagerLevel(String userId, ManagerLevel level, LevelOperation operation);
 
     /**
      * Read accounts with paging.
@@ -38,7 +39,7 @@ public interface AccountManagerService {
      * @param to LocalDateTime search constraints to.
      * @return BoardAccountDTO.PagedAccounts object containing accounts.
      */
-    BoardAccountDTO.PagedAccounts readAccountsPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    PagedAccounts readAccountsPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     /**
      * Search accounts with paging.
@@ -50,7 +51,7 @@ public interface AccountManagerService {
      * @param to LocalDateTime search constraints to.
      * @return BoardAccountDTO.PagedAccounts object containing accounts.
      */
-    BoardAccountDTO.PagedAccounts searchAccountsPage(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    PagedAccounts searchAccountsPage(AccountSearchMode mode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     /**
      * Invalidate accounts.

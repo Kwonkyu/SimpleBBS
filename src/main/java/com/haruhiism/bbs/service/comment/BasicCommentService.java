@@ -1,6 +1,5 @@
 package com.haruhiism.bbs.service.comment;
 
-import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
 import com.haruhiism.bbs.domain.entity.BoardAccount;
 import com.haruhiism.bbs.domain.entity.BoardArticle;
 import com.haruhiism.bbs.domain.entity.BoardComment;
@@ -17,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.haruhiism.bbs.service.RepositoryUtility.*;
+import static com.haruhiism.bbs.domain.dto.BoardCommentDTO.*;
 
 
 @Service
@@ -38,7 +38,7 @@ public class BasicCommentService implements CommentService {
     }
 
     @Override
-    public long createComment(BoardCommentDTO commentDTO) {
+    public long createComment(Submit commentDTO) {
         commentDTO.encodePassword(passwordEncoder);
         BoardArticle article = findArticleById(articleRepository, commentDTO.getArticleId());
         BoardComment comment = new BoardComment(article, commentDTO);
@@ -47,7 +47,7 @@ public class BasicCommentService implements CommentService {
     }
 
     @Override
-    public long createComment(BoardCommentDTO commentDTO, String userId) {
+    public long createComment(Submit commentDTO, String userId) {
         commentDTO.encodePassword(passwordEncoder, UUID.randomUUID().toString());
         BoardAccount account = findAccountByUserId(accountRepository, userId);
         BoardArticle article = findArticleById(articleRepository, commentDTO.getArticleId());
@@ -58,40 +58,41 @@ public class BasicCommentService implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentDTO.PagedComments readArticleCommentsPaged(long articleID, int pageNum, int pageSize){
+    public PagedComments readArticleCommentsPaged(long articleID, int pageNum, int pageSize){
         Page<BoardComment> boardComments = findCommentsByArticle(
                 commentRepository,
                 findArticleById(articleRepository, articleID),
                 pageNum, pageSize);
 
-        return new BoardCommentDTO.PagedComments(boardComments);
+        return new PagedComments(boardComments);
     }
 
     @Override
-    public BoardCommentDTO.PagedComments readCommentsOfAccount(String userId, int pageNum, int pageSize) {
+    public PagedComments readCommentsOfAccount(String userId, int pageNum, int pageSize) {
         Page<BoardComment> comments = findCommentsByAccount(
                 commentRepository,
                 findAccountByUserId(accountRepository, userId),
                 pageNum, pageSize);
 
-        return new BoardCommentDTO.PagedComments(comments);
+        return new PagedComments(comments);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BoardCommentDTO readComment(long commentId) {
+    public Read readComment(long commentId) {
         BoardComment boardComment = findCommentById(commentRepository, commentId);
         if(boardComment.isDeleted()){
             throw new NoCommentFoundException();
         }
 
-        return new BoardCommentDTO(boardComment);
+        return new Read(boardComment);
     }
 
     @Override
-    public void deleteComment(long commentId) {
+    public long deleteComment(long commentId) {
         BoardComment comment = findCommentById(commentRepository, commentId);
         comment.delete();
+        return comment.getBoardArticle().getId();
     }
 
 }

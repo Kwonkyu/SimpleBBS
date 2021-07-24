@@ -1,6 +1,5 @@
 package com.haruhiism.bbs.exception;
 
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -12,14 +11,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @ControllerAdvice
 @Slf4j
 public class CommonExceptionHandler {
-
-    @ExceptionHandler(AuthenticationFailedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public String authenticationFailed(Model model, AuthenticationFailedException exception) {
-        model.addAttribute("errorTitle", exception.errorTitle);
-        model.addAttribute("errorDescription", exception.errorDescription);
-        return "error/request-failed";
-    }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)

@@ -1,10 +1,9 @@
 package com.haruhiism.bbs.service.manage;
 
-import com.haruhiism.bbs.domain.ArticleSearchMode;
-import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.haruhiism.bbs.domain.dto.BoardArticleDTO.*;
 
 public interface ArticleManagerService {
 
@@ -35,7 +34,7 @@ public interface ArticleManagerService {
      * @param to LOcalDateTime constraints to.
      * @return BoardArticleDTO.PagedArticles object containing articles.
      */
-    BoardArticleDTO.PagedArticles readArticlesPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    PagedArticles readArticlesPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     /**
      * Search articles with paging.
@@ -47,7 +46,7 @@ public interface ArticleManagerService {
      * @param to LOcalDateTime search constraints to.
      * @return BoardArticleDTO.PagedArticles object containing searched articles.
      */
-    BoardArticleDTO.PagedArticles searchArticlesPage(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    PagedArticles searchArticlesPage(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     /**
      * Delete articles.

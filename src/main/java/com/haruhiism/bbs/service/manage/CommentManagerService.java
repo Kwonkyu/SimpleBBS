@@ -1,10 +1,9 @@
 package com.haruhiism.bbs.service.manage;
 
-import com.haruhiism.bbs.domain.CommentSearchMode;
-import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.haruhiism.bbs.domain.dto.BoardCommentDTO.*;
 
 public interface CommentManagerService {
 
@@ -33,7 +32,7 @@ public interface CommentManagerService {
      * @param to LocalDateTime constraints to.
      * @return BoardCommentDTO.PagedComments object containing comments.
      */
-    BoardCommentDTO.PagedComments readCommentsPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    PagedComments readCommentsPage(int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     /**
      * Search comments with paging.
@@ -45,7 +44,7 @@ public interface CommentManagerService {
      * @param to LocalDateTime constraints to.
      * @return BoardCommentDTO.PagedComments object containing searched comments.
      */
-    BoardCommentDTO.PagedComments searchCommentsPage(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
+    PagedComments searchCommentsPage(CommentSearchMode commentSearchMode, String keyword, int pageNum, int pageSize, LocalDateTime from, LocalDateTime to);
 
     /**
      * Delete comments.
