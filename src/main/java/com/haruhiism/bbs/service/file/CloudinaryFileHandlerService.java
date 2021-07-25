@@ -31,8 +31,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Profile("publish")
 public class CloudinaryFileHandlerService implements FileHandlerService{
-
-//    private final Path temporaryFilePath = Paths.get("C:\\Temp\\SimpleBBS\\temps");
+;
     private final Path temporaryFilePath;
     private final FileValidator fileValidator;
     private final ResourceRepository resourceRepository;

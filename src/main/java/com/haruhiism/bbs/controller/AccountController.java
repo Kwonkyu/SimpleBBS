@@ -10,6 +10,8 @@ import com.haruhiism.bbs.service.account.AccountService;
 import com.haruhiism.bbs.service.article.ArticleService;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
@@ -35,6 +37,8 @@ public class AccountController {
     private final AccountService accountService;
     private final AccountRecoveryService accountRecoveryService;
     private final CommentService commentService;
+
+    private final AuthenticationManager authenticationManager;
 
 
     @GetMapping("/register")
@@ -233,6 +237,7 @@ public class AccountController {
                                                   @ModelAttribute("command")
                                                   @Validated(Update.Submit.class) Update command,
                                                   BindingResult bindingResult,
+                                                  @CurrentSecurityContext SecurityContext context,
                                                   Principal principal){
         if (bindingResult.hasErrors()) {
             model.addAttribute("previousValue", command.getPrevious());
@@ -246,6 +251,9 @@ public class AccountController {
         }
 
         accountService.updateAccount(principal.getName(), command.getMode(), command.getUpdated());
+
+        context.setAuthentication(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                principal.getName(), command.getAuth())));
         return "redirect:/account/manage";
     }
 }
