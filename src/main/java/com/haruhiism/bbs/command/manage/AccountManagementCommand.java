@@ -12,9 +12,13 @@ import java.util.List;
 public class AccountManagementCommand {
 
     @NotNull(message = "Account management operation should not be null.")
-    AccountManagementOperation operation;
+    AccountManagementCommand.Operation operation;
 
     List<Long> target = new ArrayList<>();
 
     String keyword;
+
+    public enum Operation {
+        CHANGE_PASSWORD, INVALIDATE, RESTORE, CHANGE_USERNAME
+    }
 }

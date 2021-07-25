@@ -9,14 +9,11 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class DateBasedListCommand extends ListCommand{
-
-    private String keyword = "";
-
     private boolean betweenDates = false;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate from = LocalDate.of(1970,1,1);
+    private LocalDate from = LocalDate.of(1970, 1, 1);
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate to = LocalDate.now();
+    private LocalDate to = LocalDate.now().plusDays(1);
 }

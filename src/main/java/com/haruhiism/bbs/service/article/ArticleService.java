@@ -1,28 +1,66 @@
 package com.haruhiism.bbs.service.article;
 
-import com.haruhiism.bbs.domain.ArticleSearchMode;
-import com.haruhiism.bbs.domain.dto.AuthDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticleDTO;
-import com.haruhiism.bbs.domain.dto.BoardArticlesDTO;
-
-import java.util.Optional;
+import static com.haruhiism.bbs.domain.dto.BoardArticleDTO.*;
 
 public interface ArticleService {
 
-    Long createArticle(BoardArticleDTO article, AuthDTO authDTO);
+    /**
+     * Check article authorization with given password
+     * @param articleId Article's id.
+     * @param password Password to compare.
+     * @return boolean value indicating authorized or not.
+     */
+    boolean authorizeAnonymousArticleAccess(long articleId, String password);
 
-    BoardArticleDTO readArticle(Long articleId);
+    /**
+     * Create article with anonymous user.
+     * @param article BoardArticleDTO object containing article information.
+     * @return id of created article.
+     */
+    long createArticle(Submit article);
 
-    BoardArticlesDTO readAllByPages(int pageNum, int pageSize);
+    /**
+     * Create article with given user.
+     * @param article BoardArticleDTO object containing article information.
+     * @param userId User's id.
+     * @return id of created article.
+     */
+    long createArticle(Submit article, String userId);
 
-    BoardArticlesDTO searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize);
+    /**
+     * Read article.
+     * @param articleId Article's id.
+     * @return BoardArticleDTO object containing article information.
+     */
+    Read readArticle(long articleId);
 
-    BoardArticlesDTO readArticlesOfAccount(String userId, int pageNum, int pageSize);
+    /**
+     * Read articles by page.
+     * @param pageNum Page number.
+     * @param pageSize Page size.
+     * @return BoardArticleDTO.PagedArticles object containing articles information.
+     */
+    PagedArticles readAllByPages(int pageNum, int pageSize);
 
-    void updateArticle(BoardArticleDTO article, AuthDTO authDTO);
+    /**
+     * Search articles by page.
+     * @param articleSearchMode Search mode.
+     * @param keyword Search keyword.
+     * @param pageNum Page number.
+     * @param pageSize Page size.
+     * @return BoardArticleDTO.PagedArticles object containing searched articles information.
+     */
+    PagedArticles searchAllByPages(ArticleSearchMode articleSearchMode, String keyword, int pageNum, int pageSize);
 
-    void deleteArticle(Long articleId, AuthDTO authDTO);
+    /**
+     * Update article.
+     * @param article BoardArticleDTO object containing updated article's information.
+     */
+    void updateArticle(Submit article);
 
-    Optional<BoardArticleDTO> authArticleEdit(Long articleId, AuthDTO articleAuthDTO);
-
+    /**
+     * Delete article.
+     * @param articleId article's id.
+     */
+    void deleteArticle(long articleId);
 }

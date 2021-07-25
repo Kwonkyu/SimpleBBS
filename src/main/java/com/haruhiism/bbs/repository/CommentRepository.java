@@ -23,7 +23,7 @@ public interface CommentRepository extends CrudRepository<BoardComment, Long> {
     Page<BoardComment> findAllByBoardAccount(BoardAccount account, Pageable pageable);
     Page<BoardComment> findAllByBoardAccountAndDeletedFalse(BoardAccount account, Pageable pageable);
 
-    Page<BoardComment> findAllByCreatedDateTimeBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<BoardComment> findAllByCreatedDateTimeBetweenOrderByIdDesc(LocalDateTime from, LocalDateTime to, Pageable pageable);
     Page<BoardComment> findAllByWriterContainingAndCreatedDateTimeBetween(String writer, LocalDateTime from, LocalDateTime to, Pageable pageable);
     Page<BoardComment> findAllByContentContainingAndCreatedDateTimeBetween(String content, LocalDateTime from, LocalDateTime to, Pageable pageable);
     Page<BoardComment> findAllByBoardArticleAndCreatedDateTimeBetween(BoardArticle boardArticle, LocalDateTime from, LocalDateTime to, Pageable pageable);

@@ -6,7 +6,7 @@
 </head>
 <body>
 <div>
-    <form method="post" action="/board/edit/submit" enctype="multipart/form-data" th:object="${article}">
+    <form method="post" th:action="@{/board/edit/submit}" enctype="multipart/form-data" th:object="${article}">
         <input type="hidden" name="id" th:value="*{id}">
         <table>
             <tr>
@@ -24,7 +24,7 @@
                     <span>PASSWORD</span>
                 </td>
                 <td>
-                    <input type="hidden" name="password" th:value="${password}">
+                    <input type="hidden" name="password" th:value="*{password}">
                 </td>
             </tr>
 

@@ -5,7 +5,7 @@
     <title>SimpleBBS</title>
 </head>
 <body>
-<form action="#" method="post" th:object="${command}">
+<form th:action="@{#}" method="post" th:object="${command}">
     <input type="hidden" name="id" th:value="*{id}">
     <table>
         <tr>

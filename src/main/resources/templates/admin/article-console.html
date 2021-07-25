@@ -47,7 +47,7 @@
 
   <div id="articles">
     <div>
-      <form action="#" method="post">
+      <form th:action="@{#}" method="post">
         <table>
           <tr>
             <th>ID</th>
@@ -69,7 +69,7 @@
             <td th:text="*{userId}">ACCOUNT</td>
             <td><a th:text="*{title}" th:href="@{/board/read(id=*{id})}">TITLE</a></td>
             <td th:text="*{content}">CONTENT</td>
-            <td th:text="${commentSizes.get(state.index)}">0</td>
+            <td th:text="*{comments}">0</td>
             <td th:text="*{createdDate}">1970-01-01</td>
             <td th:text="*{modifiedDate}">1970-01-01</td>
             <td th:text="*{hit}">0</td>
@@ -107,7 +107,7 @@
     <br>
 
     <div>
-      <form action="#" method="get">
+      <form th:action="@{#}" method="get">
         <table>
           <tr>
             <td>
@@ -125,7 +125,7 @@
               <input name="keyword" type="text" th:value="${keyword}" required>
             </td>
             <td>
-              <a href="/manage/console/article">CLEAR</a>
+              <a th:href="@{/manage/console/article}">CLEAR</a>
             </td>
           </tr>
 

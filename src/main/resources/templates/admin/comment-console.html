@@ -47,7 +47,7 @@
 
   <div id="comments">
     <div>
-      <form action="#" method="post">
+      <form th:action="@{#}" method="post">
         <table>
         <tr>
           <th>ID</th>
@@ -100,7 +100,7 @@
       <br>
 
       <div>
-        <form action="#" method="get">
+        <form th:action="@{#}" method="get">
           <table>
             <tr>
               <td>
@@ -116,7 +116,7 @@
                 <input name="keyword" type="text" th:value="${keyword}">
               </td>
               <td>
-                <a href="/manage/console/comment">CLEAR</a>
+                <a th:href="@{/manage/console/comment}">CLEAR</a>
               </td>
             </tr>
 

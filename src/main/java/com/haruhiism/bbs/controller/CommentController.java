@@ -1,27 +1,20 @@
 package com.haruhiism.bbs.controller;
 
-import com.haruhiism.bbs.command.comment.CommentRemoveRequestCommand;
-import com.haruhiism.bbs.command.comment.CommentRemoveRequestValidationGroup;
-import com.haruhiism.bbs.command.comment.CommentRemoveSubmitValidationGroup;
-import com.haruhiism.bbs.command.comment.CommentSubmitCommand;
-import com.haruhiism.bbs.domain.authentication.LoginSessionInfo;
-import com.haruhiism.bbs.domain.dto.AuthDTO;
-import com.haruhiism.bbs.domain.dto.BoardCommentDTO;
-import com.haruhiism.bbs.exception.auth.AuthenticationFailedException;
 import com.haruhiism.bbs.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
+import java.security.Principal;
+
+import static com.haruhiism.bbs.domain.dto.BoardCommentDTO.*;
+
 
 @Controller
 @RequestMapping("/comment")
@@ -32,69 +25,60 @@ public class CommentController {
 
 
     @PostMapping("/create")
-    public String createComment(@Valid CommentSubmitCommand command,
+    public String createComment(@Validated(Submit.Create.class) Submit command,
                                 BindingResult bindingResult,
-                                HttpServletRequest request) {
+                                @CurrentSecurityContext SecurityContext context) {
 
         if (bindingResult.hasErrors()) {
-            return "redirect:/board/read?id=" + command.getArticleID();
+            return "redirect:/board/read?id=" + command.getArticleId();
         }
 
-        LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-
-        commentService.createComment(BoardCommentDTO.builder()
-                .articleId(command.getArticleID())
+        Submit dto = Submit.builder()
+                .articleId(command.getArticleId())
                 .writer(command.getWriter())
                 .password(command.getPassword())
-                .content(command.getContent()).build(),
-                AuthDTO.builder().loginSessionInfo(loginSessionInfo).build());
+                .content(command.getContent()).build();
 
-        return String.format("redirect:/board/read?id=%d", command.getArticleID());
+        if(context.getAuthentication() instanceof AnonymousAuthenticationToken) {
+            commentService.createComment(dto);
+        } else {
+            commentService.createComment(dto, context.getAuthentication().getName());
+        }
+
+        return "redirect:/board/read?id=" + command.getArticleId();
     }
 
 
     @GetMapping("/remove")
-    public String requestRemoveComment(@ModelAttribute("command") @Validated(CommentRemoveRequestValidationGroup.class) CommentRemoveRequestCommand command,
+    public String requestRemoveComment(@ModelAttribute("command") @Validated(Authorize.Request.class) Authorize command,
                                        BindingResult bindingResult,
-                                       HttpServletRequest request){
+                                       Principal principal){
 
-        if (bindingResult.hasErrors()) {
-            return "redirect:/board/read?id=" + command.getId();
+        if (bindingResult.hasErrors()) return "redirect:/board/list";
+
+        Read comment = commentService.readComment(command.getId());
+        if(comment.isAnonymous()) return "comment/removeRequest";
+        if(principal != null && comment.getUserId().equals(principal.getName())) {
+            commentService.deleteComment(command.getId());
         }
 
-        BoardCommentDTO commentDTO = commentService.readComment(command.getId());
-        if (!commentDTO.getUserId().isBlank()) {
-            LoginSessionInfo loginSessionInfo = getLoginSessionInfoFromHttpSession(request.getSession(false));
-            if(loginSessionInfo != null) {
-                commentService.deleteComment(command.getId(), AuthDTO.builder().loginSessionInfo(loginSessionInfo).build());
-            }
-
-            return "redirect:/board/read?id=" + commentDTO.getArticleId();
-        } else {
-            return "comment/removeRequest";
-        }
+        return "redirect:/board/read?id=" + comment.getArticleId();
     }
 
     @PostMapping("/remove")
-    public String submitRemoveComment(@ModelAttribute("command") @Validated(CommentRemoveSubmitValidationGroup.class) CommentRemoveRequestCommand command,
+    public String submitRemoveComment(@ModelAttribute("command") @Validated(Authorize.Submit.class) Authorize command,
                                       BindingResult bindingResult) {
 
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             return "comment/removeRequest";
         }
 
-        try {
-            BoardCommentDTO commentDTO = commentService.readComment(command.getId());
-            commentService.deleteComment(command.getId(), AuthDTO.builder().rawPassword(command.getPassword()).build());
-            return "redirect:/board/read?id=" + commentDTO.getArticleId();
-        } catch (AuthenticationFailedException exception) {
+        if (commentService.authorizeCommentAccess(command.getId(), command.getPassword())) {
+            long article = commentService.deleteComment(command.getId());
+            return "redirect:/board/read?id=" + article;
+        } else {
             bindingResult.addError(new FieldError("command", "password", "Password not matched."));
             return "comment/removeRequest";
         }
-    }
-
-    private LoginSessionInfo getLoginSessionInfoFromHttpSession(HttpSession session) {
-        if(session == null) return null;
-        return (LoginSessionInfo) session.getAttribute("loginSessionInfo");
     }
 }

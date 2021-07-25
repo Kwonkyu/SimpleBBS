@@ -9,12 +9,12 @@
 
 <h1>ACCOUNT WITHDRAWAL</h1>
 
-<form action="/account/withdraw" method="post" th:object="${command}">
+<form th:action="@{/account/withdraw}" method="post">
     <table>
         <tr>
             <td><label for="password-form">PASSWORD</label></td>
             <td><input id="password-form" name="password" type="password" required></td>
-            <td><span th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password Error Message</span></td>
+            <td><span th:if="${#fields.hasErrors('password')}" th:errors="${password}">Password Error Message</span></td>
         </tr>
         <tr>
             <td><input type="submit" value="Withdraw"></td>

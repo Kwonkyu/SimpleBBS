@@ -27,12 +27,12 @@
     </style>
 </head>
 <body>
-<form action="/account/login" method="post" th:object="${command}">
+<form th:action="@{/account/login}" method="post" th:object="${command}">
     <table>
         <tr>
             <td><label for="form-id">ID</label></td>
-            <td><input id="form-id" type="text" name="userid" th:value="*{userid}" required></td>
-            <td th:if="${#fields.hasErrors('userid')}"><span th:errors="*{userid}">UserId Error Message</span></td>
+            <td><input id="form-id" type="text" name="userId" th:value="*{userId}" required></td>
+            <td th:if="${#fields.hasErrors('userId')}"><span th:errors="*{userId}">UserId Error Message</span></td>
         </tr>
         <tr>
             <td><label for="form-password">PASSWORD</label></td>
@@ -43,7 +43,8 @@
             <td colspan="2"><input type="submit" value="LOGIN"></td>
         </tr>
         <tr>
-            <td colspan="2"><a href="/account/recovery">ACCOUNT RESTORE</a></td>
+            <td><a href="/account/recovery">ACCOUNT RESTORE</a></td>
+            <td><a href="/account/register">REGISTER</a></td>
         </tr>
     </table>
 </form>

@@ -9,7 +9,7 @@
 
 <h1 th:text="|CHANGE ACCOUNT INFORMATION - ${command.mode}|"></h1>
 
-<form action="/account/manage/change" method="post" th:object="${command}">
+<form th:action="@{/account/manage/change}" method="post" th:object="${command}">
     <table>
         <input type="hidden" name="mode" th:value="*{mode}" readonly required>
         <tr>

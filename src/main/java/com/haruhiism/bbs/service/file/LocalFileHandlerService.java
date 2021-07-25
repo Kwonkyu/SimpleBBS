@@ -29,14 +29,15 @@ import java.util.stream.Collectors;
 @Profile("!publish")
 public class LocalFileHandlerService implements FileHandlerService {
 
-    private final Path uploadedFilePath = Paths.get("C:\\Temp\\SimpleBBS\\uploads");
+    private final Path uploadedFilePath;
     private final FileValidator fileValidator;
     private final ResourceRepository resourceRepository;
     private final ArticleRepository articleRepository;
 
     public LocalFileHandlerService(FileValidator fileValidator,
                                    ResourceRepository resourceRepository,
-                                   ArticleRepository articleRepository) {
+                                   ArticleRepository articleRepository) throws IOException {
+        uploadedFilePath = Files.createTempDirectory("SimpleBBS");
         this.fileValidator = fileValidator;
         this.resourceRepository = resourceRepository;
         this.articleRepository = articleRepository;

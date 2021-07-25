@@ -30,22 +30,20 @@
                 <span th:text="${level}">LEVEL</span>
             </td>
             <td>
-                <form method="post" action="#">
-<!--                    <input type="hidden" name="id" th:value="${command.id}">-->
+                <form method="post" th:action="@{#}">
                     <input type="hidden" name="levelName" th:value="${level}">
                     <input type="submit" name="operation" value="GRANT" th:disabled="${accountLevels.contains(level)}">
                 </form>
             </td>
             <td>
-                <form method="post" action="#">
-<!--                    <input type="hidden" name="id" th:value="${command.id}">-->
+                <form method="post" th:action="@{#}">
                     <input type="hidden" name="levelName" th:value="${level}">
                     <input type="submit" name="operation" value="REVOKE" th:disabled="${!accountLevels.contains(level)}">
                 </form>
             </td>
         </tr>
     </table>
-    <a href="/manage/console/account">BACK</a>
+    <a th:href="@{/manage/console/account}">BACK</a>
 </div>
 
 </body>

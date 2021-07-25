@@ -30,7 +30,7 @@
 <div>
   <h1>ACCOUNT RECOVERY</h1>
   <h3>Type account's ID to recover</h3>
-  <form action="/account/recovery" method="post" th:object="${command}">
+  <form th:action="@{/account/recovery}" method="post" th:object="${command}">
     <label for="form-id">ID</label>
     <input id="form-id" name="userId" type="text" th:value="*{userId}" required>
     <input type="submit">

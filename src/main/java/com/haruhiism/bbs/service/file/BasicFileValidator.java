@@ -1,6 +1,5 @@
 package com.haruhiism.bbs.service.file;
 
-import com.haruhiism.bbs.service.DataEncoder.DataEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,8 +12,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BasicFileValidator implements FileValidator {
-
-    private final DataEncoder dataEncoder;
 
     private String getExtension(String filename){
         if(filename == null || filename.isBlank() || !filename.contains(".")) return "";

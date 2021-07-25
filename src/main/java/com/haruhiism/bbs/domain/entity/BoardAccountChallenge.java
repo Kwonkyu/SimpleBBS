@@ -1,6 +1,7 @@
 package com.haruhiism.bbs.domain.entity;
 
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ public class BoardAccountChallenge {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOARD_ACCOUNT_CHALLENGE_ID")
-    private Long id;
+    private long id;
 
     @Column(name = "RECOVERY_THRESHOLD")
     private int count = 0;
@@ -34,5 +35,7 @@ public class BoardAccountChallenge {
         return count <= 5;
     }
 
-
+    public boolean status() {
+        return count <= 5;
+    }
 }
