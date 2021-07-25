@@ -78,7 +78,7 @@ public class BoardCommentDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Submit {
-        @Positive(message = "Comment ID cannot be negative or zero.", groups = Remove.class)
+        @Positive(message = "Comment ID cannot be negative or zero.")
         private long id;
 
         @Positive(message = "Article ID cannot be negative or zero.", groups = Create.class)
@@ -88,8 +88,8 @@ public class BoardCommentDTO {
         @Length(max = 64, message = "Writer cannot exceeds 64 characters.", groups = Create.class)
         private String writer;
 
-        @NotBlank(message = "Password cannot be empty.", groups = {Create.class, Remove.class})
-        @Length(min = 4, message = "Password should be at least 4 characters.", groups = {Create.class, Remove.class})
+        @NotBlank(message = "Password cannot be empty.", groups = {Create.class})
+        @Length(min = 4, message = "Password should be at least 4 characters.", groups = {Create.class})
         private String password;
 
         @NotBlank(message = "Content cannot be empty.", groups = Create.class)
@@ -97,7 +97,6 @@ public class BoardCommentDTO {
         private String content;
 
         public interface Create {}
-        public interface Remove {}
 
         public void encodePassword(PasswordEncoder encoder) {
             this.password = encoder.encode(password);

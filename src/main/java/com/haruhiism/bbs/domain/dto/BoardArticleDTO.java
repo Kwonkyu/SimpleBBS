@@ -86,15 +86,15 @@ public class BoardArticleDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Submit {
-        @Positive(message = "Article ID cannot be negative or zero.", groups = {Update.class, Remove.class})
+        @Positive(message = "Article ID cannot be negative or zero.", groups = {Update.class})
         private long id;
 
         @NotBlank(message = "Writer cannot be blank.", groups = {Create.class, Update.class})
         @Length(max = 64, message = "Writer cannot exceeds 64 characters.", groups = {Create.class, Update.class})
         private String writer;
 
-        @NotBlank(message = "Password cannot be blank.", groups = {Create.class, Update.class, Remove.class})
-        @Length(min = 4, message = "Password should be at least 4 characters.", groups = {Create.class, Update.class, Remove.class})
+        @NotBlank(message = "Password cannot be blank.", groups = {Create.class, Update.class})
+        @Length(min = 4, message = "Password should be at least 4 characters.", groups = {Create.class, Update.class})
         private String password;
 
         @NotBlank(message = "Title cannot be blank.", groups = {Create.class, Update.class})
@@ -110,7 +110,6 @@ public class BoardArticleDTO {
 
         public interface Create {}
         public interface Update {}
-        public interface Remove {}
 
         public void encodePassword(PasswordEncoder encoder) {
             this.password = encoder.encode(password);
